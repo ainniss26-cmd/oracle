@@ -8,7 +8,7 @@ A browser-based, terminal-aesthetic hacking game where players solve real comput
 ## Play It
 Open `index.html` in any browser. No install, no dependencies.
 
-**Live via GitHub Pages:** `https://<your-username>.github.io/netbreaker`
+**Live via GitHub Pages:** `https://ainniss26-cmd.github.io/netbreaker`
 
 ---
 
