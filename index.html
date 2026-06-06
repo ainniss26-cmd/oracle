@@ -961,7 +961,11 @@ input.addEventListener('keydown', e => {
 
 // Click anywhere to refocus input (except help overlay / intro)
 document.addEventListener('click', e => {
-  if (!e.target.closest('#help-overlay') && !e.target.closest('#intro-overlay')) {
+  if (
+    !e.target.closest('#help-overlay') &&
+    !e.target.closest('#intro-overlay') &&
+    !e.target.closest('#puzzle-panel')
+  ) {
     input.focus();
   }
 });
