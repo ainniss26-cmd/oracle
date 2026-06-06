@@ -959,7 +959,7 @@ input.addEventListener('keydown', e => {
   }
 });
 
-// Click anywhere to refocus input (except help overlay / intro)
+// Click anywhere to refocus terminal input, but not when clicking puzzle panel, help, or intro
 document.addEventListener('click', e => {
   if (
     !e.target.closest('#help-overlay') &&
