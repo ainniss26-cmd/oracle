@@ -8,195 +8,113 @@
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-
   :root {
-    --green: #00ff41;
-    --green-dim: #00aa2a;
-    --green-dark: #003310;
-    --green-mid: #00cc33;
-    --red: #ff3333;
-    --amber: #ffaa00;
-    --blue: #00aaff;
-    --bg: #0a0f0a;
-    --bg2: #0d140d;
-    --border: #003a00;
-    --text: #00ff41;
+    --green: #00ff41; --green-dim: #00aa2a; --green-dark: #003310; --green-mid: #00cc33;
+    --red: #ff3333; --amber: #ffaa00; --blue: #00aaff;
+    --bg: #0a0f0a; --bg2: #0d140d; --border: #003a00;
     --text-dim: #007a1a;
-    --font-mono: 'Share Tech Mono', monospace;
-    --font-vt: 'VT323', monospace;
+    --font-mono: 'Share Tech Mono', monospace; --font-vt: 'VT323', monospace;
   }
+  html, body { height: 100%; overflow: hidden; }
+  body { background: var(--bg); color: var(--green); font-family: var(--font-mono); font-size: 13px; line-height: 1.5; display: flex; flex-direction: column; }
+  #scanline { position: fixed; top:0;left:0;right:0;bottom:0; background: repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px); pointer-events:none; z-index:9999; }
 
-  html, body {
-    height: 100%;
-    overflow: hidden;
-  }
+  /* HEADER */
+  .header { border-bottom:1px solid var(--border); padding:6px 12px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0; background:var(--bg2); }
+  .header-title { font-family:var(--font-vt); font-size:22px; color:var(--green); letter-spacing:4px; }
+  .header-info { display:flex; gap:20px; font-size:11px; color:var(--text-dim); }
+  .header-info span { color:var(--green); }
 
-  body {
-    background: var(--bg);
-    color: var(--green);
-    font-family: var(--font-mono);
-    font-size: 13px;
-    line-height: 1.5;
-    display: flex;
-    flex-direction: column;
-  }
+  /* LAYOUT */
+  #main { display:flex; flex:1; overflow:hidden; }
 
-  #scanline {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
-    pointer-events: none;
-    z-index: 9999;
-  }
+  /* SIDEBAR */
+  #sidebar { width:200px; border-right:1px solid var(--border); padding:10px; overflow-y:auto; flex-shrink:0; background:var(--bg2); }
+  .sidebar-section { margin-bottom:16px; }
+  .sidebar-label { font-size:10px; color:var(--text-dim); letter-spacing:2px; text-transform:uppercase; margin-bottom:6px; border-bottom:1px solid var(--border); padding-bottom:4px; }
+  .mission-item { padding:4px 6px; cursor:pointer; border-radius:2px; font-size:12px; color:var(--text-dim); transition:all 0.15s; }
+  .mission-item.active { color:var(--green); background:var(--green-dark); }
+  .mission-item.locked { color:#003300; cursor:not-allowed; }
+  .mission-item.completed { color:var(--green-dim); }
+  .mission-item.completed::after { content:' ✓'; }
+  .stat-row { display:flex; justify-content:space-between; font-size:11px; margin-bottom:4px; color:var(--text-dim); }
+  .stat-row span { color:var(--green); }
+  .rep-bar { height:4px; background:#001500; border:1px solid var(--border); margin-top:4px; }
+  .rep-fill { height:100%; background:var(--green); transition:width 0.5s; }
 
-  /* ── HEADER ── */
-  .header {
-    border-bottom: 1px solid var(--border);
-    padding: 6px 12px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-shrink: 0;
-    background: var(--bg2);
-  }
-  .header-title { font-family: var(--font-vt); font-size: 22px; color: var(--green); letter-spacing: 4px; }
-  .header-info { display: flex; gap: 20px; font-size: 11px; color: var(--green-dim); }
-  .header-info span { color: var(--green); }
+  /* TERMINAL */
+  #terminal { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+  #output { flex:1; overflow-y:auto; padding:12px; scroll-behavior:smooth; }
+  .line { margin-bottom:2px; white-space:pre-wrap; word-break:break-all; }
+  .line.prompt  { color:var(--green); }
+  .line.info    { color:var(--green-dim); }
+  .line.success { color:var(--green); font-weight:bold; }
+  .line.error   { color:var(--red); }
+  .line.warn    { color:var(--amber); }
+  .line.system  { color:var(--blue); }
+  .line.dim     { color:var(--text-dim); }
+  .line.big     { font-family:var(--font-vt); font-size:20px; color:var(--green); }
+  .line.title   { font-family:var(--font-vt); font-size:16px; color:var(--green-mid); letter-spacing:2px; }
+  #input-row { border-top:1px solid var(--border); padding:8px 12px; display:flex; align-items:center; gap:8px; background:var(--bg2); flex-shrink:0; }
+  #prompt-label { color:var(--text-dim); white-space:nowrap; font-size:13px; }
+  #cmd-input { flex:1; background:transparent; border:none; outline:none; color:var(--green); font-family:var(--font-mono); font-size:13px; caret-color:var(--green); }
 
-  /* ── LAYOUT ── */
-  #main { display: flex; flex: 1; overflow: hidden; }
+  /* PUZZLE PANEL */
+  #puzzle-panel { width:300px; border-left:1px solid var(--border); display:flex; flex-direction:column; overflow:hidden; background:var(--bg2); }
+  .panel-header { padding:8px 12px; border-bottom:1px solid var(--border); font-size:11px; color:var(--text-dim); letter-spacing:2px; text-transform:uppercase; }
+  #puzzle-content { flex:1; overflow-y:auto; padding:14px; }
+  .puzzle-title { font-family:var(--font-vt); font-size:20px; color:var(--green-mid); margin-bottom:6px; }
+  .puzzle-obj-label { font-size:10px; color:var(--text-dim); letter-spacing:2px; text-transform:uppercase; margin-bottom:6px; }
+  .puzzle-desc { font-size:12px; color:var(--green-dim); margin-bottom:14px; line-height:1.7; }
+  .puzzle-submit-hint { font-size:11px; color:var(--text-dim); border:1px solid var(--border); padding:8px 10px; line-height:1.8; }
+  .puzzle-submit-hint span { color:var(--amber); }
+  #progress-bar { height:3px; background:var(--green-dark); margin-bottom:10px; }
+  #progress-fill { height:100%; background:var(--green); transition:width 0.5s; }
+  .success-banner { color:var(--green); text-align:center; padding:12px; border:1px solid var(--green-dim); margin-top:10px; font-family:var(--font-vt); font-size:20px; }
+  .fail-banner { color:var(--red); text-align:center; padding:10px; border:1px solid var(--red); margin-top:10px; font-family:var(--font-vt); font-size:18px; }
+  .timed-header { background:#1a0000; border:1px solid var(--red); padding:8px; margin-bottom:10px; font-family:var(--font-vt); font-size:22px; color:var(--red); text-align:center; }
 
-  /* ── SIDEBAR ── */
-  #sidebar {
-    width: 200px;
-    border-right: 1px solid var(--border);
-    padding: 10px;
-    overflow-y: auto;
-    flex-shrink: 0;
-    background: var(--bg2);
-  }
-  .sidebar-section { margin-bottom: 16px; }
-  .sidebar-label {
-    font-size: 10px; color: var(--text-dim); letter-spacing: 2px;
-    text-transform: uppercase; margin-bottom: 6px;
-    border-bottom: 1px solid var(--border); padding-bottom: 4px;
-  }
-  .mission-item { padding: 4px 6px; cursor: pointer; border-radius: 2px; font-size: 12px; color: var(--text-dim); transition: all 0.15s; }
-  .mission-item.active  { color: var(--green); background: var(--green-dark); }
-  .mission-item.locked  { color: #003300; cursor: not-allowed; }
-  .mission-item.completed { color: var(--green-dim); }
-  .mission-item.completed::after { content: ' ✓'; }
-  .stat-row { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px; color: var(--text-dim); }
-  .stat-row span { color: var(--green); }
-  .rep-bar { height: 4px; background: #001500; border: 1px solid var(--border); margin-top: 4px; }
-  .rep-fill { height: 100%; background: var(--green); transition: width 0.5s; }
+  /* INTRO */
+  #intro-overlay { position:fixed;top:0;left:0;right:0;bottom:0; background:var(--bg); z-index:500; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px; }
+  .intro-ascii { font-family:var(--font-vt); font-size:40px; color:var(--green); text-align:center; letter-spacing:6px; margin-bottom:8px; }
+  .intro-sub { font-size:11px; color:var(--text-dim); letter-spacing:4px; text-align:center; margin-bottom:40px; }
+  .path-cards { display:flex; gap:24px; margin-bottom:30px; }
+  .path-card { border:1px solid var(--border); padding:20px; width:240px; cursor:pointer; transition:all 0.2s; background:var(--bg2); }
+  .path-card:hover { border-color:var(--green-dim); background:var(--green-dark); }
+  .path-icon { font-family:var(--font-vt); font-size:36px; margin-bottom:8px; }
+  .path-name { font-family:var(--font-vt); font-size:22px; color:var(--green); margin-bottom:6px; letter-spacing:2px; }
+  .path-desc { font-size:11px; color:var(--text-dim); line-height:1.6; }
+  .path-card.ghost .path-icon { color:var(--red); }
+  .path-card.sentinel .path-icon { color:var(--blue); }
 
-  /* ── TERMINAL ── */
-  #terminal { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-  #output { flex: 1; overflow-y: auto; padding: 12px; scroll-behavior: smooth; }
-  .line { margin-bottom: 2px; white-space: pre-wrap; word-break: break-all; }
-  .line.prompt  { color: var(--green); }
-  .line.info    { color: var(--green-dim); }
-  .line.success { color: var(--green); font-weight: bold; }
-  .line.error   { color: var(--red); }
-  .line.warn    { color: var(--amber); }
-  .line.system  { color: var(--blue); }
-  .line.dim     { color: var(--text-dim); }
-  .line.big     { font-family: var(--font-vt); font-size: 20px; color: var(--green); }
-  .line.title   { font-family: var(--font-vt); font-size: 16px; color: var(--green-mid); letter-spacing: 2px; }
-  #input-row {
-    border-top: 1px solid var(--border); padding: 8px 12px;
-    display: flex; align-items: center; gap: 8px;
-    background: var(--bg2); flex-shrink: 0;
-  }
-  #prompt-label { color: var(--green-dim); white-space: nowrap; font-size: 13px; }
-  #cmd-input {
-    flex: 1; background: transparent; border: none; outline: none;
-    color: var(--green); font-family: var(--font-mono); font-size: 13px; caret-color: var(--green);
-  }
+  /* HELP */
+  #help-overlay { display:none; position:fixed;top:0;left:0;right:0;bottom:0; background:rgba(0,0,0,0.92); z-index:1000; overflow-y:auto; padding:24px; }
+  .help-inner { max-width:700px; margin:0 auto; border:1px solid var(--border); padding:20px; background:var(--bg2); }
+  .help-title { font-family:var(--font-vt); font-size:28px; color:var(--green); margin-bottom:4px; }
+  .help-sub { color:var(--text-dim); font-size:11px; letter-spacing:2px; margin-bottom:20px; }
+  .help-section { margin-bottom:20px; }
+  .help-section-title { color:var(--green-mid); font-size:13px; letter-spacing:2px; border-bottom:1px solid var(--border); padding-bottom:4px; margin-bottom:10px; text-transform:uppercase; }
+  .help-entry { margin-bottom:12px; }
+  .help-entry-name { color:var(--green); font-size:13px; margin-bottom:2px; }
+  .help-entry-desc { color:var(--text-dim); font-size:12px; line-height:1.6; }
+  .cmd-ref { color:var(--amber); font-size:12px; margin-bottom:2px; }
+  .tag { display:inline-block; font-size:10px; padding:2px 6px; border:1px solid; margin-right:4px; margin-bottom:4px; border-radius:2px; }
+  .tag.ghost { border-color:var(--red); color:var(--red); }
+  .tag.sentinel { border-color:var(--blue); color:var(--blue); }
+  .tag.both { border-color:var(--text-dim); color:var(--text-dim); }
+  .btn { background:transparent; border:1px solid var(--text-dim); color:var(--green); font-family:var(--font-mono); font-size:12px; padding:6px 12px; cursor:pointer; transition:all 0.15s; text-transform:uppercase; letter-spacing:1px; }
+  .btn:hover { background:var(--green-dark); border-color:var(--green); }
 
-  /* ── PUZZLE PANEL ── */
-  #puzzle-panel {
-    width: 340px; border-left: 1px solid var(--border);
-    display: flex; flex-direction: column; overflow: hidden; background: var(--bg2);
-  }
-  .panel-header { padding: 8px 12px; border-bottom: 1px solid var(--border); font-size: 11px; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; }
-  #puzzle-content { flex: 1; overflow-y: auto; padding: 12px; }
-  .puzzle-title { font-family: var(--font-vt); font-size: 18px; color: var(--green-mid); margin-bottom: 8px; }
-  .puzzle-desc { font-size: 12px; color: var(--text-dim); margin-bottom: 12px; line-height: 1.6; }
-  .puzzle-data {
-    background: #040f04; border: 1px solid var(--border); padding: 10px;
-    font-size: 12px; margin-bottom: 12px; color: var(--green-mid);
-    border-radius: 2px; white-space: pre-wrap; word-break: break-all;
-  }
-  .puzzle-input-row { display: flex; gap: 8px; margin-bottom: 8px; }
-  .puzzle-input {
-    flex: 1; background: #040f04; border: 1px solid var(--border);
-    color: var(--green); font-family: var(--font-mono); font-size: 12px; padding: 6px 8px; outline: none;
-  }
-  .puzzle-input:focus { border-color: var(--green-dim); }
-  .btn {
-    background: transparent; border: 1px solid var(--green-dim); color: var(--green);
-    font-family: var(--font-mono); font-size: 12px; padding: 6px 12px; cursor: pointer;
-    transition: all 0.15s; text-transform: uppercase; letter-spacing: 1px;
-  }
-  .btn:hover { background: var(--green-dark); border-color: var(--green); }
-  .hint-text { font-size: 11px; color: var(--text-dim); margin-top: 8px; }
-  .success-banner { color: var(--green); text-align: center; padding: 10px; border: 1px solid var(--green-dim); margin-top: 8px; font-family: var(--font-vt); font-size: 18px; }
-  .fail-banner    { color: var(--red);   text-align: center; padding: 10px; border: 1px solid var(--red);       margin-top: 8px; font-family: var(--font-vt); font-size: 18px; }
-  #progress-bar  { height: 3px; background: var(--green-dark); margin-bottom: 8px; }
-  #progress-fill { height: 100%; background: var(--green); transition: width 0.5s; }
-  .tag { display: inline-block; font-size: 10px; padding: 2px 6px; border: 1px solid; margin-right: 4px; margin-bottom: 6px; border-radius: 2px; }
-  .tag.ghost    { border-color: var(--red);      color: var(--red); }
-  .tag.sentinel { border-color: var(--blue);     color: var(--blue); }
-  .tag.both     { border-color: var(--green-dim); color: var(--green-dim); }
-
-  /* ── INTRO OVERLAY ── */
-  #intro-overlay {
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: var(--bg); z-index: 500;
-    display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px;
-  }
-  .intro-ascii { font-family: var(--font-vt); font-size: 40px; color: var(--green); text-align: center; letter-spacing: 6px; margin-bottom: 8px; }
-  .intro-sub   { font-size: 11px; color: var(--text-dim); letter-spacing: 4px; text-align: center; margin-bottom: 40px; }
-  .path-cards  { display: flex; gap: 24px; margin-bottom: 30px; }
-  .path-card   { border: 1px solid var(--border); padding: 20px; width: 240px; cursor: pointer; transition: all 0.2s; background: var(--bg2); }
-  .path-card:hover   { border-color: var(--green-dim); background: var(--green-dark); }
-  .path-card.selected { border-color: var(--green); background: var(--green-dark); }
-  .path-icon { font-family: var(--font-vt); font-size: 36px; margin-bottom: 8px; }
-  .path-name { font-family: var(--font-vt); font-size: 22px; color: var(--green); margin-bottom: 6px; letter-spacing: 2px; }
-  .path-desc { font-size: 11px; color: var(--text-dim); line-height: 1.6; }
-  .path-card.ghost    .path-icon { color: var(--red); }
-  .path-card.sentinel .path-icon { color: var(--blue); }
-
-  /* ── HELP OVERLAY ── */
-  #help-overlay {
-    display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.92); z-index: 1000; overflow-y: auto; padding: 24px;
-  }
-  .help-inner { max-width: 700px; margin: 0 auto; border: 1px solid var(--border); padding: 20px; background: var(--bg2); }
-  .help-title { font-family: var(--font-vt); font-size: 28px; color: var(--green); margin-bottom: 4px; }
-  .help-sub   { color: var(--text-dim); font-size: 11px; letter-spacing: 2px; margin-bottom: 20px; }
-  .help-section { margin-bottom: 20px; }
-  .help-section-title { color: var(--green-mid); font-size: 13px; letter-spacing: 2px; border-bottom: 1px solid var(--border); padding-bottom: 4px; margin-bottom: 10px; text-transform: uppercase; }
-  .help-entry { margin-bottom: 12px; }
-  .help-entry-name { color: var(--green); font-size: 13px; margin-bottom: 2px; }
-  .help-entry-desc { color: var(--text-dim); font-size: 12px; line-height: 1.6; }
-  .cmd-ref { color: var(--amber); font-size: 12px; margin-bottom: 2px; }
-
-  /* ── SCROLLBARS ── */
-  ::-webkit-scrollbar       { width: 6px; }
-  ::-webkit-scrollbar-track { background: var(--bg); }
-  ::-webkit-scrollbar-thumb { background: var(--border); }
+  /* SCROLLBARS */
+  ::-webkit-scrollbar { width:6px; }
+  ::-webkit-scrollbar-track { background:var(--bg); }
+  ::-webkit-scrollbar-thumb { background:var(--border); }
 </style>
 </head>
 <body>
-
 <div id="scanline"></div>
 
-<!-- ════════════════════════════════════════
-     INTRO / PATH SELECTION
-════════════════════════════════════════ -->
+<!-- INTRO -->
 <div id="intro-overlay">
   <div class="intro-ascii">◢ NETBREAKER ◣</div>
   <div class="intro-sub">TERMINAL HACKING SIMULATION v1.0.0</div>
@@ -206,37 +124,32 @@
       <div class="path-icon">☠</div>
       <div class="path-name">GHOST</div>
       <div class="path-desc">Operate in the shadows. Breach systems, exfiltrate data, cover your tracks. Every target is a puzzle. Every firewall, a challenge.</div>
-      <div style="margin-top:12px;font-size:11px;color:#ff333366;">⚠ Black Hat Operative</div>
+      <div style="margin-top:12px;font-size:11px;color:#ff333355;">⚠ Black Hat Operative</div>
     </div>
     <div class="path-card sentinel" onclick="selectPath('sentinel')">
       <div class="path-icon">◈</div>
       <div class="path-name">SENTINEL</div>
       <div class="path-desc">Defend the grid. Hunt intruders, patch vulnerabilities, protect critical infrastructure. You are the last line of defense.</div>
-      <div style="margin-top:12px;font-size:11px;color:#00aaff66;">◈ Ethical Hacker</div>
+      <div style="margin-top:12px;font-size:11px;color:#00aaff55;">◈ Ethical Hacker</div>
     </div>
   </div>
   <div style="font-size:11px;color:var(--text-dim);text-align:center">Click a path to begin</div>
 </div>
 
-<!-- ════════════════════════════════════════
-     HEADER
-════════════════════════════════════════ -->
+<!-- HEADER -->
 <div class="header">
   <div class="header-title">◢ NETBREAKER ◣</div>
   <div class="header-info">
     PATH: <span id="hdr-path">—</span> &nbsp;|&nbsp;
     MISSION: <span id="hdr-mission">—</span> &nbsp;|&nbsp;
+    DIR: <span id="hdr-dir">~</span> &nbsp;|&nbsp;
     REP: <span id="hdr-rep">0</span> &nbsp;|&nbsp;
     <span style="cursor:pointer;color:var(--amber)" onclick="toggleHelp()">[ MANUAL ]</span>
   </div>
 </div>
 
-<!-- ════════════════════════════════════════
-     MAIN LAYOUT
-════════════════════════════════════════ -->
+<!-- MAIN -->
 <div id="main">
-
-  <!-- SIDEBAR -->
   <div id="sidebar">
     <div class="sidebar-section">
       <div class="sidebar-label">Operative</div>
@@ -249,42 +162,42 @@
       <div id="mission-list"></div>
     </div>
     <div class="sidebar-section">
-      <div class="sidebar-label">Tools</div>
-      <div id="tool-list" style="font-size:11px;color:var(--text-dim);line-height:2">
-        <div>ls, cat, grep</div>
-        <div>decode, crack</div>
-        <div>ping, trace</div>
-        <div>ps, chmod</div>
-        <div>help, man</div>
+      <div class="sidebar-label">Commands</div>
+      <div style="font-size:11px;color:var(--text-dim);line-height:2.1">
+        <div>ls / ls -la</div>
+        <div>cd &lt;dir&gt;</div>
+        <div>cat &lt;file&gt;</div>
+        <div>grep &lt;pat&gt; &lt;file&gt;</div>
+        <div>decode --base64</div>
+        <div>decode --hex</div>
+        <div>ping &lt;ip&gt;</div>
+        <div>ps aux</div>
+        <div>submit &lt;answer&gt;</div>
+        <div>missions / help</div>
       </div>
     </div>
   </div>
 
-  <!-- TERMINAL -->
   <div id="terminal">
     <div id="output"></div>
     <div id="input-row">
-      <div id="prompt-label">ghost@netbreaker:~$</div>
+      <div id="prompt-label">~$</div>
       <input id="cmd-input" type="text" autocomplete="off" spellcheck="false" placeholder="type a command..." />
     </div>
   </div>
 
-  <!-- PUZZLE PANEL -->
   <div id="puzzle-panel">
-    <div class="panel-header">◈ Active Puzzle</div>
+    <div class="panel-header">◈ Mission Objective</div>
     <div id="puzzle-content">
       <div style="color:var(--text-dim);font-size:12px;margin-top:20px;text-align:center">
-        No active puzzle.<br><br>
+        No active mission.<br><br>
         Type <span style="color:var(--green)">missions</span> to begin.
       </div>
     </div>
   </div>
+</div>
 
-</div><!-- /#main -->
-
-<!-- ════════════════════════════════════════
-     HELP / MANUAL OVERLAY
-════════════════════════════════════════ -->
+<!-- HELP OVERLAY -->
 <div id="help-overlay">
   <div class="help-inner">
     <div class="help-title">◢ OPERATOR'S MANUAL ◣</div>
@@ -292,88 +205,89 @@
 
     <div class="help-section">
       <div class="help-section-title">§1 — Terminal Commands</div>
-      <div class="cmd-ref">help / man</div>
-      <div class="help-entry-desc" style="margin-bottom:8px">Open this manual.</div>
       <div class="cmd-ref">missions</div>
       <div class="help-entry-desc" style="margin-bottom:8px">List all missions and their status.</div>
-      <div class="cmd-ref">start &lt;mission-id&gt;</div>
-      <div class="help-entry-desc" style="margin-bottom:8px">Begin a mission (e.g. <code style="color:var(--amber)">start M01</code>).</div>
-      <div class="cmd-ref">ls / ls -la [path]</div>
-      <div class="help-entry-desc" style="margin-bottom:8px">List directory contents. -la reveals hidden files.</div>
+      <div class="cmd-ref">start &lt;id&gt;</div>
+      <div class="help-entry-desc" style="margin-bottom:8px">Begin a mission (e.g. start M01). Loads the mission filesystem.</div>
+      <div class="cmd-ref">ls</div>
+      <div class="help-entry-desc" style="margin-bottom:8px">List files in the current directory.</div>
+      <div class="cmd-ref">ls -la</div>
+      <div class="help-entry-desc" style="margin-bottom:8px">List all files including hidden ones (starting with a dot).</div>
+      <div class="cmd-ref">cd &lt;directory&gt;</div>
+      <div class="help-entry-desc" style="margin-bottom:8px">Change directory. Use cd .. to go up one level.</div>
       <div class="cmd-ref">cat &lt;filename&gt;</div>
-      <div class="help-entry-desc" style="margin-bottom:8px">Read a file's contents.</div>
-      <div class="cmd-ref">grep &lt;pattern&gt; &lt;file&gt;</div>
-      <div class="help-entry-desc" style="margin-bottom:8px">Search for a pattern inside a file.</div>
+      <div class="help-entry-desc" style="margin-bottom:8px">Read and display a file's contents.</div>
+      <div class="cmd-ref">grep &lt;pattern&gt; &lt;filename&gt;</div>
+      <div class="help-entry-desc" style="margin-bottom:8px">Search for a pattern inside a file. Returns matching lines.</div>
       <div class="cmd-ref">decode --base64 &lt;string&gt;</div>
       <div class="help-entry-desc" style="margin-bottom:8px">Decode a Base64-encoded string.</div>
       <div class="cmd-ref">decode --hex &lt;string&gt;</div>
       <div class="help-entry-desc" style="margin-bottom:8px">Decode a hex-encoded string.</div>
-      <div class="cmd-ref">crack --hash &lt;hash&gt;</div>
-      <div class="help-entry-desc" style="margin-bottom:8px">Attempt to crack a password hash using a wordlist.</div>
       <div class="cmd-ref">ping &lt;ip&gt;</div>
-      <div class="help-entry-desc" style="margin-bottom:8px">Ping an IP address.</div>
+      <div class="help-entry-desc" style="margin-bottom:8px">Ping an IP address to check if it is online.</div>
       <div class="cmd-ref">ps aux</div>
-      <div class="help-entry-desc" style="margin-bottom:8px">List all running processes.</div>
+      <div class="help-entry-desc" style="margin-bottom:8px">List all running processes on the current system.</div>
+      <div class="cmd-ref">submit &lt;answer&gt;</div>
+      <div class="help-entry-desc" style="margin-bottom:8px">Submit your answer for the current puzzle (e.g. submit PHANTOM).</div>
       <div class="cmd-ref">clear</div>
       <div class="help-entry-desc" style="margin-bottom:8px">Clear the terminal output.</div>
+      <div class="cmd-ref">help / man</div>
+      <div class="help-entry-desc" style="margin-bottom:8px">Open this manual.</div>
+      <div class="cmd-ref">whoami / uptime / ifconfig</div>
+      <div class="help-entry-desc" style="margin-bottom:8px">System information commands.</div>
     </div>
 
     <div class="help-section">
       <div class="help-section-title">§2 — Puzzle Types</div>
-
       <div class="help-entry">
         <div class="help-entry-name"><span class="tag both">BOTH</span> File Investigation</div>
-        <div class="help-entry-desc">Navigate a fake filesystem with ls and cat. Hidden files start with a dot (.). Use <code style="color:var(--amber)">ls -la</code> to reveal them. Look for unusual sizes, dates, or names.</div>
+        <div class="help-entry-desc">Navigate the filesystem using ls, ls -la, cd, and cat. Hidden files start with a dot — only visible with ls -la.</div>
       </div>
       <div class="help-entry">
         <div class="help-entry-name"><span class="tag both">BOTH</span> Log Analysis</div>
-        <div class="help-entry-desc">Read server logs to identify patterns. Ghost: erase incriminating entries. Sentinel: identify the intruder's IP from timestamps and failed auth patterns.</div>
+        <div class="help-entry-desc">Read log files with cat or search them with grep. Look for repeated failures, unusual IPs, or suspicious timestamps.</div>
       </div>
       <div class="help-entry">
         <div class="help-entry-name"><span class="tag ghost">GHOST</span> Password Cracking</div>
-        <div class="help-entry-desc">Given a hash, find the original password. Try dictionary words, l33tspeak (a→4, e→3, o→0), and appended numbers. Use <code style="color:var(--amber)">crack --hash</code> to try the wordlist.</div>
+        <div class="help-entry-desc">Find the hash file, then use common patterns — dictionary words, l33tspeak (a→4, e→3), appended numbers.</div>
       </div>
       <div class="help-entry">
         <div class="help-entry-name"><span class="tag both">BOTH</span> Decode Messages</div>
-        <div class="help-entry-desc">Intercepted messages may be Base64, hex, Caesar cipher, or binary. Use decode commands or work it out manually.</div>
+        <div class="help-entry-desc">Find encoded files in the filesystem, then use decode --base64 or decode --hex in the terminal to reveal the plaintext.</div>
       </div>
       <div class="help-entry">
         <div class="help-entry-name"><span class="tag both">BOTH</span> Binary Puzzles</div>
-        <div class="help-entry-desc">Convert binary to ASCII. Each group of 8 bits = 1 byte. 01000001 = 65 = 'A'. Read left to right, most significant bit first.</div>
+        <div class="help-entry-desc">Find a binary file with cat. Convert each 8-bit group to ASCII. 01000001 = 65 = A.</div>
       </div>
       <div class="help-entry">
         <div class="help-entry-name"><span class="tag both">BOTH</span> Network Mapping</div>
-        <div class="help-entry-desc">Ghost: find vulnerable nodes (open ports). Sentinel: identify unauthorized hosts. Compare known vs. all active devices.</div>
-      </div>
-      <div class="help-entry">
-        <div class="help-entry-name"><span class="tag both">BOTH</span> Digital Breadcrumbs</div>
-        <div class="help-entry-desc">Follow a trail of clues across logs, files, and DNS records. Each clue leads to the next. Ghost: trace the target. Sentinel: trace the attacker.</div>
+        <div class="help-entry-desc">Use ping on IP addresses found in config files. Find the vulnerable or unauthorized host.</div>
       </div>
       <div class="help-entry">
         <div class="help-entry-name"><span class="tag both">BOTH</span> Process Investigation</div>
-        <div class="help-entry-desc">Use <code style="color:var(--amber)">ps aux</code> to list processes. Look for unusual names, high CPU, or hidden PIDs. Ghost: find the security monitor. Sentinel: find and kill the malicious process.</div>
+        <div class="help-entry-desc">Run ps aux and examine the output carefully. Look for high CPU, suspicious names, or dot-prefixed processes.</div>
       </div>
       <div class="help-entry">
         <div class="help-entry-name"><span class="tag both">BOTH</span> Permissions Puzzle</div>
-        <div class="help-entry-desc">Unix permissions: rwxrwxrwx (owner/group/other). r=4, w=2, x=1. chmod 755 = rwxr-xr-x. Ghost: exploit over-permissioned files. Sentinel: lock them down.</div>
+        <div class="help-entry-desc">Run ls -la to see file permissions. rwxrwxrwx = world-writable = dangerous. Submit the vulnerable file path.</div>
       </div>
       <div class="help-entry">
-        <div class="help-entry-name"><span class="tag both">BOTH</span> Time-Based Puzzles</div>
-        <div class="help-entry-desc">Solve under a countdown. Read before you act. Failed timed puzzles increase detection risk and reduce reputation.</div>
+        <div class="help-entry-name"><span class="tag both">BOTH</span> Digital Breadcrumbs</div>
+        <div class="help-entry-desc">Follow a chain of clues across multiple files. Each cat or grep leads to the next. The final destination is your answer.</div>
       </div>
       <div class="help-entry">
-        <div class="help-entry-name"><span class="tag both">BOTH</span> Error Code Manual</div>
-        <div class="help-entry-desc">Certain error codes reveal exploitable conditions or required patches. Cross-reference the §3 Error Database below.</div>
+        <div class="help-entry-name"><span class="tag both">BOTH</span> Timed Puzzles</div>
+        <div class="help-entry-desc">The clock starts when the puzzle loads. Find and decode the answer before time runs out.</div>
       </div>
     </div>
 
     <div class="help-section">
       <div class="help-section-title">§3 — Error Code Database</div>
       <div style="font-size:12px;color:var(--text-dim);line-height:2.2">
-        <div><span style="color:var(--amber)">ERR_0x4F1</span> — Auth token expired. Re-authentication window: 30s</div>
-        <div><span style="color:var(--amber)">ERR_0x7B3</span> — Buffer overflow detected in service handler</div>
+        <div><span style="color:var(--amber)">ERR_0x4F1</span> — Auth token expired. Re-auth window: 30s</div>
+        <div><span style="color:var(--amber)">ERR_0x7B3</span> — Buffer overflow in service handler</div>
         <div><span style="color:var(--amber)">ERR_0x2A9</span> — Firewall rule conflict. Port 22 state undefined</div>
-        <div><span style="color:var(--amber)">ERR_0x8D0</span> — Log rotation triggered. Old entries may be unindexed</div>
+        <div><span style="color:var(--amber)">ERR_0x8D0</span> — Log rotation triggered. Old entries unindexed</div>
         <div><span style="color:var(--amber)">ERR_0x3C6</span> — Process fork failed. Memory ceiling reached</div>
         <div><span style="color:var(--amber)">ERR_0x1E2</span> — Checksum mismatch on packet 0x44A</div>
         <div><span style="color:var(--red)">ERR_0xF00</span> — CRITICAL: Root escalation attempt logged</div>
@@ -387,173 +301,442 @@
   </div>
 </div>
 
-<!-- ════════════════════════════════════════
-     JAVASCRIPT
-════════════════════════════════════════ -->
 <script>
-const state = {
-  path: null,
-  rep: 0,
-  missions: [
-    { id: 'M01', name: 'Cold Boot',      status: 'locked', puzzles: ['decode','file'] },
-    { id: 'M02', name: 'Deep Trace',     status: 'locked', puzzles: ['log','network'] },
-    { id: 'M03', name: 'Root Access',    status: 'locked', puzzles: ['crack','process','perms'] },
-    { id: 'M04', name: 'Ghost Protocol', status: 'locked', puzzles: ['binary','breadcrumbs'] },
-    { id: 'M05', name: 'Zero Day',       status: 'locked', puzzles: ['timed'] },
-  ],
-  currentMission: null,
-  currentPuzzle: null,
-  puzzleState: {},
-  history: [],
-  histIdx: -1,
+// ═══════════════════════════════════════════════
+//  FILESYSTEM ENGINE
+// ═══════════════════════════════════════════════
+
+// Each mission defines its own filesystem tree.
+// Nodes: { type:'dir'|'file', hidden:bool, perms:string, content:string, children:{} }
+
+const missionFilesystems = {
+
+  // ── M01: Cold Boot ───────────────────────────
+  // Puzzle 1 (decode): find /tmp/message.enc, decode it → PHANTOM / INTRUDER
+  // Puzzle 2 (file):   find hidden .passwd / spot tampered access.log
+  M01: {
+    ghost: {
+      '/': { type:'dir', children:['home','var','tmp','etc'] },
+      '/home': { type:'dir', children:['ghost'] },
+      '/home/ghost': { type:'dir', children:['readme.txt'] },
+      '/home/ghost/readme.txt': { type:'file', perms:'-rw-r--r--', content:'Welcome, operative. Your target system has been partially compromised.\nCheck /tmp for intercepted transmissions.' },
+      '/var': { type:'dir', children:['logs'] },
+      '/var/logs': { type:'dir', children:['access.log'] },
+      '/var/logs/access.log': { type:'file', perms:'-rw-r--r--', content:'2024-01-15 09:00:01 CONNECT 10.0.0.1\n2024-01-15 09:00:44 AUTH admin OK\n2024-01-15 09:12:18 CONNECT 10.0.0.1\n2024-01-15 09:12:55 AUTH admin OK' },
+      '/tmp': { type:'dir', children:['message.enc','drop.txt'] },
+      '/tmp/message.enc': { type:'file', perms:'-rw-r--r--', content:'Intercepted transmission:\nUEhBTlRPTQ==\nEncoding: Base64' },
+      '/tmp/drop.txt': { type:'file', perms:'-rw-rw-rw-', content:'Staging area. Leave exfil files here.' },
+      '/etc': { type:'dir', children:['hosts','config'] },
+      '/etc/hosts': { type:'file', perms:'-rw-r--r--', content:'127.0.0.1   localhost\n192.168.1.1 gateway\n10.0.0.47   backup-primary.internal' },
+      '/etc/config': { type:'dir', children:['.passwd','network.conf'] },
+      '/etc/config/.passwd': { type:'file', perms:'-rw-------', hidden:true, content:'[CREDENTIALS FILE]\nroot:$shadow$x$12345\nadmin:$shadow$x$67890' },
+      '/etc/config/network.conf': { type:'file', perms:'-rw-r--r--', content:'INTERFACE=eth0\nGATEWAY=192.168.1.1\nDNS=8.8.8.8' },
+    },
+    sentinel: {
+      '/': { type:'dir', children:['home','var','tmp','etc'] },
+      '/home': { type:'dir', children:['sentinel'] },
+      '/home/sentinel': { type:'dir', children:['briefing.txt'] },
+      '/home/sentinel/briefing.txt': { type:'file', perms:'-rw-r--r--', content:'Operative. Suspicious encoded data was found leaving our network.\nInvestigate /var/outbound for the offending transmission.' },
+      '/var': { type:'dir', children:['logs','outbound'] },
+      '/var/logs': { type:'dir', children:['access.log','integrity.log'] },
+      '/var/logs/access.log': { type:'file', perms:'-rw-r--r--', content:'2024-01-15 00:12:44 AUTH user:admin     ip:10.0.0.1       OK\n2024-01-15 02:33:11 AUTH user:guest     ip:192.168.1.5    OK\n2024-01-15 09:15:03 AUTH user:admin     ip:10.0.0.1       OK' },
+      '/var/logs/integrity.log': { type:'file', perms:'-rw-r--r--', content:'File integrity check — 2024-01-15:\n  access.log     MODIFIED  3.2MB -> 847KB  [TAMPERED]\n  config.json    OK\n  users.db       OK' },
+      '/var/outbound': { type:'dir', children:['packet_44A.enc'] },
+      '/var/outbound/packet_44A.enc': { type:'file', perms:'-rw-r--r--', content:'Captured outbound packet:\nSU5UUlVERVI=\nEncoding: Base64\nDestination: 45.33.32.156' },
+      '/tmp': { type:'dir', children:[] },
+      '/etc': { type:'dir', children:['hosts'] },
+      '/etc/hosts': { type:'file', perms:'-rw-r--r--', content:'127.0.0.1   localhost\n192.168.1.1 gateway' },
+    },
+  },
+
+  // ── M02: Deep Trace ──────────────────────────
+  // Puzzle 1 (log):     grep the auth log → 03:47 / 45.33.32.156
+  // Puzzle 2 (network): cat scan results → 192.168.1.7 / 192.168.1.99
+  M02: {
+    ghost: {
+      '/': { type:'dir', children:['var','home'] },
+      '/home': { type:'dir', children:['ghost'] },
+      '/home/ghost': { type:'dir', children:['mission.txt'] },
+      '/home/ghost/mission.txt': { type:'file', perms:'-rw-r--r--', content:'Target: NovaCorp internal network.\nYour entry left traces in their auth log — find and identify the timestamp.\nThen locate the SSH-open node on their subnet.' },
+      '/var': { type:'dir', children:['logs','net'] },
+      '/var/logs': { type:'dir', children:['auth.log','syslog'] },
+      '/var/logs/auth.log': { type:'file', perms:'-rw-r--r--', content:'2024-01-15 00:12:44  AUTH  user:admin  ip:10.0.0.1       OK\n2024-01-15 02:33:11  AUTH  user:guest  ip:192.168.1.5    OK\n2024-01-15 03:47:22  AUTH  user:root   ip:45.33.32.156   FAIL\n2024-01-15 03:47:31  AUTH  user:root   ip:45.33.32.156   FAIL\n2024-01-15 03:47:44  AUTH  user:root   ip:45.33.32.156   OK\n2024-01-15 09:15:03  AUTH  user:admin  ip:10.0.0.1       OK' },
+      '/var/logs/syslog': { type:'file', perms:'-rw-r--r--', content:'[system log — nothing unusual]' },
+      '/var/net': { type:'dir', children:['scan_results.txt'] },
+      '/var/net/scan_results.txt': { type:'file', perms:'-rw-r--r--', content:'Subnet scan 192.168.1.0/24:\n\n192.168.1.1   ONLINE   ports: 80, 443\n192.168.1.3   OFFLINE\n192.168.1.5   ONLINE   ports: 80, 443, 8080\n192.168.1.7   ONLINE   ports: 22, 80\n192.168.1.9   ONLINE   ports: 443' },
+    },
+    sentinel: {
+      '/': { type:'dir', children:['var','home','etc'] },
+      '/home': { type:'dir', children:['sentinel'] },
+      '/home/sentinel': { type:'dir', children:['alert.txt'] },
+      '/home/sentinel/alert.txt': { type:'file', perms:'-rw-r--r--', content:'SECURITY ALERT — 2024-01-15\nUnauthorized root login detected. Check auth logs.\nAlso: rogue device spotted on network — check net registry.' },
+      '/var': { type:'dir', children:['logs','net'] },
+      '/var/logs': { type:'dir', children:['auth.log'] },
+      '/var/logs/auth.log': { type:'file', perms:'-rw-r--r--', content:'2024-01-15 00:12:44  AUTH  user:admin  ip:10.0.0.1       OK\n2024-01-15 02:33:11  AUTH  user:guest  ip:192.168.1.5    OK\n2024-01-15 03:47:22  AUTH  user:root   ip:45.33.32.156   FAIL\n2024-01-15 03:47:31  AUTH  user:root   ip:45.33.32.156   FAIL\n2024-01-15 03:47:44  AUTH  user:root   ip:45.33.32.156   OK\n2024-01-15 09:15:03  AUTH  user:admin  ip:10.0.0.1       OK' },
+      '/var/net': { type:'dir', children:['registry.txt','active_hosts.txt'] },
+      '/var/net/registry.txt': { type:'file', perms:'-rw-r--r--', content:'Registered devices:\n  192.168.1.1    ROUTER\n  192.168.1.5    WEB-SERVER\n  192.168.1.10   ADMIN-LAPTOP' },
+      '/var/net/active_hosts.txt': { type:'file', perms:'-rw-r--r--', content:'Active hosts on network:\n  192.168.1.1    ONLINE\n  192.168.1.5    ONLINE\n  192.168.1.10   ONLINE\n  192.168.1.99   ONLINE' },
+      '/etc': { type:'dir', children:['hosts'] },
+      '/etc/hosts': { type:'file', perms:'-rw-r--r--', content:'127.0.0.1   localhost\n192.168.1.1 gateway' },
+    },
+  },
+
+  // ── M03: Root Access ─────────────────────────
+  // Puzzle 1 (crack):   cat hash file → shadow99 / letmein
+  // Puzzle 2 (process): ps aux → PID 4821 / 3377
+  // Puzzle 3 (perms):   ls -la /etc → /etc/passwd
+  M03: {
+    ghost: {
+      '/': { type:'dir', children:['home','var','etc','db'] },
+      '/home': { type:'dir', children:['ghost'] },
+      '/home/ghost': { type:'dir', children:['notes.txt'] },
+      '/home/ghost/notes.txt': { type:'file', perms:'-rw-r--r--', content:'Three objectives:\n1. Crack the DB password hash in /db\n2. Identify the security monitor PID (ps aux)\n3. Find the world-writable system file (ls -la /etc)' },
+      '/var': { type:'dir', children:['logs'] },
+      '/var/logs': { type:'dir', children:['access.log'] },
+      '/var/logs/access.log': { type:'file', perms:'-rw-r--r--', content:'[nothing unusual]' },
+      '/db': { type:'dir', children:['passwords.db','schema.sql'] },
+      '/db/passwords.db': { type:'file', perms:'-rw-r-----', content:'User password hashes:\n  admin   : 5f4dcc3b5aa765d61d8327deb882cf99  [MD5]\n  guest   : d8578edf8458ce06fbc5bb76a58c5ca4  [MD5]\n\nAlgorithm: MD5\nHint: admin password is a common word + 2 digits.' },
+      '/db/schema.sql': { type:'file', perms:'-rw-r--r--', content:'CREATE TABLE users (id INT, username VARCHAR, hash VARCHAR);' },
+      '/etc': { type:'dir', children:['passwd','shadow','hosts','sudoers'] },
+      '/etc/passwd': { type:'file', perms:'-rwxrwxrwx', content:'root:x:0:0:root:/root:/bin/bash\nadmin:x:1000:1000::/home/admin:/bin/sh' },
+      '/etc/shadow': { type:'file', perms:'-rw-r-----', content:'root:$6$rounds=5000$...:18000:0:99999:7:::\nadmin:$6$rounds=5000$...:18000:0:99999:7:::' },
+      '/etc/hosts': { type:'file', perms:'-rw-r--r--', content:'127.0.0.1  localhost' },
+      '/etc/sudoers': { type:'file', perms:'-r--r-----', content:'root ALL=(ALL:ALL) ALL\nadmin ALL=(ALL) NOPASSWD: /usr/bin/apt' },
+    },
+    sentinel: {
+      '/': { type:'dir', children:['home','var','etc'] },
+      '/home': { type:'dir', children:['sentinel'] },
+      '/home/sentinel': { type:'dir', children:['audit_brief.txt'] },
+      '/home/sentinel/audit_brief.txt': { type:'file', perms:'-rw-r--r--', content:'Security audit — three findings to investigate:\n1. Weak password detected — hash in /var/audit/weak_hash.txt\n2. Malicious process found — run ps aux\n3. Misconfigured file permission — check /etc with ls -la' },
+      '/var': { type:'dir', children:['audit','logs'] },
+      '/var/audit': { type:'dir', children:['weak_hash.txt'] },
+      '/var/audit/weak_hash.txt': { type:'file', perms:'-rw-r--r--', content:'Weak hash flagged by scanner:\n  Hash : 0d107d09f5bbe40cade3de5c71e9e9b7  [MD5]\n  User : unknown\n\nThis is one of the most commonly used passwords ever.' },
+      '/var/logs': { type:'dir', children:['syslog'] },
+      '/var/logs/syslog': { type:'file', perms:'-rw-r--r--', content:'[no anomalies beyond known findings]' },
+      '/etc': { type:'dir', children:['passwd','shadow','hosts'] },
+      '/etc/passwd': { type:'file', perms:'-rwxrwxrwx', content:'root:x:0:0:root:/root:/bin/bash\nadmin:x:1000:1000::/home/admin:/bin/sh' },
+      '/etc/shadow': { type:'file', perms:'-rw-r-----', content:'root:$6$...:18000:0:99999:7:::\nadmin:$6$...:18000:0:99999:7:::' },
+      '/etc/hosts': { type:'file', perms:'-rw-r--r--', content:'127.0.0.1  localhost' },
+    },
+  },
+
+  // ── M04: Ghost Protocol ──────────────────────
+  // Puzzle 1 (binary):      cat binary.dat → ACE
+  // Puzzle 2 (breadcrumbs): follow /var/log/backup.conf → DNS → /etc/hosts → 10.0.0.47 (ghost)
+  //                         follow pivot chain in /var/forensics/ → 185.220.101.5 (sentinel)
+  M04: {
+    ghost: {
+      '/': { type:'dir', children:['home','var','etc'] },
+      '/home': { type:'dir', children:['ghost'] },
+      '/home/ghost': { type:'dir', children:['briefing.txt'] },
+      '/home/ghost/briefing.txt': { type:'file', perms:'-rw-r--r--', content:'Two objectives:\n1. Decode the binary transmission in /data/binary.dat\n2. Trace the backup server IP through the config chain.' },
+      '/var': { type:'dir', children:['logs','data'] },
+      '/var/logs': { type:'dir', children:['backup.conf'] },
+      '/var/logs/backup.conf': { type:'file', perms:'-rw-r--r--', content:'# Backup configuration\nbackup_schedule=daily\nbackup_dest="server_bravo"\nretention_days=30' },
+      '/var/data': { type:'dir', children:['binary.dat','dns_cache.txt'] },
+      '/var/data/binary.dat': { type:'file', perms:'-rw-r--r--', content:'Binary transmission received:\n01000001  01000011  01000101\n\nConvert each 8-bit group to ASCII.\nHint: A=65=01000001' },
+      '/var/data/dns_cache.txt': { type:'file', perms:'-rw-r--r--', content:'DNS cache entries:\n  server_bravo  CNAME  backup-primary.internal\n  gateway       A      192.168.1.1' },
+      '/etc': { type:'dir', children:['hosts','resolv.conf'] },
+      '/etc/hosts': { type:'file', perms:'-rw-r--r--', content:'127.0.0.1        localhost\n192.168.1.1      gateway\n10.0.0.47        backup-primary.internal\n10.0.0.50        backup-secondary.internal' },
+      '/etc/resolv.conf': { type:'file', perms:'-rw-r--r--', content:'nameserver 8.8.8.8\nsearch internal' },
+    },
+    sentinel: {
+      '/': { type:'dir', children:['home','var','data'] },
+      '/home': { type:'dir', children:['sentinel'] },
+      '/home/sentinel': { type:'dir', children:['briefing.txt'] },
+      '/home/sentinel/briefing.txt': { type:'file', perms:'-rw-r--r--', content:'Two objectives:\n1. Decode the binary payload in /data/payload.dat\n2. Trace the attacker pivot chain in /var/forensics/' },
+      '/var': { type:'dir', children:['forensics'] },
+      '/var/forensics': { type:'dir', children:['pivot_01.txt','pivot_02.txt','pivot_03.txt'] },
+      '/var/forensics/pivot_01.txt': { type:'file', perms:'-rw-r--r--', content:'Entry point: 192.168.1.7 (internal compromised host)\nNext hop recorded: see pivot_02.txt' },
+      '/var/forensics/pivot_02.txt': { type:'file', perms:'-rw-r--r--', content:'Pivot 1: 10.10.10.15 (DMZ proxy)\nPivot 2: 172.16.0.88 (anonymous relay)\nFinal destination: see pivot_03.txt' },
+      '/var/forensics/pivot_03.txt': { type:'file', perms:'-rw-r--r--', content:'Exfil destination (external):\n185.220.101.5\n\nThis is the attacker\'s exit node.' },
+      '/data': { type:'dir', children:['payload.dat'] },
+      '/data/payload.dat': { type:'file', perms:'-rw-r--r--', content:'Intercepted binary payload:\n01000001  01000011  01000101\n\nConvert each 8-bit group to ASCII to identify the attack vector codename.' },
+    },
+  },
+
+  // ── M05: Zero Day ────────────────────────────
+  // Puzzle 1 (timed): find /tmp/token.enc, decode → OVERDRIVE
+  M05: {
+    ghost: {
+      '/': { type:'dir', children:['tmp','var'] },
+      '/tmp': { type:'dir', children:['token.enc','readme.txt'] },
+      '/tmp/readme.txt': { type:'file', perms:'-rw-r--r--', content:'Auth token is expiring. Decode it before the window closes.\nFile: /tmp/token.enc' },
+      '/tmp/token.enc': { type:'file', perms:'-rw-r--r--', content:'One-time auth token:\nT1ZFUkRSSVZF\nEncoding: Base64\n\nDecode and submit before timeout.' },
+      '/var': { type:'dir', children:['logs'] },
+      '/var/logs': { type:'dir', children:['system.log'] },
+      '/var/logs/system.log': { type:'file', perms:'-rw-r--r--', content:'ERR_0x4F1 — Auth token expired\nERR_0x2A9 — Firewall conflict on port 22\n[system unstable]' },
+    },
+    sentinel: {
+      '/': { type:'dir', children:['tmp','var'] },
+      '/tmp': { type:'dir', children:['killswitch.enc','alert.txt'] },
+      '/tmp/alert.txt': { type:'file', perms:'-rw-r--r--', content:'RANSOMWARE DETECTED — encryption in progress.\nFind and decode the kill-switch code immediately.\nFile: /tmp/killswitch.enc' },
+      '/tmp/killswitch.enc': { type:'file', perms:'-rw-r--r--', content:'Kill-switch code (encoded):\nT1ZFUkRSSVZF\nEncoding: Base64\n\nDecode and submit to stop the attack.' },
+      '/var': { type:'dir', children:['logs'] },
+      '/var/logs': { type:'dir', children:['system.log'] },
+      '/var/logs/system.log': { type:'file', perms:'-rw-r--r--', content:'ERR_0xDEAD — System integrity compromised\nERR_0xF00  — Root escalation logged\n[encryption spreading to /home]' },
+    },
+  },
 };
+
+// ── PS AUX snapshots per mission/path ──────────
+const psSnapshots = {
+  M03: {
+    ghost: [
+      'PID    USER    CPU%   MEM%   COMMAND',
+      '1      root    0.0    0.1    /sbin/init',
+      '412    root    0.0    0.3    sshd',
+      '891    www     1.2    2.1    nginx',
+      '1204   root    0.1    0.4    cron',
+      '4821   root    98.7   0.1    sec_monitor',
+      '5103   dbuser  2.1    8.4    postgres',
+    ],
+    sentinel: [
+      'PID    USER    CPU%   MEM%   COMMAND',
+      '1      root    0.0    0.1    /sbin/init',
+      '412    root    0.0    0.3    sshd',
+      '891    www     1.2    2.1    nginx',
+      '3377   root    0.0    0.1    .sshd',
+      '5103   dbuser  2.1    8.4    postgres',
+      '8801   root    0.2    0.6    auditd',
+    ],
+  },
+};
+
+const defaultPs = [
+  'PID    USER    CPU%   MEM%   COMMAND',
+  '1      root    0.0    0.1    /sbin/init',
+  '412    root    0.0    0.3    sshd',
+  '891    www     1.2    2.1    nginx',
+  '5103   dbuser  2.1    8.4    postgres',
+];
+
+// ═══════════════════════════════════════════════
+//  PUZZLE DEFINITIONS (objective + answer only)
+// ═══════════════════════════════════════════════
 
 const puzzles = {
   decode: {
     title: 'Decode Message',
+    timed: false,
     ghost: {
-      desc: 'Intercepted transmission from the target. Decode it to retrieve the access code.',
+      objective: 'An encoded transmission was intercepted from the target. Find the encoded file in the filesystem, decode it, and submit the plaintext access code.',
       answer: 'PHANTOM',
-      data: 'Encoded string: UEhBTlRPTQ==\nEncoding: Base64\nOrigin: Unknown relay node 7\n\nDecode the string to find the access code.',
     },
     sentinel: {
-      desc: 'Suspicious encoded message found in outbound traffic. Decode to assess the threat.',
+      objective: 'Suspicious encoded data was found leaving the network. Locate the encoded packet in the filesystem, decode it, and identify what was transmitted.',
       answer: 'INTRUDER',
-      data: 'Encoded string: SU5UUlVERVI=\nEncoding: Base64\nOrigin: Internal host 192.168.1.44\n\nDecode the string to identify what was transmitted.',
     },
-    hint: 'Base64: every 4 characters decode to 3 ASCII characters. Try an online decoder or use the decode command.',
   },
   file: {
     title: 'File Investigation',
+    timed: false,
     ghost: {
-      desc: 'Target\'s directory structure is exposed. Locate the hidden credentials file and enter its name.',
+      objective: 'The target\'s config directory contains a hidden credentials file. Navigate the filesystem and find it. Submit its filename.',
       answer: '.passwd',
-      data: '/var/\n  logs/\n    access.log      [2.1KB]\n    error.log       [0.8KB]\n  config/\n    network.conf    [1.2KB]\n    .passwd         [HIDDEN — use ls -la]\n  public/\n    index.html      [4.4KB]',
     },
     sentinel: {
-      desc: 'Possible data exfiltration occurred. One file was tampered with — identify it by its suspicious size change.',
+      objective: 'A file was tampered with during the breach. Check the integrity log to identify which file was modified. Submit its name.',
       answer: 'access.log',
-      data: 'File integrity report (today):\n\n  access.log     MODIFIED   3.2MB → 847KB  [!]\n  config.json    OK         last modified 14 days ago\n  users.db       OK         last modified 3 days ago\n  .env           OK         last modified 30 days ago\n\nWhich file was tampered with?',
     },
-    hint: 'Hidden files start with a dot (.). A file that shrank dramatically had entries deleted.',
   },
   log: {
     title: 'Log Analysis',
+    timed: false,
     ghost: {
-      desc: 'You left traces in the auth log. Enter the timestamp (HH:MM) of the incriminating entry to locate and delete it.',
+      objective: 'Your intrusion left a trace in the auth log. Find the auth log, identify the timestamp (HH:MM) of the suspicious root login, and submit it.',
       answer: '03:47',
-      data: '2024-01-15 00:12:44  AUTH  user:admin  ip:10.0.0.1       OK\n2024-01-15 02:33:11  AUTH  user:guest  ip:192.168.1.5    OK\n2024-01-15 03:47:22  AUTH  user:root   ip:45.33.32.156   FAIL\n2024-01-15 03:47:31  AUTH  user:root   ip:45.33.32.156   FAIL\n2024-01-15 03:47:44  AUTH  user:root   ip:45.33.32.156   OK\n2024-01-15 09:15:03  AUTH  user:admin  ip:10.0.0.1       OK',
     },
     sentinel: {
-      desc: 'Security breach confirmed. Identify the attacker\'s IP address from the auth logs.',
+      objective: 'A brute-force attack succeeded against root. Read the auth log and identify the attacker\'s IP address. Submit it.',
       answer: '45.33.32.156',
-      data: '2024-01-15 00:12:44  AUTH  user:admin  ip:10.0.0.1       OK\n2024-01-15 02:33:11  AUTH  user:guest  ip:192.168.1.5    OK\n2024-01-15 03:47:22  AUTH  user:root   ip:45.33.32.156   FAIL\n2024-01-15 03:47:31  AUTH  user:root   ip:45.33.32.156   FAIL\n2024-01-15 03:47:44  AUTH  user:root   ip:45.33.32.156   OK\n2024-01-15 09:15:03  AUTH  user:admin  ip:10.0.0.1       OK',
     },
-    hint: 'Multiple FAIL attempts from the same IP followed by a success = brute force. That IP is your answer.',
   },
   network: {
     title: 'Network Mapping',
+    timed: false,
     ghost: {
-      desc: 'Map the target network. Find the node with SSH open (port 22) — that\'s your entry point.',
+      objective: 'Map the target subnet. Find the network scan results in the filesystem. Identify the host with SSH (port 22) open — that is your entry point.',
       answer: '192.168.1.7',
-      data: 'Scanning subnet 192.168.1.0/24...\n\n192.168.1.1   ONLINE   ports: 80, 443\n192.168.1.3   OFFLINE\n192.168.1.5   ONLINE   ports: 80, 443, 8080\n192.168.1.7   ONLINE   ports: 22, 80       [SSH OPEN]\n192.168.1.9   ONLINE   ports: 443\n\nWhich host is your entry point?',
     },
     sentinel: {
-      desc: 'A rogue device is connected to the network. Identify the unauthorized host IP.',
+      objective: 'A rogue device is connected to the network. Compare the device registry against active hosts. Identify the unauthorized IP.',
       answer: '192.168.1.99',
-      data: 'Registered devices:\n  192.168.1.1    ROUTER     [registered]\n  192.168.1.5    WEB SERVER [registered]\n  192.168.1.10   ADMIN PC   [registered]\n\nAll active hosts detected:\n  192.168.1.1    ONLINE\n  192.168.1.5    ONLINE\n  192.168.1.10   ONLINE\n  192.168.1.99   ONLINE   [NOT IN REGISTRY]\n\nIdentify the rogue host.',
     },
-    hint: 'Compare the registered list against what\'s actually online. The extra host is unauthorized.',
   },
   crack: {
     title: 'Password Cracking',
+    timed: false,
     ghost: {
-      desc: 'Captured a password hash from the target database. Crack it to gain access.',
+      objective: 'Find the password hash file in the filesystem. The admin hash is MD5 — crack it. It is a common word followed by two digits.',
       answer: 'shadow99',
-      data: 'Hash:      5f4dcc3b5aa765d61d8327deb882cf99\nAlgorithm: MD5\nHint:      A common word followed by two digits.\n\nWhat is the plaintext password?',
     },
     sentinel: {
-      desc: 'Password audit: one user has a critically weak password. Identify it.',
+      objective: 'A weak password hash was flagged. Find it in the filesystem. It is one of the most commonly used passwords ever. Identify it.',
       answer: 'letmein',
-      data: 'Weak hash flagged: 0d107d09f5bbe40cade3de5c71e9e9b7\nAlgorithm: MD5\n\nUser accounts: admin, jsmith, guest, devops\nHint: One of the most commonly used passwords of all time.\n\nWhat is the weak password?',
     },
-    hint: 'Common passwords: password, letmein, admin, shadow + numbers, 123456, qwerty.',
   },
   process: {
     title: 'Process Investigation',
+    timed: false,
     ghost: {
-      desc: 'Find the security monitoring process PID so you can disable it. Enter the PID number.',
+      objective: 'Run ps aux to list all processes. Find the security monitoring process and submit its PID so it can be disabled.',
       answer: '4821',
-      data: 'PID    USER    CPU%   MEM%   COMMAND\n1      root    0.0    0.1    /sbin/init\n412    root    0.0    0.3    sshd\n891    www     1.2    2.1    nginx\n1204   root    0.1    0.4    cron\n4821   root    98.7   0.1    sec_monitor\n5103   dbuser  2.1    8.4    postgres\n\nWhich PID is the security monitor?',
     },
     sentinel: {
-      desc: 'A malicious process was injected into the system. Identify the rogue PID.',
+      objective: 'Run ps aux. A malicious process is disguised as a legitimate system service. Identify it and submit its PID.',
       answer: '3377',
-      data: 'PID    USER    CPU%   MEM%   COMMAND\n1      root    0.0    0.1    /sbin/init\n412    root    0.0    0.3    sshd\n891    www     1.2    2.1    nginx\n3377   root    0.0    0.1    .sshd      [suspicious]\n5103   dbuser  2.1    8.4    postgres\n8801   root    0.2    0.6    auditd\n\nWhich PID is the rogue process?',
     },
-    hint: 'Ghost: abnormally high CPU = resource hog = monitor. Sentinel: processes disguised as system tools (with a dot prefix) are red flags.',
   },
   perms: {
     title: 'Permissions Puzzle',
+    timed: false,
     ghost: {
-      desc: 'Find the file you can write to as any user — that\'s your escalation vector. Enter the full path.',
+      objective: 'Run ls -la on /etc to see file permissions. Find the world-writable system file — that is your privilege escalation vector. Submit its full path.',
       answer: '/etc/passwd',
-      data: 'Permission audit:\n\n-rwxr-xr-x  root  /usr/bin/sudo\n-rw-r--r--  root  /etc/shadow\n-rwxrwxrwx  root  /etc/passwd\n-rw-r--r--  root  /etc/hosts\n-rwxr-x---  root  /sbin/ifconfig\n\nWhich file has dangerous world-write permissions?',
     },
     sentinel: {
-      desc: 'Security audit: identify the file with critically misconfigured permissions.',
+      objective: 'Run ls -la on /etc. One critical system file has dangerously open permissions (rwxrwxrwx). Find it and submit its full path.',
       answer: '/etc/passwd',
-      data: 'Permission audit:\n\n-rwxr-xr-x  root  /usr/bin/sudo\n-rw-r--r--  root  /etc/shadow\n-rwxrwxrwx  root  /etc/passwd\n-rw-r--r--  root  /etc/hosts\n-rwxr-x---  root  /sbin/ifconfig\n\nWhich file must be locked down immediately?',
     },
-    hint: 'rwxrwxrwx means everyone can read, write, execute. That\'s 777 — catastrophic for system files.',
   },
   binary: {
     title: 'Binary Decode',
+    timed: false,
     ghost: {
-      desc: 'Binary transmission intercepted. Decode it to reveal the target codename.',
+      objective: 'A binary transmission was intercepted. Find the binary data file in the filesystem and decode each 8-bit group to ASCII. Submit the decoded word.',
       answer: 'ACE',
-      data: '01000001  01000011  01000101\n\nConvert each 8-bit group to its decimal value,\nthen map to the ASCII character.\n\nA=65, B=66, C=67, D=68, E=69...',
     },
     sentinel: {
-      desc: 'Binary payload intercepted in outbound packet. Decode it to assess the attack vector.',
+      objective: 'A binary payload was captured in network traffic. Find it in the filesystem, decode each 8-bit group to ASCII, and submit the codename.',
       answer: 'ACE',
-      data: '01000001  01000011  01000101\n\n8 bits per character.\n01000001 = 64+1 = 65 = A\n\nDecode all three bytes.',
     },
-    hint: 'Binary to decimal: multiply each bit by its place value (128,64,32,16,8,4,2,1) and add them up.',
   },
   breadcrumbs: {
     title: 'Digital Breadcrumbs',
+    timed: false,
     ghost: {
-      desc: 'Follow the trail to find the target\'s backup server IP address.',
+      objective: 'Follow the config trail to find the backup server IP. Start with the backup config file, follow the hostname through DNS cache, then resolve it in /etc/hosts.',
       answer: '10.0.0.47',
-      data: 'CLUE 1 — /var/log/backup.conf:\n  backup_dest = "server_bravo"\n\nCLUE 2 — DNS lookup: server_bravo\n  CNAME → backup-primary.internal\n\nCLUE 3 — /etc/hosts:\n  10.0.0.47   backup-primary.internal\n\nWhat is the final IP address?',
     },
     sentinel: {
-      desc: 'Trace the attacker through their pivot chain. What is their external exit IP?',
+      objective: 'Trace the attacker through their pivot chain. Read through the forensics files in order to follow their path. Submit their external exit IP.',
       answer: '185.220.101.5',
-      data: 'PIVOT CHAIN RECONSTRUCTION:\n\n  Entry:   192.168.1.7   [internal — compromised host]\n  Pivot 1: 10.10.10.15   [DMZ proxy]\n  Pivot 2: 172.16.0.88   [anonymous relay]\n  Exit:    185.220.101.5 [external exfil target]\n\nWhat is the attacker\'s external IP?',
     },
-    hint: 'Follow each clue in order. The final destination in the chain is your answer.',
   },
   timed: {
     title: 'Timed Breach',
-    ghost: {
-      desc: 'The auth token expires in 60 seconds. Decode the one-time access key before time runs out.',
-      answer: 'OVERDRIVE',
-      data: 'TOKEN EXPIRES IN: [see timer above]\n\nEncoded key: T1ZFUkRSSVZF\nEncoding: Base64\n\nDecode the key and submit before timeout.',
-    },
-    sentinel: {
-      desc: 'Ransomware is encrypting files. Decode the kill-switch code in 60 seconds to stop it.',
-      answer: 'OVERDRIVE',
-      data: 'ENCRYPTION PROGRESS: [see timer above]\n\nKill-switch code: T1ZFUkRSSVZF\nEncoding: Base64\n\nDecode and submit before all files are lost.',
-    },
-    hint: 'Base64 decode: T1ZFUkRSSVZF → OVERDRIVE',
     timed: true,
     timeLimit: 60,
+    ghost: {
+      objective: 'The auth token is expiring. Find the encoded token file in /tmp, decode it using decode --base64, and submit the result before time runs out.',
+      answer: 'OVERDRIVE',
+    },
+    sentinel: {
+      objective: 'Ransomware is encrypting the system. Find the kill-switch code in /tmp, decode it using decode --base64, and submit it immediately.',
+      answer: 'OVERDRIVE',
+    },
   },
 };
 
-// ── HELPERS ──────────────────────────────────────────
+// ═══════════════════════════════════════════════
+//  GAME STATE
+// ═══════════════════════════════════════════════
+
+const state = {
+  path: null,
+  rep: 0,
+  missions: [
+    { id:'M01', name:'Cold Boot',      status:'locked', puzzles:['decode','file'] },
+    { id:'M02', name:'Deep Trace',     status:'locked', puzzles:['log','network'] },
+    { id:'M03', name:'Root Access',    status:'locked', puzzles:['crack','process','perms'] },
+    { id:'M04', name:'Ghost Protocol', status:'locked', puzzles:['binary','breadcrumbs'] },
+    { id:'M05', name:'Zero Day',       status:'locked', puzzles:['timed'] },
+  ],
+  currentMission: null,
+  currentPuzzle: null,
+  puzzleState: {},
+  fs: {},          // active filesystem for current mission
+  cwd: '/',        // current working directory
+  history: [],
+  histIdx: -1,
+  timerInterval: null,
+};
+
+// ═══════════════════════════════════════════════
+//  FILESYSTEM HELPERS
+// ═══════════════════════════════════════════════
+
+function resolvePath(input) {
+  if (!input) return state.cwd;
+  if (input === '/') return '/';
+  let base = input.startsWith('/') ? '' : state.cwd;
+  let parts = (base + '/' + input).split('/').filter(Boolean);
+  let resolved = [];
+  for (let p of parts) {
+    if (p === '..') resolved.pop();
+    else if (p !== '.') resolved.push(p);
+  }
+  return '/' + resolved.join('/');
+}
+
+function getNode(path) {
+  let p = resolvePath(path);
+  return state.fs[p] || null;
+}
+
+function listDir(path, showHidden) {
+  let p = resolvePath(path);
+  let node = state.fs[p];
+  if (!node) return null;
+  if (node.type !== 'dir') return null;
+  let children = node.children || [];
+  if (!showHidden) children = children.filter(c => !c.startsWith('.'));
+
+  if (children.length === 0) { print('(empty)', 'info'); return; }
+
+  children.forEach(name => {
+    let childPath = p === '/' ? '/' + name : p + '/' + name;
+    let child = state.fs[childPath];
+    if (!child) return;
+    let perms = child.perms || (child.type === 'dir' ? 'drwxr-xr-x' : '-rw-r--r--');
+    let typeChar = child.type === 'dir' ? 'd' : '-';
+    if (!perms.startsWith('d') && !perms.startsWith('-')) perms = typeChar + perms.slice(1);
+    let display = name + (child.type === 'dir' ? '/' : '');
+
+    // flag dangerous permissions
+    let flag = '';
+    if (perms.includes('rwxrwxrwx')) flag = '  [!]';
+    if (name.startsWith('.') && showHidden) flag += '  [hidden]';
+
+    let cls = 'info';
+    if (child.type === 'dir') cls = 'system';
+    if (flag.includes('[!]')) cls = 'warn';
+
+    print(perms + '  ' + display + flag, cls);
+  });
+}
+
+function catFile(path) {
+  let node = getNode(path);
+  if (!node) { print('cat: ' + path + ': No such file or directory', 'error'); return; }
+  if (node.type === 'dir') { print('cat: ' + path + ': Is a directory', 'error'); return; }
+  print(node.content || '(empty file)', 'info');
+}
+
+function grepFile(pattern, filePath) {
+  let node = getNode(filePath);
+  if (!node) { print('grep: ' + filePath + ': No such file or directory', 'error'); return; }
+  if (node.type === 'dir') { print('grep: ' + filePath + ': Is a directory', 'error'); return; }
+  let lines = (node.content || '').split('\n');
+  let matches = lines.filter(l => l.toLowerCase().includes(pattern.toLowerCase()));
+  if (matches.length === 0) { print('(no matches)', 'dim'); return; }
+  matches.forEach(l => print(l, 'success'));
+}
+
+// ═══════════════════════════════════════════════
+//  TERMINAL OUTPUT
+// ═══════════════════════════════════════════════
 
 function print(text, cls = 'prompt') {
   const out = document.getElementById('output');
@@ -564,9 +747,17 @@ function print(text, cls = 'prompt') {
   out.scrollTop = out.scrollHeight;
 }
 
-function clearTerminal() {
-  document.getElementById('output').innerHTML = '';
+function clearTerminal() { document.getElementById('output').innerHTML = ''; }
+
+function updatePrompt() {
+  const name = state.path === 'ghost' ? 'ghost' : 'sentinel';
+  document.getElementById('prompt-label').textContent = name + '@netbreaker:' + state.cwd + '$';
+  document.getElementById('hdr-dir').textContent = state.cwd;
 }
+
+// ═══════════════════════════════════════════════
+//  REPUTATION
+// ═══════════════════════════════════════════════
 
 function gainRep(n) {
   state.rep = Math.max(0, state.rep + n);
@@ -574,6 +765,10 @@ function gainRep(n) {
   document.getElementById('hdr-rep').textContent = state.rep;
   document.getElementById('rep-fill').style.width = Math.min(100, state.rep) + '%';
 }
+
+// ═══════════════════════════════════════════════
+//  SIDEBAR
+// ═══════════════════════════════════════════════
 
 function updateSidebar() {
   const ml = document.getElementById('mission-list');
@@ -585,22 +780,21 @@ function updateSidebar() {
     if (m.status === 'available') d.onclick = () => processCmd('start ' + m.id);
     ml.appendChild(d);
   });
-  document.getElementById('sb-rep').textContent = state.rep;
-  document.getElementById('hdr-rep').textContent = state.rep;
 }
 
-// ── PATH SELECTION ────────────────────────────────────
+// ═══════════════════════════════════════════════
+//  PATH SELECTION
+// ═══════════════════════════════════════════════
 
 function selectPath(path) {
   state.path = path;
   document.getElementById('intro-overlay').style.display = 'none';
   state.missions[0].status = 'available';
   updateSidebar();
-
-  const label = path === 'ghost' ? 'ghost@netbreaker:~$' : 'sentinel@netbreaker:~$';
-  document.getElementById('prompt-label').textContent = label;
   document.getElementById('hdr-path').textContent = path.toUpperCase();
   document.getElementById('sb-path').textContent = path.toUpperCase();
+  state.cwd = '/';
+  updatePrompt();
 
   print('');
   if (path === 'ghost') {
@@ -608,23 +802,23 @@ function selectPath(path) {
     print('');
     print('Welcome to the shadows. You operate outside the law.', 'warn');
     print('Your mission: breach, extract, vanish.', 'warn');
-    print('Every system has a weakness. Find it.', 'info');
   } else {
     print('◈◈◈  SENTINEL SECURITY TERMINAL  ◈◈◈', 'big');
     print('');
     print('Welcome, Operative. The grid needs defending.', 'system');
     print('Your mission: detect, neutralize, protect.', 'system');
-    print('The attackers are already inside. Hunt them.', 'info');
   }
   print('');
-  print('Type  missions         → view available missions', 'info');
-  print('Type  start M01        → begin first mission', 'info');
-  print('Type  help             → open Operator\'s Manual', 'info');
-  print('Type  decode --base64  → decode a Base64 string', 'info');
+  print('Type  missions      → view available missions', 'info');
+  print('Type  start M01     → begin first mission', 'info');
+  print('Type  help          → open Operator\'s Manual', 'info');
   print('');
+  document.getElementById('cmd-input').focus();
 }
 
-// ── MISSIONS ──────────────────────────────────────────
+// ═══════════════════════════════════════════════
+//  MISSIONS
+// ═══════════════════════════════════════════════
 
 function showMissions() {
   print('');
@@ -633,37 +827,51 @@ function showMissions() {
   state.missions.forEach(m => {
     const icon = m.status === 'completed' ? '✓' : m.status === 'available' ? '▶' : '✗';
     const cls  = m.status === 'completed' ? 'success' : m.status === 'available' ? 'prompt' : 'dim';
-    print(` ${icon}  ${m.id}  ${m.name.padEnd(18)}  [${m.status.toUpperCase()}]`, cls);
+    print(' ' + icon + '  ' + m.id + '  ' + m.name.padEnd(18) + '  [' + m.status.toUpperCase() + ']', cls);
   });
   print('');
-  print('Type  start <id>  to begin a mission.', 'info');
+  print('Type  start <id>  to begin.', 'info');
   print('');
 }
 
 function startMission(id) {
   const mission = state.missions.find(m => m.id === id);
-  if (!mission)                  { print('Unknown mission: ' + id, 'error'); return; }
+  if (!mission)                    { print('Unknown mission: ' + id, 'error'); return; }
   if (mission.status === 'locked') { print('Mission locked. Complete previous missions first.', 'error'); return; }
+
+  // stop any running timer
+  if (state.timerInterval) { clearInterval(state.timerInterval); state.timerInterval = null; }
 
   state.currentMission = mission;
   state.puzzleState = { puzzleIdx: 0, completed: [] };
   document.getElementById('hdr-mission').textContent = mission.id;
+
+  // load filesystem
+  const fsKey = missionFilesystems[id];
+  if (fsKey) {
+    state.fs = fsKey[state.path] || {};
+  } else {
+    state.fs = {};
+  }
+  state.cwd = '/';
+  updatePrompt();
   updateSidebar();
 
   print('');
-  print('[ MISSION ' + mission.id + ': ' + mission.name.toUpperCase() + ' ]', 'title');
+  print('[ MISSION ' + mission.id + ': ' + mission.name.toUpperCase() + ' INITIATED ]', 'title');
   print('');
-  print('Objectives loaded. Solve the puzzle in the right panel.', 'info');
+  print('Filesystem loaded. Navigate with ls, cd, cat, grep.', 'info');
+  print('When you have the answer, type:  submit <answer>', 'info');
   print('');
   loadPuzzle(mission.puzzles[0]);
 }
 
-// ── PUZZLE LOADER ─────────────────────────────────────
-
-let timerInterval = null;
+// ═══════════════════════════════════════════════
+//  PUZZLE LOADER
+// ═══════════════════════════════════════════════
 
 function loadPuzzle(pKey) {
-  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  if (state.timerInterval) { clearInterval(state.timerInterval); state.timerInterval = null; }
 
   const p = puzzles[pKey];
   if (!p) return;
@@ -674,112 +882,96 @@ function loadPuzzle(pKey) {
 
   let timerHtml = '';
   if (p.timed) {
-    timerHtml = `<div id="timed-header" style="background:#1a0000;border:1px solid var(--red);padding:8px;margin-bottom:10px;font-family:var(--font-vt);font-size:20px;color:var(--red);text-align:center">
-      TIME REMAINING: <span id="timer-display">${p.timeLimit}</span>s
-    </div>`;
+    timerHtml = `<div class="timed-header">TIME: <span id="timer-display">${p.timeLimit}</span>s</div>`;
   }
 
   document.getElementById('puzzle-content').innerHTML = `
     <div class="puzzle-title">${p.title}</div>
-    <div style="font-size:10px;color:var(--text-dim);letter-spacing:2px;margin-bottom:8px;text-transform:uppercase">
+    <div style="font-size:10px;color:var(--text-dim);letter-spacing:2px;margin-bottom:8px">
       ${state.currentMission.id} · PUZZLE ${idx+1}/${total}
     </div>
     <div id="progress-bar"><div id="progress-fill" style="width:${(idx/total)*100}%"></div></div>
     ${timerHtml}
-    <div class="puzzle-desc">${v.desc}</div>
-    <div class="puzzle-data">${v.data}</div>
-    <div class="puzzle-input-row">
-      <input class="puzzle-input" id="puzzle-ans" type="text" placeholder="Enter answer..."
-             onkeydown="if(event.key==='Enter')submitPuzzle()" />
-      <button class="btn" onclick="submitPuzzle()">SUBMIT</button>
+    <div class="puzzle-obj-label">Objective</div>
+    <div class="puzzle-desc">${v.objective}</div>
+    <div class="puzzle-submit-hint">
+      When you have the answer:<br>
+      <span>submit &lt;answer&gt;</span><br><br>
+      Example: <span>submit PHANTOM</span>
     </div>
-    <div class="hint-text">
-      Need a hint? <span style="color:var(--amber);cursor:pointer" onclick="showHint('${pKey}')">[reveal — costs 2 rep]</span>
-    </div>
-    <div id="puzzle-feedback"></div>
   `;
 
   if (p.timed) startTimer(p.timeLimit);
 
   print('');
-  print('Puzzle loaded: ' + p.title, 'system');
-  print('Solve it in the right panel.', 'info');
-  if (p.timed) print('WARNING: Time-limited puzzle active!', 'warn');
+  print('Puzzle: ' + p.title, 'system');
+  print('Read your objective in the right panel.', 'info');
+  if (p.timed) print('WARNING: Time-limited puzzle — act fast!', 'warn');
   print('');
 }
 
 function startTimer(seconds) {
   let remaining = seconds;
-  const display = () => {
+  const tick = () => {
+    remaining--;
     const el = document.getElementById('timer-display');
     if (el) {
       el.textContent = remaining;
       el.parentElement.style.color = remaining <= 10 ? '#ff6666' : 'var(--red)';
     }
-  };
-  timerInterval = setInterval(() => {
-    remaining--;
-    display();
     if (remaining <= 0) {
-      clearInterval(timerInterval);
-      timerInterval = null;
-      const fb = document.getElementById('puzzle-feedback');
-      if (fb) fb.innerHTML = '<div class="fail-banner">✗ TIME EXPIRED</div>';
+      clearInterval(state.timerInterval);
+      state.timerInterval = null;
+      const pc = document.getElementById('puzzle-content');
+      if (pc) pc.insertAdjacentHTML('beforeend', '<div class="fail-banner">✗ TIME EXPIRED</div>');
       gainRep(-10);
       print('✗ Time expired. -10 reputation.', 'error');
-      setTimeout(() => {
-        state.puzzleState.puzzleIdx++;
-        const mission = state.currentMission;
-        if (state.puzzleState.puzzleIdx >= mission.puzzles.length) completeMission();
-        else loadPuzzle(mission.puzzles[state.puzzleState.puzzleIdx]);
-      }, 2000);
+      setTimeout(() => advancePuzzle(), 2000);
     }
-  }, 1000);
+  };
+  state.timerInterval = setInterval(tick, 1000);
 }
 
-function showHint(pKey) {
-  const p  = puzzles[pKey];
-  const fb = document.getElementById('puzzle-feedback');
-  if (fb) fb.innerHTML = `<div class="hint-text" style="color:var(--amber);margin-top:8px;border:1px solid var(--amber);padding:8px">HINT: ${p.hint}</div>`;
-  gainRep(-2);
-  print('Hint revealed. -2 reputation.', 'warn');
-}
+// ═══════════════════════════════════════════════
+//  SUBMIT COMMAND
+// ═══════════════════════════════════════════════
 
-function submitPuzzle() {
-  const ansEl = document.getElementById('puzzle-ans');
-  if (!ansEl) return;
-  const ans = ansEl.value.trim();
-  const p   = puzzles[state.currentPuzzle];
-  const v   = state.path === 'ghost' ? p.ghost : p.sentinel;
-  const fb  = document.getElementById('puzzle-feedback');
+function submitAnswer(ans) {
+  if (!state.currentPuzzle) { print('No active puzzle. Start a mission first.', 'error'); return; }
+
+  const p = puzzles[state.currentPuzzle];
+  const v = state.path === 'ghost' ? p.ghost : p.sentinel;
 
   if (ans.toLowerCase() === v.answer.toLowerCase()) {
-    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-    fb.innerHTML = '<div class="success-banner">◢ ACCESS GRANTED ◣</div>';
+    if (state.timerInterval) { clearInterval(state.timerInterval); state.timerInterval = null; }
+    const pc = document.getElementById('puzzle-content');
+    if (pc) pc.insertAdjacentHTML('beforeend', '<div class="success-banner">◢ ACCESS GRANTED ◣</div>');
     gainRep(15);
     print('');
-    print('✓ PUZZLE SOLVED: ' + p.title, 'success');
-    print('+15 reputation earned.', 'success');
+    print('✓ CORRECT — ' + p.title + ' solved.', 'success');
+    print('+15 reputation.', 'success');
     print('');
     state.puzzleState.completed.push(state.currentPuzzle);
-    setTimeout(nextPuzzle, 1800);
+    setTimeout(() => advancePuzzle(), 1800);
   } else {
-    fb.innerHTML = '<div class="fail-banner">✗ INCORRECT — TRY AGAIN</div>';
+    print('✗ Incorrect. Keep digging.', 'error');
     gainRep(-5);
-    print('✗ Wrong answer. -5 reputation.', 'error');
-    ansEl.value = '';
+    print('-5 reputation.', 'error');
   }
 }
 
-function nextPuzzle() {
+function advancePuzzle() {
   state.puzzleState.puzzleIdx++;
   const mission = state.currentMission;
-  if (state.puzzleState.puzzleIdx >= mission.puzzles.length) completeMission();
-  else loadPuzzle(mission.puzzles[state.puzzleState.puzzleIdx]);
+  if (state.puzzleState.puzzleIdx >= mission.puzzles.length) {
+    completeMission();
+  } else {
+    loadPuzzle(mission.puzzles[state.puzzleState.puzzleIdx]);
+  }
 }
 
 function completeMission() {
-  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  if (state.timerInterval) { clearInterval(state.timerInterval); state.timerInterval = null; }
   const mission = state.currentMission;
   mission.status = 'completed';
   const nextIdx = state.missions.indexOf(mission) + 1;
@@ -788,24 +980,26 @@ function completeMission() {
   updateSidebar();
 
   document.getElementById('puzzle-content').innerHTML = `
-    <div style="text-align:center;padding:30px 0">
-      <div style="font-family:var(--font-vt);font-size:36px;color:var(--green);margin-bottom:10px">MISSION COMPLETE</div>
+    <div style="text-align:center;padding:24px 0">
+      <div style="font-family:var(--font-vt);font-size:34px;color:var(--green);margin-bottom:10px">MISSION COMPLETE</div>
       <div style="color:var(--text-dim);font-size:12px;margin-bottom:6px">${mission.id}: ${mission.name}</div>
-      <div style="color:var(--green);font-size:12px;margin-bottom:20px">+25 bonus reputation</div>
+      <div style="color:var(--green);font-size:12px;margin-bottom:16px">+25 bonus reputation</div>
       ${nextIdx < state.missions.length
-        ? `<div style="color:var(--blue);font-size:12px;margin-bottom:16px">New mission unlocked: ${state.missions[nextIdx].name}</div>`
-        : '<div style="color:var(--amber);font-size:12px;margin-bottom:16px">All missions complete. You are the ghost.</div>'}
-      <button class="btn" onclick="showMissions();document.getElementById('cmd-input').focus()">[ MISSION BOARD ]</button>
+        ? `<div style="color:var(--blue);font-size:12px;margin-bottom:16px">Unlocked: ${state.missions[nextIdx].name}</div>`
+        : '<div style="color:var(--amber);font-size:12px;margin-bottom:16px">All missions complete.</div>'}
+      <button class="btn" onclick="showMissions()">[ MISSION BOARD ]</button>
     </div>`;
 
   print('');
   print('◢◢◢  MISSION ' + mission.id + ' COMPLETE  ◣◣◣', 'big');
-  print('+25 bonus reputation awarded.', 'success');
+  print('+25 bonus reputation.', 'success');
   if (nextIdx < state.missions.length) print('New mission unlocked: ' + state.missions[nextIdx].name, 'system');
   print('');
 }
 
-// ── HELP OVERLAY ──────────────────────────────────────
+// ═══════════════════════════════════════════════
+//  HELP
+// ═══════════════════════════════════════════════
 
 function toggleHelp() {
   const h = document.getElementById('help-overlay');
@@ -813,44 +1007,9 @@ function toggleHelp() {
   if (h.style.display === 'block') h.scrollTop = 0;
 }
 
-// ── TERMINAL COMMAND PROCESSOR ────────────────────────
-
-const builtinCmds = {
-  'clear':    () => clearTerminal(),
-  'help':     () => toggleHelp(),
-  'man':      () => toggleHelp(),
-  'missions': () => showMissions(),
-  'ls': () => {
-    print('drwxr-xr-x  root  /home', 'info');
-    print('drwxr-xr-x  root  /var', 'info');
-    print('drwxr-xr-x  root  /etc', 'info');
-    print('drwxr-xr-x  root  /usr', 'info');
-    print('drwxrwxrwx  root  /tmp', 'info');
-  },
-  'ls -la': () => {
-    print('total 48', 'info');
-    print('drwxr-xr-x  root  /home', 'info');
-    print('drwxr-xr-x  root  /var', 'info');
-    print('drwxr-xr-x  root  /etc', 'info');
-    print('-rwxrwxrwx  root  /etc/passwd   [!] world-writable', 'warn');
-    print('-rw-r--r--  root  .hidden_notes [hidden]', 'info');
-  },
-  'ps aux': () => {
-    print('PID    USER    CPU%   MEM%   COMMAND', 'info');
-    print('1      root    0.0    0.1    /sbin/init', 'info');
-    print('412    root    0.0    0.3    sshd', 'info');
-    print('891    www     1.2    2.1    nginx', 'info');
-    print('1204   root    0.1    0.4    cron', 'info');
-    print('5103   dbuser  2.1    8.4    postgres', 'info');
-  },
-  'whoami': () => print(state.path === 'ghost' ? 'ghost [uid=0 root]' : 'sentinel [uid=1000]', 'info'),
-  'uptime': () => print('up 47 days, 3:22,  load average: 0.12, 0.08, 0.05', 'info'),
-  'uname -a': () => print('Linux netbreaker-target 5.15.0-78-generic #85 SMP x86_64', 'info'),
-  'ifconfig': () => {
-    print('eth0:  inet 192.168.1.5   netmask 255.255.255.0  broadcast 192.168.1.255', 'info');
-    print('lo:    inet 127.0.0.1     netmask 255.0.0.0', 'info');
-  },
-};
+// ═══════════════════════════════════════════════
+//  COMMAND PROCESSOR
+// ═══════════════════════════════════════════════
 
 function processCmd(raw) {
   const cmd = raw.trim();
@@ -862,82 +1021,107 @@ function processCmd(raw) {
   print(document.getElementById('prompt-label').textContent + ' ' + cmd, 'dim');
 
   if (!state.path) {
-    print('No path selected. Choose Ghost or Sentinel to begin.', 'error');
+    print('Choose Ghost or Sentinel first.', 'error');
     return;
   }
 
-  // Built-in commands
-  if (builtinCmds[cmd]) { builtinCmds[cmd](); return; }
+  // ── Navigation ──────────────────────────────
+  if (cmd === 'ls') {
+    if (!state.currentMission) { print('No filesystem loaded. Start a mission first.', 'warn'); return; }
+    listDir(state.cwd, false);
+    return;
+  }
+  if (cmd === 'ls -la' || cmd === 'ls -al') {
+    if (!state.currentMission) { print('No filesystem loaded. Start a mission first.', 'warn'); return; }
+    listDir(state.cwd, true);
+    return;
+  }
+  if (cmd.startsWith('ls -la ') || cmd.startsWith('ls -al ')) {
+    const path = cmd.split(' ')[2];
+    listDir(path, true); return;
+  }
+  if (cmd.startsWith('ls ')) {
+    const path = cmd.split(' ')[1];
+    listDir(path, false); return;
+  }
 
-  // start <id>
-  if (cmd.startsWith('start ')) { startMission(cmd.split(' ')[1]); return; }
+  if (cmd.startsWith('cd ')) {
+    const target = cmd.slice(3).trim();
+    const resolved = resolvePath(target);
+    const node = state.fs[resolved];
+    if (!node) { print('cd: ' + target + ': No such directory', 'error'); return; }
+    if (node.type !== 'dir') { print('cd: ' + target + ': Not a directory', 'error'); return; }
+    state.cwd = resolved;
+    updatePrompt();
+    return;
+  }
 
-  // man / help <topic>
-  if (cmd.startsWith('man ') || cmd.startsWith('help ')) { toggleHelp(); return; }
+  if (cmd.startsWith('cat ')) {
+    const path = cmd.slice(4).trim();
+    catFile(path); return;
+  }
 
-  // decode --base64
+  if (cmd.startsWith('grep ')) {
+    const parts = cmd.split(' ');
+    if (parts.length < 3) { print('Usage: grep <pattern> <file>', 'error'); return; }
+    grepFile(parts[1], parts.slice(2).join(' ')); return;
+  }
+
+  // ── Decode ──────────────────────────────────
   if (cmd.startsWith('decode --base64 ')) {
-    const enc = cmd.replace('decode --base64 ', '').trim();
+    const enc = cmd.slice(16).trim();
     try { print('Decoded: ' + atob(enc), 'success'); }
     catch { print('Invalid Base64 string.', 'error'); }
     return;
   }
-
-  // decode --hex
   if (cmd.startsWith('decode --hex ')) {
-    const hex = cmd.replace('decode --hex ', '').trim().replace(/\s/g, '');
+    const hex = cmd.slice(13).trim().replace(/\s/g,'');
     try {
-      const decoded = hex.match(/.{1,2}/g).map(b => String.fromCharCode(parseInt(b, 16))).join('');
+      const decoded = hex.match(/.{1,2}/g).map(b => String.fromCharCode(parseInt(b,16))).join('');
       print('Decoded: ' + decoded, 'success');
     } catch { print('Invalid hex string.', 'error'); }
     return;
   }
 
-  // ping
+  // ── Submit ──────────────────────────────────
+  if (cmd.startsWith('submit ')) {
+    submitAnswer(cmd.slice(7).trim()); return;
+  }
+
+  // ── Network ─────────────────────────────────
   if (cmd.startsWith('ping ')) {
     const ip = cmd.split(' ')[1];
     print('PING ' + ip + ' ...', 'info');
-    setTimeout(() => print('Reply from ' + ip + ': bytes=32 time=12ms TTL=64', 'success'), 400);
+    setTimeout(() => print('Reply from ' + ip + ': bytes=32 time=14ms TTL=64', 'success'), 400);
     return;
   }
 
-  // crack --hash
-  if (cmd.startsWith('crack --hash ')) {
-    print('Running dictionary attack...', 'warn');
-    setTimeout(() => print('Wordlist exhausted. Try common words + numbers in the puzzle panel.', 'info'), 800);
+  // ── Processes ───────────────────────────────
+  if (cmd === 'ps aux') {
+    const mid = state.currentMission?.id;
+    const snap = (mid && psSnapshots[mid]) ? psSnapshots[mid][state.path] : defaultPs;
+    snap.forEach(l => print(l, 'info'));
     return;
   }
 
-  // cat
-  if (cmd.startsWith('cat ')) {
-    const file = cmd.split(' ')[1];
-    const fakeFiles = {
-      '.hidden_notes': '[ CLASSIFIED ]\nTarget: NovaCorp datacentre\nEntry vector: SSH brute-force\nBackup IP: 10.0.0.47',
-      'access.log': '[truncated — entries deleted]',
-      'network.conf': 'INTERFACE=eth0\nGATEWAY=192.168.1.1\nDNS=8.8.8.8',
-    };
-    if (fakeFiles[file]) print(fakeFiles[file], 'info');
-    else print('cat: ' + file + ': No such file or directory', 'error');
-    return;
-  }
+  // ── Misc system ─────────────────────────────
+  if (cmd === 'whoami')  { print(state.path === 'ghost' ? 'ghost [uid=0 root]' : 'sentinel [uid=1000]', 'info'); return; }
+  if (cmd === 'uptime')  { print('up 47 days, 3:22,  load average: 0.12, 0.08, 0.05', 'info'); return; }
+  if (cmd === 'uname -a'){ print('Linux netbreaker-target 5.15.0-78-generic #85 SMP x86_64', 'info'); return; }
+  if (cmd === 'ifconfig'){ print('eth0:  inet 192.168.1.5  netmask 255.255.255.0', 'info'); print('lo:    inet 127.0.0.1    netmask 255.0.0.0', 'info'); return; }
+  if (cmd === 'clear')   { clearTerminal(); return; }
+  if (cmd === 'help' || cmd === 'man') { toggleHelp(); return; }
+  if (cmd.startsWith('man ') || cmd.startsWith('help ')) { toggleHelp(); return; }
+  if (cmd === 'missions') { showMissions(); return; }
+  if (cmd.startsWith('start ')) { startMission(cmd.split(' ')[1]); return; }
+  if (cmd === 'pwd') { print(state.cwd, 'info'); return; }
 
-  // grep
-  if (cmd.startsWith('grep ')) {
-    print('(grep output would appear here based on active mission context)', 'dim');
-    return;
-  }
-
-  // chmod
-  if (cmd.startsWith('chmod ')) {
-    print('chmod: permissions updated (use the puzzle panel to submit your answer)', 'info');
-    return;
-  }
-
-  // fallback
   print('Command not found: ' + cmd + '  — type  help  for the manual.', 'error');
 }
 
-// ── INPUT HANDLING ────────────────────────────────────
+// ═══════════════════════════════════════════════
+//  INPUT HANDLING
+// ═══════════════════════════════════════════════
 
 const input = document.getElementById('cmd-input');
 
@@ -959,7 +1143,6 @@ input.addEventListener('keydown', e => {
   }
 });
 
-// Click anywhere to refocus terminal input, but not when clicking puzzle panel, help, or intro
 document.addEventListener('click', e => {
   if (
     !e.target.closest('#help-overlay') &&
