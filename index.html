@@ -683,7 +683,7 @@ function resolvePath(input) {
 function getNode(path) { return state.fs[resolvePath(path)] || null; }
 
 function listDir(path, showHidden) {
-  if (!state.currentMission) { print('No filesystem loaded. Start a mission first.', 'warn'); return; }
+  if (!state.currentMission && !tState.active) { print('No filesystem loaded. Start a mission first.', 'warn'); return; }
   let p = resolvePath(path);
   let node = state.fs[p];
   if (!node) { print('ls: ' + (path||'.') + ': No such directory', 'error'); return; }
@@ -704,7 +704,7 @@ function listDir(path, showHidden) {
 }
 
 function catFile(path) {
-  if (!state.currentMission) { print('No filesystem loaded. Start a mission first.', 'warn'); return; }
+  if (!state.currentMission && !tState.active) { print('No filesystem loaded. Start a mission first.', 'warn'); return; }
   let node = getNode(path);
   if (!node) { print('cat: ' + path + ': No such file or directory', 'error'); return; }
   if (node.type === 'dir') { print('cat: ' + path + ': Is a directory', 'error'); return; }
@@ -712,7 +712,7 @@ function catFile(path) {
 }
 
 function grepFile(pattern, filePath) {
-  if (!state.currentMission) { print('No filesystem loaded. Start a mission first.', 'warn'); return; }
+  if (!state.currentMission && !tState.active) { print('No filesystem loaded. Start a mission first.', 'warn'); return; }
   let node = getNode(filePath);
   if (!node) { print('grep: ' + filePath + ': No such file or directory', 'error'); return; }
   if (node.type === 'dir') { print('grep: ' + filePath + ': Is a directory', 'error'); return; }
