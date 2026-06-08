@@ -773,20 +773,30 @@ function updateToolList() {
 //  MISSION LIST
 // ═══════════════════════════════════════════════
 function updateMissionList() {
-  // recalculate availability based on rep
-  state.missions.forEach(m => {
+  // Chronological: a mission is only available if the previous is completed AND rep >= repGate
+  // locked_seq = not reached yet | locked_rep = reached but rep too low (shows side missions)
+  state.missions.forEach((m, idx) => {
     if (m.status === 'completed') return;
-    if (state.rep >= m.repGate) {
-      if (m.status === 'locked') m.status = 'available';
+    const prevCompleted = idx === 0 || state.missions[idx - 1].status === 'completed';
+    if (!prevCompleted) {
+      m.status = 'locked_seq';
+    } else if (state.rep < m.repGate) {
+      m.status = 'locked_rep';
     } else {
-      if (m.status !== 'completed') m.status = 'locked';
+      m.status = 'available';
     }
   });
+
+  const stuckMission = state.missions.find(m => m.status === 'locked_rep');
+  state.sideMissionsAvailable = !!stuckMission;
+  if (stuckMission) state.repNeeded = stuckMission.repGate;
 
   const ml = document.getElementById('mission-list');
   ml.innerHTML = '';
   let currentAct = 0;
+
   state.missions.forEach(m => {
+    if (m.status === 'locked_seq') return;
     if (m.act !== currentAct) {
       currentAct = m.act;
       const al = document.createElement('div');
@@ -794,22 +804,36 @@ function updateMissionList() {
       al.textContent = 'ACT ' + m.act;
       ml.appendChild(al);
     }
+    const displayStatus = m.status === 'locked_rep' ? 'locked' : m.status;
     const d = document.createElement('div');
-    d.className = 'mission-item ' + m.status + (state.currentMission?.id === m.id ? ' active' : '');
+    d.className = 'mission-item ' + displayStatus + (state.currentMission?.id === m.id ? ' active' : '');
     let badge = '';
-    if (m.status === 'completed') badge = '<span class="m-check">✓</span>';
-    else if (m.status === 'locked') badge = '<span class="m-rep">' + m.repGate + ' rep</span>';
+    if (m.status === 'completed')  badge = '<span class="m-check">&#10003;</span>';
+    if (m.status === 'locked_rep') badge = '<span class="m-rep">' + m.repGate + ' rep</span>';
     d.innerHTML = m.id + ' ' + m.name + badge;
     if (m.status === 'available') d.onclick = () => processCmd('start ' + m.id);
     ml.appendChild(d);
   });
+
+  // Side mission slot — only visible when player is rep-gated
+  if (state.sideMissionsAvailable) {
+    const sl = document.createElement('div');
+    sl.className = 'act-label';
+    sl.textContent = 'SIDE MISSIONS';
+    ml.appendChild(sl);
+    const sd = document.createElement('div');
+    sd.className = 'mission-item';
+    sd.style.cssText = 'color:var(--amber);font-size:11px;padding:4px 6px;cursor:default';
+    sd.textContent = 'Coming in Act 1 update';
+    ml.appendChild(sd);
+  }
+
   document.getElementById('sb-rep').textContent = state.rep;
   document.getElementById('hdr-rep').textContent = state.rep;
-
-  // Act display
   const act = state.currentMission ? state.currentMission.act : '—';
   document.getElementById('sb-act').textContent = act === '—' ? '—' : 'Act ' + act;
 }
+
 
 // ═══════════════════════════════════════════════
 //  BOOT SEQUENCE
@@ -902,9 +926,10 @@ function showMissions() {
       currentAct = m.act;
       print('  — ACT ' + m.act + ' —', 'warn');
     }
-    const icon = m.status === 'completed' ? '✓' : m.status === 'available' ? '▶' : '✗';
-    const cls  = m.status === 'completed' ? 'success' : m.status === 'available' ? 'prompt' : 'dim';
-    const gate = m.status === 'locked' ? '  [need ' + m.repGate + ' rep]' : '';
+    if (m.status === 'locked_seq') return;
+    const icon = m.status === 'completed' ? '✓' : m.status === 'available' ? '▶' : '!';
+    const cls  = m.status === 'completed' ? 'success' : m.status === 'available' ? 'prompt' : m.status === 'locked_rep' ? 'warn' : 'dim';
+    const gate = m.status === 'locked_rep' ? '  [need ' + m.repGate + ' rep — ' + (m.repGate - state.rep) + ' more]' : '';
     print(' ' + icon + '  ' + m.id + '  ' + m.name.padEnd(16) + gate, cls);
   });
   print('');
@@ -916,9 +941,17 @@ function showMissions() {
 function startMission(id) {
   const mission = state.missions.find(m => m.id === id);
   if (!mission) { print('Unknown mission: ' + id, 'error'); return; }
-  if (mission.status === 'locked') {
-    print('Mission locked. Need ' + mission.repGate + ' reputation. You have ' + state.rep + '.', 'error');
+  if (mission.status === 'locked_seq') {
+    print('Mission not yet available. Complete the previous mission first.', 'error'); return;
+  }
+  if (mission.status === 'locked_rep') {
+    const needed = mission.repGate - state.rep;
+    print('Insufficient reputation. Need ' + mission.repGate + ' rep — you have ' + state.rep + ' (' + needed + ' more needed).', 'error');
+    print('Side missions are available to earn more reputation.', 'warn');
     return;
+  }
+  if (mission.status === 'locked') {
+    print('Mission locked.', 'error'); return;
   }
 
   if (state.timerInterval) { clearInterval(state.timerInterval); state.timerInterval = null; }
