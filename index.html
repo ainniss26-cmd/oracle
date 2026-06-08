@@ -881,9 +881,10 @@ function selectPath(path) {
     print('Your first case is open.', 'info');
   }
   print('');
-  print('Type  missions      → view available missions', 'info');
-  print('Type  start M01     → begin first mission', 'info');
-  print('Type  help          → open Operator\'s Manual', 'info');
+  print('─────────────────────────────────────────', 'dim');
+  print('  Type  tutorial    → learn the basics (recommended)', 'info');
+  print('  Type  missions    → skip and go straight in', 'info');
+  print('─────────────────────────────────────────', 'dim');
   print('');
   document.getElementById('cmd-input').focus();
 }
@@ -1119,6 +1120,378 @@ function showTools() {
 }
 
 // ═══════════════════════════════════════════════
+//  TUTORIAL ENGINE
+// ═══════════════════════════════════════════════
+
+const tutorialFS = {
+  '/': { type:'dir', children:['home','intel'] },
+  '/home': { type:'dir', children:['welcome.txt','emails'] },
+  '/home/welcome.txt': { type:'file', perms:'-rw-r--r--', content:'Welcome to the system.\nYour first lead is in the intel directory.\nCheck /intel for more information.' },
+  '/home/emails': { type:'dir', children:['.secret_msg.txt'] },
+  '/home/emails/.secret_msg.txt': { type:'file', perms:'-rw-------', hidden:true, content:'Hidden message found.\nEncoded payload: dHV0b3JpYWw=' },
+  '/intel': { type:'dir', children:['readme.txt','encoded.txt'] },
+  '/intel/readme.txt': { type:'file', perms:'-rw-r--r--', content:'Two files in this directory.\nOne is visible. One is encoded.\nDecode the encoded file to find the final answer.' },
+  '/intel/encoded.txt': { type:'file', perms:'-rw-r--r--', content:'Encoded payload:\ndHV0b3JpYWw=\nEncoding: Base64' },
+};
+
+// Tutorial steps: each has a prompt, the expected command(s), and a response
+const tutorialGhost = [
+  {
+    prompt: [
+      '[ GHOST OPERATIVE TUTORIAL ]',
+      '',
+      'You operate in the shadows. Your goal is to breach target systems,',
+      'extract data, and vanish without a trace.',
+      'Every mission gives you access to a target\'s filesystem.',
+      'You navigate it using terminal commands to find the answers.',
+      '',
+      'Let\'s start with the basics.',
+      '',
+      '━━━ STEP 1: LIST FILES ━━━',
+      'The  ls  command lists files and folders in your current location.',
+      '',
+      '▶  Type:  ls',
+    ],
+    accept: ['ls'],
+    response: ['Good. You can see the directories available at root.','Directories are shown in blue. Files in green.',''],
+  },
+  {
+    prompt: [
+      '━━━ STEP 2: NAVIGATE DIRECTORIES ━━━',
+      'Use  cd <folder>  to move into a directory.',
+      'Use  cd ..  to go back up one level.',
+      'Your current location always shows in the prompt.',
+      '',
+      '▶  Type:  cd intel',
+    ],
+    accept: ['cd intel'],
+    response: ['You\'re now inside /intel.','Notice the prompt updated to show your location.',''],
+  },
+  {
+    prompt: [
+      '━━━ STEP 3: READ FILES ━━━',
+      'Use  cat <filename>  to read the contents of a file.',
+      '',
+      '▶  Type:  cat readme.txt',
+    ],
+    accept: ['cat readme.txt', 'cat /intel/readme.txt'],
+    response: [''],
+  },
+  {
+    prompt: [
+      '━━━ STEP 4: HIDDEN FILES ━━━',
+      'Some files are hidden — they start with a dot (.).',
+      'Regular  ls  won\'t show them.',
+      'Use  ls -la  to reveal everything including hidden files.',
+      '',
+      '▶  Type:  ls -la  (try it in /home/emails — navigate there first)',
+      '▶  Or just type:  ls -la /home/emails',
+    ],
+    accept: ['ls -la', 'ls -la /home/emails', 'ls -al', 'ls -al /home/emails'],
+    response: ['Hidden files revealed. Anything starting with a dot is hidden by default.','In real missions, critical clues are often in hidden files.',''],
+  },
+  {
+    prompt: [
+      '━━━ STEP 5: SEARCH INSIDE FILES ━━━',
+      'Use  grep <pattern> <file>  to search for specific text inside a file.',
+      'It returns only the lines that match your search.',
+      '',
+      '▶  Type:  grep encoded /intel/readme.txt',
+    ],
+    accept: ['grep encoded /intel/readme.txt', 'grep encoded readme.txt'],
+    response: ['Grep found the matching line instantly.','In log analysis missions, grep is essential for finding attacker IPs and timestamps.',''],
+  },
+  {
+    prompt: [
+      '━━━ STEP 6: DECODING ━━━',
+      'Encoded data appears throughout missions.',
+      'Use  decode --base64 <string>  to decode Base64.',
+      'Use  decode --hex <string>  to decode hex.',
+      '',
+      'First, read the encoded file:',
+      '▶  Type:  cat /intel/encoded.txt',
+    ],
+    accept: ['cat /intel/encoded.txt', 'cat encoded.txt'],
+    response: ['You can see the encoded payload. Now decode it.',''],
+  },
+  {
+    prompt: [
+      '▶  Type:  decode --base64 dHV0b3JpYWw=',
+    ],
+    accept: ['decode --base64 dHV0b3JpYWw='],
+    response: ['The decoded result is the answer to a puzzle.','In real missions you find the encoded string in the filesystem, decode it, then submit the result.',''],
+  },
+  {
+    prompt: [
+      '━━━ STEP 7: SUBMITTING ANSWERS ━━━',
+      'When you have the answer to a puzzle, use:',
+      '  submit <answer>',
+      '',
+      'The answer to the tutorial puzzle is what you just decoded.',
+      '',
+      '▶  Type:  submit tutorial',
+    ],
+    accept: ['submit tutorial'],
+    response: [''],
+    isPractice: true,
+  },
+  {
+    prompt: [
+      '━━━ STEP 8: OTHER USEFUL COMMANDS ━━━',
+      '',
+      '  pwd              → print current directory',
+      '  ps aux           → list running processes',
+      '  ping <ip>        → ping an IP address',
+      '  whoami           → show current user',
+      '  clear            → clear the terminal',
+      '  tools            → list your unlocked tools',
+      '  missions         → view mission board',
+      '  help             → open the full Operator\'s Manual',
+      '',
+      '━━━ STEP 9: REPUTATION ━━━',
+      '',
+      'Every correct answer earns +15 reputation.',
+      'Wrong answers cost -5 reputation.',
+      'Higher missions require minimum reputation to unlock.',
+      'Completing missions earns +25 bonus reputation.',
+      '',
+      '━━━ TUTORIAL COMPLETE ━━━',
+      '',
+      'You\'re ready, operative.',
+      '',
+      '▶  Type:  missions  to see your first assignment.',
+    ],
+    accept: ['missions', 'start m01', 'start M01'],
+    isLast: true,
+    response: [''],
+  },
+];
+
+const tutorialSentinel = [
+  {
+    prompt: [
+      '[ SENTINEL OPERATIVE TUTORIAL ]',
+      '',
+      'You are a cybersecurity analyst. Your goal is to investigate breaches,',
+      'identify attackers, patch vulnerabilities, and protect critical systems.',
+      'Every mission loads a target filesystem for you to investigate.',
+      'You use terminal commands to uncover evidence and submit your findings.',
+      '',
+      '━━━ STEP 1: LIST FILES ━━━',
+      'The  ls  command lists files and folders in your current location.',
+      '',
+      '▶  Type:  ls',
+    ],
+    accept: ['ls'],
+    response: ['Good. You can see the directories available at root.','Directories are shown in blue. Files in green.',''],
+  },
+  {
+    prompt: [
+      '━━━ STEP 2: NAVIGATE DIRECTORIES ━━━',
+      'Use  cd <folder>  to move into a directory.',
+      'Use  cd ..  to go back up. Your location shows in the prompt.',
+      '',
+      '▶  Type:  cd intel',
+    ],
+    accept: ['cd intel'],
+    response: ['You\'re now inside /intel.','Notice the prompt shows your current path.',''],
+  },
+  {
+    prompt: [
+      '━━━ STEP 3: READ FILES ━━━',
+      'Use  cat <filename>  to read the contents of a file.',
+      '',
+      '▶  Type:  cat readme.txt',
+    ],
+    accept: ['cat readme.txt', 'cat /intel/readme.txt'],
+    response: [''],
+  },
+  {
+    prompt: [
+      '━━━ STEP 4: HIDDEN FILES ━━━',
+      'Attackers often hide evidence in dot files (files starting with .).',
+      'Use  ls -la  to reveal hidden files.',
+      '',
+      '▶  Type:  ls -la /home/emails',
+    ],
+    accept: ['ls -la', 'ls -la /home/emails', 'ls -al', 'ls -al /home/emails'],
+    response: ['Hidden file found. In real investigations, deleted or hidden files often contain key evidence.',''],
+  },
+  {
+    prompt: [
+      '━━━ STEP 5: SEARCH INSIDE FILES ━━━',
+      'Use  grep <pattern> <file>  to search for text inside a file.',
+      'Essential for scanning long log files for attacker activity.',
+      '',
+      '▶  Type:  grep encoded /intel/readme.txt',
+    ],
+    accept: ['grep encoded /intel/readme.txt', 'grep encoded readme.txt'],
+    response: ['Grep isolates matching lines instantly — critical for log analysis.',''],
+  },
+  {
+    prompt: [
+      '━━━ STEP 6: DECODING ━━━',
+      'Attackers encode stolen data to obscure it.',
+      'Use  decode --base64 <string>  to decode intercepted payloads.',
+      '',
+      '▶  Type:  cat /intel/encoded.txt',
+    ],
+    accept: ['cat /intel/encoded.txt', 'cat encoded.txt'],
+    response: ['You can see the encoded payload. Now decode it.',''],
+  },
+  {
+    prompt: [
+      '▶  Type:  decode --base64 dHV0b3JpYWw=',
+    ],
+    accept: ['decode --base64 dHV0b3JpYWw='],
+    response: ['Decoded. In real missions you\'ll find encoded payloads in intercepted files and need to identify what was transmitted.',''],
+  },
+  {
+    prompt: [
+      '━━━ STEP 7: SUBMITTING FINDINGS ━━━',
+      'When you\'ve identified the answer to a case, use:',
+      '  submit <answer>',
+      '',
+      '▶  Type:  submit tutorial',
+    ],
+    accept: ['submit tutorial'],
+    response: [''],
+    isPractice: true,
+  },
+  {
+    prompt: [
+      '━━━ STEP 8: OTHER USEFUL COMMANDS ━━━',
+      '',
+      '  pwd              → print current directory',
+      '  ps aux           → list running processes (find rogue ones)',
+      '  ping <ip>        → check if a host is online',
+      '  whoami           → show current user',
+      '  clear            → clear the terminal',
+      '  tools            → list your unlocked tools',
+      '  missions         → view mission board',
+      '  help             → open the full Operator\'s Manual',
+      '',
+      '━━━ STEP 9: REPUTATION ━━━',
+      '',
+      'Correct answers earn +15 reputation.',
+      'Wrong answers cost -5 reputation.',
+      'Reputation gates higher missions — earn it to unlock them.',
+      '',
+      '━━━ TUTORIAL COMPLETE ━━━',
+      '',
+      'You\'re ready, Operative. Your first case is open.',
+      '',
+      '▶  Type:  missions  to view the mission board.',
+    ],
+    accept: ['missions', 'start m01', 'start M01'],
+    isLast: true,
+    response: [''],
+  },
+];
+
+const tState = {
+  active: false,
+  step: 0,
+  steps: [],
+  waitingForCmd: false,
+};
+
+function startTutorial() {
+  tState.active = true;
+  tState.step = 0;
+  tState.steps = state.path === 'ghost' ? tutorialGhost : tutorialSentinel;
+
+  // load tutorial filesystem
+  state.fs = tutorialFS;
+  state.cwd = '/';
+  updatePrompt();
+
+  clearTerminal();
+  print('');
+  showTutorialStep(0);
+}
+
+function showTutorialStep(idx) {
+  if (idx >= tState.steps.length) { endTutorial(); return; }
+  const step = tState.steps[idx];
+  tState.step = idx;
+  tState.waitingForCmd = true;
+
+  print('');
+  step.prompt.forEach(line => {
+    if (line.startsWith('━━━')) print(line, 'warn');
+    else if (line.startsWith('▶')) print(line, 'system');
+    else if (line === '') print('', 'dim');
+    else print(line, 'info');
+  });
+  print('');
+
+  // update right panel
+  document.getElementById('puzzle-content').innerHTML = `
+    <div style="font-family:var(--font-vt);font-size:18px;color:var(--green-mid);margin-bottom:10px">TUTORIAL</div>
+    <div style="font-size:10px;color:var(--text-dim);letter-spacing:2px;margin-bottom:12px">STEP ${idx+1} / ${tState.steps.length}</div>
+    <div id="progress-bar"><div id="progress-fill" style="width:${((idx)/tState.steps.length)*100}%"></div></div>
+    <div style="font-size:12px;color:var(--green-dim);line-height:1.8;margin-bottom:14px">
+      ${step.prompt.filter(l=>!l.startsWith('▶')&&!l.startsWith('━━━')&&l!=='').slice(0,3).join('<br>')}
+    </div>
+    <div style="font-size:11px;color:var(--text-dim);border:1px solid var(--border);padding:8px 10px;line-height:1.8">
+      ${step.isLast ? 'Tutorial complete! Type <span style="color:var(--amber)">missions</span> to begin.' : 'Type the command shown in the terminal with the <span style="color:var(--blue)">▶</span> arrow.'}
+    </div>`;
+}
+
+function handleTutorialCmd(cmd) {
+  if (!tState.active) return false;
+
+  const step = tState.steps[tState.step];
+  const accepted = step.accept.some(a => cmd.toLowerCase() === a.toLowerCase());
+
+  // For step 6 (cat encoded.txt) and step 3 (cat readme.txt) — run the real command then advance
+  const isFileCmd = cmd.startsWith('ls') || cmd.startsWith('cd') || cmd.startsWith('cat') || cmd.startsWith('grep') || cmd.startsWith('decode') || cmd === 'pwd';
+
+  if (isFileCmd) {
+    // actually execute filesystem commands during tutorial
+    return false; // let processCmd handle it, then check acceptance
+  }
+
+  if (accepted) {
+    if (step.isPractice) {
+      print('');
+      print('◢ CORRECT — puzzle solved ◣', 'success');
+      print('That\'s how submit works in real missions.', 'info');
+      print('');
+    }
+    step.response.forEach(r => { if (r) print(r, 'info'); });
+    setTimeout(() => showTutorialStep(tState.step + 1), 400);
+    if (step.isLast) { tState.active = false; endTutorial(); }
+    return true;
+  }
+
+  return false;
+}
+
+function checkTutorialAdvance(cmd) {
+  if (!tState.active) return;
+  const step = tState.steps[tState.step];
+  const accepted = step.accept.some(a => cmd.toLowerCase() === a.toLowerCase());
+  if (accepted) {
+    step.response.forEach(r => { if (r) print(r, 'info'); });
+    setTimeout(() => showTutorialStep(tState.step + 1), 500);
+  }
+}
+
+function endTutorial() {
+  tState.active = false;
+  state.fs = {};
+  state.cwd = '/';
+  updatePrompt();
+  document.getElementById('puzzle-content').innerHTML = `
+    <div style="color:var(--text-dim);font-size:12px;margin-top:20px;text-align:center">
+      Tutorial complete.<br><br>
+      Type <span style="color:var(--green)">missions</span> to begin.
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════
 //  HELP
 // ═══════════════════════════════════════════════
 function toggleHelp() {
@@ -1139,10 +1512,42 @@ function processCmd(raw) {
 
   if (!state.path) { print('Choose Ghost or Sentinel first.', 'error'); return; }
 
-  if (cmd === 'ls')              { listDir(state.cwd, false); return; }
-  if (cmd === 'ls -la' || cmd === 'ls -al') { listDir(state.cwd, true); return; }
-  if (cmd.startsWith('ls -la ') || cmd.startsWith('ls -al ')) { listDir(cmd.split(' ')[2], true); return; }
-  if (cmd.startsWith('ls '))     { listDir(cmd.split(' ')[1], false); return; }
+  // Tutorial command
+  if (cmd === 'tutorial') { startTutorial(); return; }
+
+  // During tutorial — intercept submit and navigation then check for step advance
+  if (tState.active) {
+    const step = tState.steps[tState.step];
+    const accepted = step.accept.some(a => cmd.toLowerCase() === a.toLowerCase());
+    // run filesystem commands normally, then check if they match the expected command
+    const isNavCmd = cmd.startsWith('ls') || cmd.startsWith('cd') || cmd.startsWith('cat') || cmd.startsWith('grep') || cmd.startsWith('decode') || cmd === 'pwd';
+    if (cmd.startsWith('submit ')) {
+      const ans = cmd.slice(7).trim();
+      if (step.isPractice && ans.toLowerCase() === 'tutorial') {
+        print('');
+        print('◢ CORRECT — puzzle solved ◣', 'success');
+        print('That\'s how submit works in real missions.', 'info');
+        step.response.forEach(r => { if (r) print(r, 'info'); });
+        setTimeout(() => showTutorialStep(tState.step + 1), 500);
+      } else if (step.isPractice) {
+        print('✗ Not quite. The answer is what you decoded. Try: submit tutorial', 'error');
+      }
+      return;
+    }
+    if (cmd === 'missions' && step.isLast) { tState.active = false; endTutorial(); showMissions(); return; }
+    if ((cmd === 'start M01' || cmd === 'start m01') && step.isLast) { tState.active = false; endTutorial(); startMission('M01'); return; }
+    if (isNavCmd) {
+      // run the command, then check advancement
+    } else if (!accepted && !step.isLast) {
+      print('Follow the tutorial prompt. Expected: ' + step.accept[0], 'warn');
+      return;
+    }
+  }
+
+  if (cmd === 'ls')              { listDir(state.cwd, false); if (tState.active) checkTutorialAdvance(cmd); return; }
+  if (cmd === 'ls -la' || cmd === 'ls -al') { listDir(state.cwd, true); if (tState.active) checkTutorialAdvance(cmd); return; }
+  if (cmd.startsWith('ls -la ') || cmd.startsWith('ls -al ')) { listDir(cmd.split(' ')[2], true); if (tState.active) checkTutorialAdvance(cmd); return; }
+  if (cmd.startsWith('ls '))     { listDir(cmd.split(' ')[1], false); if (tState.active) checkTutorialAdvance(cmd); return; }
 
   if (cmd.startsWith('cd ')) {
     const target = cmd.slice(3).trim();
@@ -1150,21 +1555,21 @@ function processCmd(raw) {
     const node = state.fs[resolved];
     if (!node) { print('cd: ' + target + ': No such directory', 'error'); return; }
     if (node.type !== 'dir') { print('cd: ' + target + ': Not a directory', 'error'); return; }
-    state.cwd = resolved; updatePrompt(); return;
+    state.cwd = resolved; updatePrompt(); if (tState.active) checkTutorialAdvance(cmd); return;
   }
 
-  if (cmd.startsWith('cat '))  { catFile(cmd.slice(4).trim()); return; }
+  if (cmd.startsWith('cat '))  { catFile(cmd.slice(4).trim()); if (tState.active) checkTutorialAdvance(cmd); return; }
 
   if (cmd.startsWith('grep ')) {
     const parts = cmd.split(' ');
     if (parts.length < 3) { print('Usage: grep <pattern> <file>', 'error'); return; }
-    grepFile(parts[1], parts.slice(2).join(' ')); return;
+    grepFile(parts[1], parts.slice(2).join(' ')); if (tState.active) checkTutorialAdvance(cmd); return;
   }
 
   if (cmd.startsWith('decode --base64 ')) {
     const enc = cmd.slice(16).trim();
     try { print('Decoded: ' + atob(enc), 'success'); } catch { print('Invalid Base64.', 'error'); }
-    return;
+    if (tState.active) checkTutorialAdvance(cmd); return;
   }
   if (cmd.startsWith('decode --hex ')) {
     const hex = cmd.slice(13).trim().replace(/\s/g,'');
