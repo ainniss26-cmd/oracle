@@ -3,1673 +3,1345 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NETBREAKER — Terminal Hacking Game</title>
+<title>ORACLE — Delphi Security Operations</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@300;400;500;600&family=VT323&display=swap" rel="stylesheet">
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --green: #00ff41; --green-dim: #00aa2a; --green-dark: #003310; --green-mid: #00cc33;
-    --red: #ff3333; --amber: #ffaa00; --blue: #00aaff;
-    --bg: #0a0f0a; --bg2: #0d140d; --border: #003a00;
-    --text-dim: #007a1a;
-    --font-mono: 'Share Tech Mono', monospace; --font-vt: 'VT323', monospace;
-  }
-  html, body { height: 100%; overflow: hidden; }
-  body { background: var(--bg); color: var(--green); font-family: var(--font-mono); font-size: 13px; line-height: 1.5; display: flex; flex-direction: column; }
-  #scanline { position:fixed;top:0;left:0;right:0;bottom:0; background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px); pointer-events:none; z-index:9999; }
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0e1117;
+  --bg2:#141820;
+  --bg3:#1a2030;
+  --bg4:#202838;
+  --border:#1e2d45;
+  --border2:#2a3d5a;
+  --blue:#1e90ff;
+  --blue2:#3da8ff;
+  --blue3:#0a4a8a;
+  --blue-dim:#0d3a6e;
+  --cyan:#00d4ff;
+  --cyan-dim:#005f72;
+  --text:#e8edf5;
+  --text-dim:#6b7fa3;
+  --text-mid:#9aadc8;
+  --success:#00c87a;
+  --warn:#f5a623;
+  --error:#ff4757;
+  --oracle:#a78bfa;
+  --oracle-dim:#3b2f6e;
+  --mono:'Share Tech Mono',monospace;
+  --sans:'Inter',sans-serif;
+  --vt:'VT323',monospace;
+}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:13px;line-height:1.5;display:flex;flex-direction:column;}
 
-  /* HEADER */
-  .header { border-bottom:1px solid var(--border); padding:6px 12px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0; background:var(--bg2); }
-  .header-title { font-family:var(--font-vt); font-size:22px; color:var(--green); letter-spacing:4px; }
-  .header-info { display:flex; gap:16px; font-size:11px; color:var(--text-dim); align-items:center; }
-  .header-info span { color:var(--green); }
+/* ── SCROLLBARS ── */
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
 
-  /* LAYOUT */
-  #main { display:flex; flex:1; overflow:hidden; }
+/* ── UTILITY ── */
+.hidden{display:none!important;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+@keyframes scan{0%{transform:translateY(-100%)}100%{transform:translateY(100vh)}}
+@keyframes blink{50%{opacity:0}}
+.fade-in{animation:fadeIn 0.5s ease forwards;}
+.fade-in-up{animation:fadeInUp 0.4s ease forwards;}
+.blink{animation:blink 1s step-end infinite;}
 
-  /* SIDEBAR */
-  #sidebar { width:210px; border-right:1px solid var(--border); padding:10px; overflow-y:auto; flex-shrink:0; background:var(--bg2); }
-  .sidebar-section { margin-bottom:16px; }
-  .sidebar-label { font-size:10px; color:var(--text-dim); letter-spacing:2px; text-transform:uppercase; margin-bottom:6px; border-bottom:1px solid var(--border); padding-bottom:4px; }
-  .mission-item { padding:4px 6px; border-radius:2px; font-size:11px; color:var(--text-dim); transition:all 0.15s; display:flex; justify-content:space-between; align-items:center; }
-  .mission-item.available { color:var(--green-dim); cursor:pointer; }
-  .mission-item.available:hover { color:var(--green); background:var(--green-dark); }
-  .mission-item.active { color:var(--green); background:var(--green-dark); }
-  .mission-item.locked { color:#002200; cursor:not-allowed; }
-  .mission-item.completed { color:var(--green-dim); }
-  .mission-item .m-check { color:var(--green-dim); }
-  .mission-item .m-lock  { color:#002200; font-size:10px; }
-  .mission-item .m-rep   { color:var(--amber); font-size:10px; }
-  .stat-row { display:flex; justify-content:space-between; font-size:11px; margin-bottom:4px; color:var(--text-dim); }
-  .stat-row span { color:var(--green); }
-  .rep-bar { height:4px; background:#001500; border:1px solid var(--border); margin-top:4px; margin-bottom:8px; }
-  .rep-fill { height:100%; background:var(--green); transition:width 0.5s; }
-  .tool-item { font-size:11px; padding:2px 0; display:flex; align-items:center; gap:6px; }
-  .tool-item.owned  { color:var(--green-dim); }
-  .tool-item.locked { color:#002200; }
-  .tool-item .tool-dot { width:6px; height:6px; border-radius:50%; background:var(--green-dim); flex-shrink:0; }
-  .tool-item.locked .tool-dot { background:#002200; }
-  .act-label { font-size:10px; color:var(--amber); letter-spacing:1px; margin-top:8px; margin-bottom:4px; }
+/* ── SCANLINE OVERLAY ── */
+#scanline{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:9999;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.015) 2px,rgba(0,0,0,0.015) 4px);}
+#scan-beam{position:fixed;left:0;right:0;height:2px;background:linear-gradient(transparent,rgba(30,144,255,0.03),transparent);
+  pointer-events:none;z-index:9998;animation:scan 8s linear infinite;}
 
-  /* TERMINAL */
-  #terminal { flex:1; display:flex; flex-direction:column; overflow:hidden; }
-  #output { flex:1; overflow-y:auto; padding:12px; scroll-behavior:smooth; }
-  .line { margin-bottom:2px; white-space:pre-wrap; word-break:break-all; }
-  .line.prompt  { color:var(--green); }
-  .line.info    { color:var(--green-dim); }
-  .line.success { color:var(--green); font-weight:bold; }
-  .line.error   { color:var(--red); }
-  .line.warn    { color:var(--amber); }
-  .line.system  { color:var(--blue); }
-  .line.dim     { color:var(--text-dim); }
-  .line.big     { font-family:var(--font-vt); font-size:20px; color:var(--green); }
-  .line.title   { font-family:var(--font-vt); font-size:16px; color:var(--green-mid); letter-spacing:2px; }
-  .line.news    { color:var(--amber); font-style:italic; }
-  #input-row { border-top:1px solid var(--border); padding:8px 12px; display:flex; align-items:center; gap:8px; background:var(--bg2); flex-shrink:0; }
-  #prompt-label { color:var(--text-dim); white-space:nowrap; font-size:13px; }
-  #cmd-input { flex:1; background:transparent; border:none; outline:none; color:var(--green); font-family:var(--font-mono); font-size:13px; caret-color:var(--green); }
+/* ════════════════════════════════════════════
+   BOOT SEQUENCE
+════════════════════════════════════════════ */
+#boot-screen{position:fixed;inset:0;background:#000;z-index:600;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;padding:60px;}
+#boot-lines{font-family:var(--mono);font-size:13px;line-height:2.2;max-width:700px;}
+.boot-line{opacity:0;transition:opacity 0.1s;}
+.boot-line.visible{opacity:1;}
+.boot-line.blue{color:var(--blue);}
+.boot-line.cyan{color:var(--cyan);}
+.boot-line.dim{color:#333;}
+.boot-line.success{color:var(--success);}
+.boot-line.warn{color:var(--warn);}
+.boot-line.white{color:var(--text);}
 
-  /* PUZZLE PANEL */
-  #puzzle-panel { width:300px; border-left:1px solid var(--border); display:flex; flex-direction:column; overflow:hidden; background:var(--bg2); }
-  .panel-header { padding:8px 12px; border-bottom:1px solid var(--border); font-size:11px; color:var(--text-dim); letter-spacing:2px; text-transform:uppercase; }
-  #puzzle-content { flex:1; overflow-y:auto; padding:14px; }
-  .puzzle-title { font-family:var(--font-vt); font-size:20px; color:var(--green-mid); margin-bottom:6px; }
-  .puzzle-obj-label { font-size:10px; color:var(--text-dim); letter-spacing:2px; text-transform:uppercase; margin-bottom:6px; }
-  .puzzle-desc { font-size:12px; color:var(--green-dim); margin-bottom:14px; line-height:1.7; }
-  .puzzle-submit-hint { font-size:11px; color:var(--text-dim); border:1px solid var(--border); padding:8px 10px; line-height:1.8; }
-  .puzzle-submit-hint span { color:var(--amber); }
-  #progress-bar { height:3px; background:var(--green-dark); margin-bottom:10px; }
-  #progress-fill { height:100%; background:var(--green); transition:width 0.5s; }
-  .success-banner { color:var(--green); text-align:center; padding:12px; border:1px solid var(--green-dim); margin-top:10px; font-family:var(--font-vt); font-size:20px; }
-  .fail-banner { color:var(--red); text-align:center; padding:10px; border:1px solid var(--red); margin-top:10px; font-family:var(--font-vt); font-size:18px; }
-  .timed-header { background:#1a0000; border:1px solid var(--red); padding:8px; margin-bottom:10px; font-family:var(--font-vt); font-size:22px; color:var(--red); text-align:center; }
+/* ════════════════════════════════════════════
+   DELPHI WELCOME / CREDENTIAL SETUP
+════════════════════════════════════════════ */
+#credential-screen{position:fixed;inset:0;background:var(--bg);z-index:550;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;}
+.cred-inner{width:100%;max-width:680px;}
+#cred-output{font-family:var(--mono);font-size:13px;line-height:2;margin-bottom:6px;min-height:200px;}
+.cred-line{color:var(--text-dim);}
+.cred-line.blue{color:var(--blue2);}
+.cred-line.cyan{color:var(--cyan);}
+.cred-line.white{color:var(--text);}
+.cred-line.success{color:var(--success);}
+.cred-line.warn{color:var(--warn);}
+.cred-line.error{color:var(--error);}
+.cred-line.dim{color:#2a3a52;}
+.cred-input-row{display:flex;align-items:center;gap:8px;margin-top:4px;}
+.cred-prompt{color:var(--blue);font-size:13px;white-space:nowrap;}
+#cred-input{background:transparent;border:none;outline:none;color:var(--cyan);font-family:var(--mono);font-size:13px;flex:1;caret-color:var(--cyan);}
+.cred-input-row.pw-mode #cred-input{-webkit-text-security:disc;}
 
-  /* STORY SCREEN */
-  #story-overlay { display:none; position:fixed;top:0;left:0;right:0;bottom:0; background:rgba(0,0,0,0.95); z-index:800; overflow-y:auto; padding:40px; align-items:center; justify-content:center; }
-  #story-overlay.active { display:flex; }
-  .story-inner { max-width:620px; width:100%; }
-  .story-label { font-size:10px; color:var(--text-dim); letter-spacing:3px; text-transform:uppercase; margin-bottom:16px; }
-  .story-briefing { border-left:2px solid var(--green-dim); padding:12px 16px; margin-bottom:24px; font-size:12px; color:var(--green-dim); line-height:1.8; }
-  .story-news { border:1px solid var(--amber); padding:14px; margin-bottom:24px; }
-  .story-news-label { font-size:10px; color:var(--amber); letter-spacing:2px; margin-bottom:8px; }
-  .story-news-headline { font-family:var(--font-vt); font-size:18px; color:var(--amber); margin-bottom:8px; }
-  .story-news-body { font-size:11px; color:var(--text-dim); line-height:1.8; }
-  .story-tool-unlock { border:1px solid var(--green); padding:12px; margin-bottom:24px; background:var(--green-dark); }
-  .story-tool-label { font-size:10px; color:var(--green); letter-spacing:2px; margin-bottom:6px; }
-  .story-tool-name { font-family:var(--font-vt); font-size:20px; color:var(--green); margin-bottom:4px; }
-  .story-tool-desc { font-size:11px; color:var(--green-dim); }
-  .story-continue { background:transparent; border:1px solid var(--green-dim); color:var(--green); font-family:var(--font-mono); font-size:12px; padding:10px 24px; cursor:pointer; letter-spacing:2px; text-transform:uppercase; transition:all 0.2s; display:block; margin:0 auto; }
-  .story-continue:hover { background:var(--green-dark); border-color:var(--green); }
+/* ════════════════════════════════════════════
+   DELPHI TERMINAL — MAIN UI
+════════════════════════════════════════════ */
+#delphi-terminal{display:none;flex-direction:column;height:100%;background:var(--bg);}
+body.terminal-active #delphi-terminal{display:flex;}
 
-  /* BOOT SCREEN */
-  #boot-overlay { position:fixed;top:0;left:0;right:0;bottom:0; background:var(--bg); z-index:900; display:flex; flex-direction:column; justify-content:center; padding:40px; }
-  #boot-output { font-size:13px; color:var(--green-dim); line-height:2; max-width:600px; }
+/* ── TOP BAR ── */
+.d-topbar{height:44px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 16px;flex-shrink:0;}
+.d-topbar-left{display:flex;align-items:center;gap:14px;}
+.d-logo{display:flex;align-items:center;gap:9px;cursor:default;}
+.d-logo-epsilon{width:22px;height:22px;flex-shrink:0;}
+.d-logo-name{font-family:var(--sans);font-size:13px;font-weight:600;color:var(--text);letter-spacing:3px;text-transform:uppercase;}
+.d-topbar-divider{width:1px;height:18px;background:var(--border2);}
+.d-topbar-module{font-family:var(--sans);font-size:11px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;}
+.d-topbar-right{display:flex;align-items:center;gap:18px;font-family:var(--sans);font-size:11px;color:var(--text-dim);}
+.d-topbar-badge{display:flex;align-items:center;gap:5px;}
+.d-topbar-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--success);animation:pulse 2s ease infinite;}
+.d-topbar-badge-dot.warn{background:var(--warn);}
+.d-status-tag{font-family:var(--mono);font-size:10px;padding:2px 8px;border:1px solid var(--border2);color:var(--text-dim);letter-spacing:1px;}
+.d-date{font-family:var(--mono);font-size:11px;color:var(--text-dim);}
 
-  /* INTRO */
-  #intro-overlay { position:fixed;top:0;left:0;right:0;bottom:0; background:var(--bg); z-index:500; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px; }
-  .intro-ascii { font-family:var(--font-vt); font-size:40px; color:var(--green); text-align:center; letter-spacing:6px; margin-bottom:8px; }
-  .intro-sub { font-size:11px; color:var(--text-dim); letter-spacing:4px; text-align:center; margin-bottom:40px; }
-  .path-cards { display:flex; gap:24px; margin-bottom:30px; }
-  .path-card { border:1px solid var(--border); padding:20px; width:240px; cursor:pointer; transition:all 0.2s; background:var(--bg2); }
-  .path-card:hover { border-color:var(--green-dim); background:var(--green-dark); }
-  .path-icon { font-family:var(--font-vt); font-size:36px; margin-bottom:8px; }
-  .path-name { font-family:var(--font-vt); font-size:22px; color:var(--green); margin-bottom:6px; letter-spacing:2px; }
-  .path-desc { font-size:11px; color:var(--text-dim); line-height:1.6; }
-  .path-card.ghost .path-icon { color:var(--red); }
-  .path-card.sentinel .path-icon { color:var(--blue); }
+/* ── NAV TABS ── */
+.d-nav{height:34px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:flex-end;padding:0 16px;gap:2px;flex-shrink:0;}
+.d-tab{font-family:var(--sans);font-size:11px;font-weight:500;padding:6px 14px;color:var(--text-dim);cursor:pointer;border-bottom:2px solid transparent;letter-spacing:0.5px;transition:all 0.15s;text-transform:uppercase;}
+.d-tab:hover{color:var(--text-mid);}
+.d-tab.active{color:var(--blue2);border-bottom-color:var(--blue);}
+.d-tab .d-tab-badge{display:inline-block;background:var(--blue3);color:var(--blue2);font-size:9px;padding:1px 5px;border-radius:10px;margin-left:5px;font-family:var(--mono);}
 
-  /* HELP */
-  #help-overlay { display:none; position:fixed;top:0;left:0;right:0;bottom:0; background:rgba(0,0,0,0.92); z-index:1000; overflow-y:auto; padding:24px; }
-  .help-inner { max-width:700px; margin:0 auto; border:1px solid var(--border); padding:20px; background:var(--bg2); }
-  .help-title { font-family:var(--font-vt); font-size:28px; color:var(--green); margin-bottom:4px; }
-  .help-sub { color:var(--text-dim); font-size:11px; letter-spacing:2px; margin-bottom:20px; }
-  .help-section { margin-bottom:20px; }
-  .help-section-title { color:var(--green-mid); font-size:13px; letter-spacing:2px; border-bottom:1px solid var(--border); padding-bottom:4px; margin-bottom:10px; text-transform:uppercase; }
-  .help-entry { margin-bottom:12px; }
-  .help-entry-name { color:var(--green); font-size:13px; margin-bottom:2px; }
-  .help-entry-desc { color:var(--text-dim); font-size:12px; line-height:1.6; }
-  .cmd-ref { color:var(--amber); font-size:12px; margin-bottom:2px; }
-  .tag { display:inline-block; font-size:10px; padding:2px 6px; border:1px solid; margin-right:4px; margin-bottom:4px; border-radius:2px; }
-  .tag.ghost { border-color:var(--red); color:var(--red); }
-  .tag.sentinel { border-color:var(--blue); color:var(--blue); }
-  .tag.both { border-color:var(--text-dim); color:var(--text-dim); }
-  .btn { background:transparent; border:1px solid var(--text-dim); color:var(--green); font-family:var(--font-mono); font-size:12px; padding:6px 12px; cursor:pointer; transition:all 0.15s; text-transform:uppercase; letter-spacing:1px; }
-  .btn:hover { background:var(--green-dark); border-color:var(--green); }
+/* ── LAYOUT ── */
+.d-body{display:flex;flex:1;overflow:hidden;}
 
-  ::-webkit-scrollbar { width:6px; }
-  ::-webkit-scrollbar-track { background:var(--bg); }
-  ::-webkit-scrollbar-thumb { background:var(--border); }
+/* ── LEFT SIDEBAR ── */
+.d-sidebar{width:220px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;}
+.d-sidebar-top{padding:14px 12px;border-bottom:1px solid var(--border);}
+.d-analyst-card{background:var(--bg3);border:1px solid var(--border2);padding:10px 12px;}
+.d-analyst-name{font-family:var(--sans);font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;}
+.d-analyst-id{font-family:var(--mono);font-size:10px;color:var(--text-dim);margin-bottom:6px;}
+.d-analyst-tags{display:flex;gap:4px;flex-wrap:wrap;}
+.d-tag{font-family:var(--mono);font-size:9px;padding:2px 6px;border:1px solid;letter-spacing:1px;}
+.d-tag.blue{border-color:var(--blue-dim);color:var(--blue2);}
+.d-tag.green{border-color:#1a4a2e;color:var(--success);}
+.d-tag.oracle{border-color:var(--oracle-dim);color:var(--oracle);}
+.d-sidebar-section{padding:12px;border-bottom:1px solid var(--border);}
+.d-sidebar-label{font-family:var(--sans);font-size:9px;font-weight:600;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;}
+.d-quick-stat{display:flex;justify-content:space-between;font-family:var(--sans);font-size:11px;color:var(--text-dim);margin-bottom:5px;}
+.d-quick-stat span{color:var(--text-mid);font-family:var(--mono);}
+.d-oracle-widget{background:var(--bg3);border:1px solid var(--oracle-dim);padding:10px;}
+.d-oracle-widget-title{font-family:var(--sans);font-size:9px;font-weight:600;color:var(--oracle);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:5px;}
+.d-oracle-dot{width:5px;height:5px;border-radius:50%;background:var(--oracle);animation:pulse 2s ease infinite;}
+.d-oracle-text{font-family:var(--mono);font-size:11px;color:var(--text-dim);line-height:1.7;margin-bottom:6px;}
+.d-oracle-bar-wrap{height:2px;background:var(--oracle-dim);border-radius:1px;}
+.d-oracle-bar{height:100%;background:var(--oracle);border-radius:1px;transition:width 1.5s ease;}
+.d-sidebar-scroll{flex:1;overflow-y:auto;padding:12px;}
+.d-coworker-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-family:var(--sans);}
+.d-coworker-name{font-size:11px;color:var(--text-mid);}
+.d-coworker-status{font-size:9px;color:var(--success);display:flex;align-items:center;gap:3px;}
+.d-coworker-status.away{color:var(--text-dim);}
+.d-coworker-dot{width:5px;height:5px;border-radius:50%;background:currentColor;}
+
+/* ── TERMINAL PANE ── */
+.d-terminal-pane{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.d-terminal-header{padding:8px 16px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.d-terminal-title{font-family:var(--mono);font-size:11px;color:var(--text-dim);letter-spacing:1px;}
+.d-terminal-path{font-family:var(--mono);font-size:11px;color:var(--blue2);}
+.d-output{flex:1;overflow-y:auto;padding:14px 18px;}
+.d-line{margin-bottom:3px;white-space:pre-wrap;word-break:break-all;font-family:var(--mono);font-size:13px;line-height:1.6;}
+.d-line.cmd{color:var(--text);}
+.d-line.info{color:var(--text-dim);}
+.d-line.success{color:var(--success);}
+.d-line.error{color:var(--error);}
+.d-line.warn{color:var(--warn);}
+.d-line.system{color:var(--blue2);}
+.d-line.cyan{color:var(--cyan);}
+.d-line.oracle{color:var(--oracle);}
+.d-line.dim{color:#2a3a52;}
+.d-line.blank{margin-bottom:10px;}
+.d-line.heading{font-family:var(--sans);font-size:13px;font-weight:600;color:var(--text);letter-spacing:1px;margin:10px 0 4px;}
+.d-line.subheading{font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;}
+.d-input-row{border-top:1px solid var(--border);padding:10px 18px;display:flex;align-items:center;gap:10px;background:var(--bg2);flex-shrink:0;}
+.d-prompt-txt{font-family:var(--mono);font-size:13px;color:var(--blue);white-space:nowrap;flex-shrink:0;}
+.d-cmd-input{flex:1;background:transparent;border:none;outline:none;font-family:var(--mono);font-size:13px;color:var(--cyan);caret-color:var(--blue2);}
+.d-hint{font-family:var(--mono);font-size:10px;color:var(--text-dim);padding:0 18px 6px;background:var(--bg2);}
+
+/* ── RIGHT PANEL ── */
+.d-right-panel{width:300px;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;}
+.d-panel-header{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.d-panel-title{font-family:var(--sans);font-size:10px;font-weight:600;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;}
+.d-panel-body{flex:1;overflow-y:auto;padding:14px;}
+.d-card{background:var(--bg3);border:1px solid var(--border2);padding:12px;margin-bottom:10px;}
+.d-card-title{font-family:var(--sans);font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px;}
+.d-card-sub{font-family:var(--mono);font-size:10px;color:var(--text-dim);margin-bottom:8px;letter-spacing:0.5px;}
+.d-card-body{font-family:var(--sans);font-size:11px;color:var(--text-mid);line-height:1.7;}
+.d-card-hint{font-family:var(--mono);font-size:10px;color:var(--blue2);border:1px solid var(--blue3);padding:6px 8px;margin-top:8px;line-height:1.7;background:var(--bg4);}
+.d-card-hint span{color:var(--cyan);}
+.d-progress-track{height:2px;background:var(--bg4);margin-top:10px;}
+.d-progress-fill{height:100%;background:var(--blue);transition:width 0.5s;}
+.d-success-card{background:#0a2a1a;border:1px solid #1a5a30;padding:12px;margin-top:10px;text-align:center;}
+.d-success-card-text{font-family:var(--sans);font-size:12px;font-weight:500;color:var(--success);}
+.d-fail-card{background:#1f0a0a;border:1px solid #5a1a1a;padding:10px;margin-top:8px;}
+.d-fail-card-text{font-family:var(--sans);font-size:11px;color:var(--error);}
+
+/* ── INBOX PANE ── */
+#inbox-pane{display:none;flex:1;flex-direction:column;overflow:hidden;}
+#inbox-pane.active{display:flex;}
+.inbox-list{width:260px;border-right:1px solid var(--border);overflow-y:auto;flex-shrink:0;}
+.inbox-item{padding:12px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.15s;}
+.inbox-item:hover{background:var(--bg3);}
+.inbox-item.selected{background:var(--bg3);border-left:2px solid var(--blue);}
+.inbox-item.unread .inbox-from{color:var(--text);}
+.inbox-from{font-family:var(--sans);font-size:12px;font-weight:500;color:var(--text-mid);margin-bottom:2px;}
+.inbox-subject{font-family:var(--sans);font-size:11px;color:var(--text-dim);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.inbox-time{font-family:var(--mono);font-size:10px;color:var(--text-dim);}
+.inbox-unread-dot{width:6px;height:6px;border-radius:50%;background:var(--blue);float:right;margin-top:3px;}
+.inbox-viewer{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.inbox-viewer-header{padding:14px 18px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.inbox-viewer-from{font-family:var(--sans);font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;}
+.inbox-viewer-meta{font-family:var(--mono);font-size:10px;color:var(--text-dim);margin-bottom:4px;}
+.inbox-viewer-subject{font-family:var(--sans);font-size:12px;color:var(--text-mid);}
+.inbox-viewer-body{flex:1;overflow-y:auto;padding:18px;font-family:var(--sans);font-size:12px;color:var(--text-mid);line-height:1.8;white-space:pre-wrap;}
+.inbox-reply-area{border-top:1px solid var(--border);padding:14px;flex-shrink:0;}
+.inbox-reply-label{font-family:var(--sans);font-size:10px;font-weight:500;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.reply-option{background:var(--bg3);border:1px solid var(--border2);padding:8px 12px;margin-bottom:6px;cursor:pointer;font-family:var(--sans);font-size:11px;color:var(--text-mid);transition:all 0.15s;display:flex;align-items:center;gap:8px;}
+.reply-option:hover{border-color:var(--blue);color:var(--text);background:var(--bg4);}
+.reply-option::before{content:'›';color:var(--blue);font-size:14px;flex-shrink:0;}
+.reply-sent{font-family:var(--mono);font-size:11px;color:var(--success);padding:8px 0;}
+.inbox-empty{flex:1;display:flex;align-items:center;justify-content:center;color:var(--text-dim);font-family:var(--sans);font-size:12px;}
+
+/* ── TERMINAL PANE TAB CONTENT ── */
+#terminal-pane{display:none;flex:1;flex-direction:column;overflow:hidden;}
+#terminal-pane.active{display:flex;}
+
+/* ── CHAPTER CARD ── */
+#chapter-card{position:fixed;inset:0;background:#000;z-index:700;display:flex;align-items:center;justify-content:center;}
+.chapter-card-inner{text-align:center;}
+.chapter-card-act{font-family:var(--mono);font-size:11px;color:#2a3a52;letter-spacing:6px;margin-bottom:14px;}
+.chapter-card-title{font-family:var(--mono);font-size:26px;color:var(--text);letter-spacing:8px;text-transform:uppercase;margin-bottom:8px;}
+.chapter-card-sub{font-family:var(--mono);font-size:12px;color:#2a3a52;letter-spacing:3px;}
 </style>
 </head>
 <body>
 <div id="scanline"></div>
+<div id="scan-beam"></div>
 
-<!-- BOOT SCREEN -->
-<div id="boot-overlay">
-  <div id="boot-output"></div>
+<!-- ════════════════════════════════════════════
+     BOOT SCREEN
+════════════════════════════════════════════ -->
+<div id="boot-screen" class="hidden">
+  <div id="boot-lines"></div>
 </div>
 
-<!-- INTRO / PATH SELECT -->
-<div id="intro-overlay" style="display:none">
-  <div class="intro-ascii">◢ NETBREAKER ◣</div>
-  <div class="intro-sub">TERMINAL HACKING SIMULATION v0.2.0</div>
-  <div class="intro-sub" style="margin-top:-32px;margin-bottom:40px">CHOOSE YOUR ALLEGIANCE</div>
-  <div class="path-cards">
-    <div class="path-card ghost" onclick="selectPath('ghost')">
-      <div class="path-icon">☠</div>
-      <div class="path-name">GHOST</div>
-      <div class="path-desc">Operate in the shadows. Breach systems, exfiltrate data, cover your tracks. Every target is a puzzle. Every firewall, a challenge.</div>
-      <div style="margin-top:12px;font-size:11px;color:#ff333355;">⚠ Black Hat Operative</div>
+<!-- ════════════════════════════════════════════
+     CREDENTIAL SETUP SCREEN
+════════════════════════════════════════════ -->
+<div id="credential-screen" class="hidden">
+  <div class="cred-inner">
+    <div id="cred-output"></div>
+    <div class="cred-input-row" id="cred-input-row">
+      <span class="cred-prompt" id="cred-prompt">delphi@onboarding:~$</span>
+      <input id="cred-input" type="text" autocomplete="off" spellcheck="false" />
     </div>
-    <div class="path-card sentinel" onclick="selectPath('sentinel')">
-      <div class="path-icon">◈</div>
-      <div class="path-name">SENTINEL</div>
-      <div class="path-desc">Defend the grid. Hunt intruders, patch vulnerabilities, protect critical infrastructure. You are the last line of defense.</div>
-      <div style="margin-top:12px;font-size:11px;color:#00aaff55;">◈ Ethical Hacker</div>
-    </div>
-  </div>
-  <div style="font-size:11px;color:var(--text-dim);text-align:center">Click a path to begin</div>
-</div>
-
-<!-- STORY SCREEN -->
-<div id="story-overlay">
-  <div class="story-inner" id="story-inner"></div>
-</div>
-
-<!-- HEADER -->
-<div class="header">
-  <div class="header-title">◢ NETBREAKER ◣</div>
-  <div class="header-info">
-    PATH: <span id="hdr-path">—</span> &nbsp;|&nbsp;
-    MISSION: <span id="hdr-mission">—</span> &nbsp;|&nbsp;
-    DIR: <span id="hdr-dir">~</span> &nbsp;|&nbsp;
-    REP: <span id="hdr-rep">0</span> &nbsp;|&nbsp;
-    <span style="cursor:pointer;color:var(--amber)" onclick="toggleHelp()">[ MANUAL ]</span>
   </div>
 </div>
 
-<!-- MAIN -->
-<div id="main">
-  <div id="sidebar">
-    <div class="sidebar-section">
-      <div class="sidebar-label">Operative</div>
-      <div class="stat-row">Path: <span id="sb-path">—</span></div>
-      <div class="stat-row">Reputation: <span id="sb-rep">0</span></div>
-      <div class="rep-bar"><div class="rep-fill" id="rep-fill" style="width:0%"></div></div>
-      <div class="stat-row" style="margin-top:2px">Act: <span id="sb-act">—</span></div>
+<!-- ════════════════════════════════════════════
+     CHAPTER CARD
+════════════════════════════════════════════ -->
+<div id="chapter-card" class="hidden">
+  <div class="chapter-card-inner">
+    <div class="chapter-card-act" id="cc-act"></div>
+    <div class="chapter-card-title" id="cc-title"></div>
+    <div class="chapter-card-sub" id="cc-sub"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     DELPHI TERMINAL
+════════════════════════════════════════════ -->
+<div id="delphi-terminal">
+
+  <!-- TOP BAR -->
+  <div class="d-topbar">
+    <div class="d-topbar-left">
+      <div class="d-logo">
+        <svg class="d-logo-epsilon" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M18 5.5C16.2 3.3 13.8 2 11 2C5.5 2 1 6.5 1 12C1 17.5 5.5 22 11 22C13.8 22 16.2 20.7 18 18.5" stroke="#1e90ff" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M4 12H16" stroke="#1e90ff" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M4 12H14" stroke="#00d4ff" stroke-width="0.8" stroke-linecap="round" opacity="0.5"/>
+        </svg>
+        <span class="d-logo-name">Delphi</span>
+      </div>
+      <div class="d-topbar-divider"></div>
+      <span class="d-topbar-module">Security Operations Center</span>
     </div>
-    <div class="sidebar-section">
-      <div class="sidebar-label">Missions</div>
-      <div id="mission-list"></div>
-    </div>
-    <div class="sidebar-section">
-      <div class="sidebar-label">Tools</div>
-      <div id="tool-list"></div>
+    <div class="d-topbar-right">
+      <div class="d-topbar-badge">
+        <div class="d-topbar-badge-dot" id="sys-dot"></div>
+        <span id="sys-status-txt">Systems Online</span>
+      </div>
+      <div class="d-status-tag" id="clearance-tag">L2 — ANALYST</div>
+      <div class="d-date" id="d-date">October 1, 2032</div>
     </div>
   </div>
 
-  <div id="terminal">
-    <div id="output"></div>
-    <div id="input-row">
-      <div id="prompt-label">~$</div>
-      <input id="cmd-input" type="text" autocomplete="off" spellcheck="false" placeholder="type a command..." />
+  <!-- NAV TABS -->
+  <div class="d-nav">
+    <div class="d-tab active" id="tab-terminal" onclick="switchTab('terminal')">Terminal</div>
+    <div class="d-tab" id="tab-inbox" onclick="switchTab('inbox')">
+      Inbox <span class="d-tab-badge" id="inbox-badge">0</span>
     </div>
+    <div class="d-tab" id="tab-oracle" onclick="switchTab('oracle')">Oracle</div>
   </div>
 
-  <div id="puzzle-panel">
-    <div class="panel-header">◈ Mission Objective</div>
-    <div id="puzzle-content">
-      <div style="color:var(--text-dim);font-size:12px;margin-top:20px;text-align:center">
-        No active mission.<br><br>
-        Type <span style="color:var(--green)">missions</span> to begin.
+  <!-- BODY -->
+  <div class="d-body">
+
+    <!-- SIDEBAR -->
+    <div class="d-sidebar">
+      <div class="d-sidebar-top">
+        <div class="d-analyst-card">
+          <div class="d-analyst-name" id="sb-fullname">—</div>
+          <div class="d-analyst-id" id="sb-id">ID: —</div>
+          <div class="d-analyst-tags">
+            <div class="d-tag blue">SOC</div>
+            <div class="d-tag green" id="sb-status-tag">ACTIVE</div>
+            <div class="d-tag oracle">ORACLE ACCESS</div>
+          </div>
+        </div>
+      </div>
+      <div class="d-sidebar-section">
+        <div class="d-sidebar-label">Session</div>
+        <div class="d-quick-stat">Shift: <span id="sb-shift">Day 1</span></div>
+        <div class="d-quick-stat">Clearance: <span id="sb-clearance">L2</span></div>
+        <div class="d-quick-stat">Cases: <span id="sb-cases">0 active</span></div>
+      </div>
+      <div class="d-sidebar-section">
+        <div class="d-sidebar-label">Oracle</div>
+        <div class="d-oracle-widget">
+          <div class="d-oracle-widget-title"><div class="d-oracle-dot"></div>Oracle v4.2</div>
+          <div class="d-oracle-text" id="sb-oracle-text">Monitoring baseline...</div>
+          <div class="d-oracle-bar-wrap"><div class="d-oracle-bar" id="sb-oracle-bar" style="width:0%"></div></div>
+        </div>
+      </div>
+      <div class="d-sidebar-scroll">
+        <div class="d-sidebar-label">Coworkers</div>
+        <div id="coworker-list"></div>
       </div>
     </div>
-  </div>
-</div>
 
-<!-- HELP -->
-<div id="help-overlay">
-  <div class="help-inner">
-    <div class="help-title">◢ OPERATOR'S MANUAL ◣</div>
-    <div class="help-sub">NETBREAKER v0.2.0 — CLASSIFIED REFERENCE DOCUMENT</div>
-    <div class="help-section">
-      <div class="help-section-title">§1 — Terminal Commands</div>
-      <div class="cmd-ref">missions</div><div class="help-entry-desc" style="margin-bottom:8px">List all missions, their status, and required reputation.</div>
-      <div class="cmd-ref">start &lt;id&gt;</div><div class="help-entry-desc" style="margin-bottom:8px">Begin a mission (e.g. start M01). Requires minimum reputation.</div>
-      <div class="cmd-ref">ls / ls -la [path]</div><div class="help-entry-desc" style="margin-bottom:8px">List directory contents. -la reveals hidden dot files.</div>
-      <div class="cmd-ref">cd &lt;dir&gt;</div><div class="help-entry-desc" style="margin-bottom:8px">Change directory. cd .. goes up one level. cd / goes to root.</div>
-      <div class="cmd-ref">cat &lt;file&gt;</div><div class="help-entry-desc" style="margin-bottom:8px">Read a file's contents.</div>
-      <div class="cmd-ref">grep &lt;pattern&gt; &lt;file&gt;</div><div class="help-entry-desc" style="margin-bottom:8px">Search for a pattern inside a file.</div>
-      <div class="cmd-ref">decode --base64 &lt;str&gt;</div><div class="help-entry-desc" style="margin-bottom:8px">Decode a Base64 string.</div>
-      <div class="cmd-ref">decode --hex &lt;str&gt;</div><div class="help-entry-desc" style="margin-bottom:8px">Decode a hex string.</div>
-      <div class="cmd-ref">ping &lt;ip&gt;</div><div class="help-entry-desc" style="margin-bottom:8px">Ping an IP address.</div>
-      <div class="cmd-ref">ps aux</div><div class="help-entry-desc" style="margin-bottom:8px">List running processes.</div>
-      <div class="cmd-ref">tools</div><div class="help-entry-desc" style="margin-bottom:8px">List your unlocked tools and their usage.</div>
-      <div class="cmd-ref">submit &lt;answer&gt;</div><div class="help-entry-desc" style="margin-bottom:8px">Submit your answer for the active puzzle.</div>
-      <div class="cmd-ref">pwd / whoami / clear / help</div><div class="help-entry-desc" style="margin-bottom:8px">Utility commands.</div>
-    </div>
-    <div class="help-section">
-      <div class="help-section-title">§2 — Puzzle Types</div>
-      <div class="help-entry"><div class="help-entry-name"><span class="tag both">BOTH</span> File Investigation</div><div class="help-entry-desc">Navigate with ls, cd, cat. Hidden files need ls -la.</div></div>
-      <div class="help-entry"><div class="help-entry-name"><span class="tag both">BOTH</span> Log Analysis</div><div class="help-entry-desc">Read logs with cat, search with grep. Look for patterns.</div></div>
-      <div class="help-entry"><div class="help-entry-name"><span class="tag both">BOTH</span> Decode Messages</div><div class="help-entry-desc">Find encoded files, use decode --base64 or decode --hex.</div></div>
-      <div class="help-entry"><div class="help-entry-name"><span class="tag both">BOTH</span> Network Mapping</div><div class="help-entry-desc">Read scan results in the filesystem. Find open ports or unauthorized hosts.</div></div>
-      <div class="help-entry"><div class="help-entry-name"><span class="tag both">BOTH</span> Process Investigation</div><div class="help-entry-desc">Run ps aux. Spot rogue or anomalous processes by PID.</div></div>
-      <div class="help-entry"><div class="help-entry-name"><span class="tag both">BOTH</span> Permissions Puzzle</div><div class="help-entry-desc">ls -la shows permissions. rwxrwxrwx = world-writable = dangerous.</div></div>
-      <div class="help-entry"><div class="help-entry-name"><span class="tag both">BOTH</span> Binary Decode</div><div class="help-entry-desc">Find binary file, convert 8-bit groups to ASCII. A=65=01000001.</div></div>
-      <div class="help-entry"><div class="help-entry-name"><span class="tag both">BOTH</span> Digital Breadcrumbs</div><div class="help-entry-desc">Follow clues across multiple files. Each one leads to the next.</div></div>
-      <div class="help-entry"><div class="help-entry-name"><span class="tag both">BOTH</span> Timed Puzzles</div><div class="help-entry-desc">Clock starts on load. Find and decode before time expires.</div></div>
-    </div>
-    <div class="help-section">
-      <div class="help-section-title">§3 — Reputation & Progression</div>
-      <div class="help-entry-desc" style="color:var(--text-dim);font-size:12px;line-height:1.8">
-        Reputation is earned by solving puzzles. Lose rep for wrong answers.<br>
-        Higher missions require a minimum reputation to unlock.<br>
-        <span style="color:var(--amber)">Act 1</span> — 0 rep required &nbsp;|&nbsp;
-        <span style="color:var(--amber)">Act 2</span> — 100 rep required &nbsp;|&nbsp;
-        <span style="color:var(--amber)">Act 3</span> — 250 rep required
+    <!-- TERMINAL PANE -->
+    <div id="terminal-pane" class="active">
+      <div class="d-terminal-pane">
+        <div class="d-terminal-header">
+          <span class="d-terminal-title">SOC TERMINAL — SECURE SESSION</span>
+          <span class="d-terminal-path" id="d-path">~</span>
+        </div>
+        <div class="d-output" id="d-output"></div>
+        <div class="d-hint" id="d-hint"></div>
+        <div class="d-input-row">
+          <span class="d-prompt-txt" id="d-prompt">analyst@delphi-soc:~$</span>
+          <input class="d-cmd-input" id="d-input" type="text" autocomplete="off" spellcheck="false" placeholder="type a command..." />
+        </div>
       </div>
     </div>
-    <div class="help-section">
-      <div class="help-section-title">§4 — Error Code Database</div>
-      <div style="font-size:12px;color:var(--text-dim);line-height:2.2">
-        <div><span style="color:var(--amber)">ERR_0x4F1</span> — Auth token expired. Re-auth window: 30s</div>
-        <div><span style="color:var(--amber)">ERR_0x7B3</span> — Buffer overflow in service handler</div>
-        <div><span style="color:var(--amber)">ERR_0x2A9</span> — Firewall rule conflict. Port 22 state undefined</div>
-        <div><span style="color:var(--amber)">ERR_0x8D0</span> — Log rotation triggered. Old entries unindexed</div>
-        <div><span style="color:var(--amber)">ERR_0x3C6</span> — Process fork failed. Memory ceiling reached</div>
-        <div><span style="color:var(--red)">ERR_0xF00</span> — CRITICAL: Root escalation attempt logged</div>
-        <div><span style="color:var(--red)">ERR_0xDEAD</span> — CRITICAL: System integrity compromised</div>
+
+    <!-- INBOX PANE -->
+    <div id="inbox-pane" style="display:none;flex:1;overflow:hidden;">
+      <div style="display:flex;flex:1;overflow:hidden;">
+        <div class="inbox-list" id="inbox-list"></div>
+        <div class="inbox-viewer" id="inbox-viewer">
+          <div class="inbox-empty">Select a message to read</div>
+        </div>
       </div>
     </div>
-    <div style="text-align:center;margin-top:20px">
-      <button class="btn" onclick="toggleHelp()">[ CLOSE MANUAL ]</button>
+
+    <!-- ORACLE TAB -->
+    <div id="oracle-pane" style="display:none;flex:1;overflow:hidden;flex-direction:column;">
+      <div style="padding:20px;flex:1;overflow-y:auto;">
+        <div class="d-line heading" style="margin-bottom:12px;">Oracle v4.2 — Analyst Interface</div>
+        <div class="d-card">
+          <div class="d-card-title">Attribution Engine</div>
+          <div class="d-card-sub">REAL-TIME THREAT ANALYSIS</div>
+          <div class="d-card-body" id="oracle-tab-body">No active attribution cases. Oracle is monitoring baseline activity across all Delphi systems.</div>
+        </div>
+        <div class="d-card">
+          <div class="d-card-title">System Status</div>
+          <div class="d-card-sub">INFRASTRUCTURE OVERVIEW</div>
+          <div class="d-card-body" id="oracle-sys-body">All monitored systems reporting nominal. 0 active anomalies.</div>
+        </div>
+        <div class="d-card" style="border-color:var(--oracle-dim);">
+          <div class="d-card-title" style="color:var(--oracle);">About Oracle</div>
+          <div class="d-card-sub">ORACLE v4.2 — INTERNAL DOCUMENTATION</div>
+          <div class="d-card-body">Oracle is Delphi's internal analytics and threat intelligence platform. It monitors authentication, network activity, file access, and behavioral patterns across all Delphi infrastructure in real time. Confidence scores reflect probabilistic attribution — not confirmed findings. All Oracle outputs require analyst review before action is taken.</div>
+        </div>
+      </div>
     </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="d-right-panel">
+      <div class="d-panel-header">
+        <span class="d-panel-title" id="panel-title">Active Case</span>
+      </div>
+      <div class="d-panel-body" id="d-panel-body">
+        <div style="color:var(--text-dim);font-family:var(--sans);font-size:12px;line-height:1.8;margin-top:8px;">
+          No active case.<br><br>
+          Complete onboarding to receive your first assignment.
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
 <script>
-// ═══════════════════════════════════════════════
-//  TOOL DEFINITIONS
-// ═══════════════════════════════════════════════
-const TOOLS = {
-  decode_b64:  { name:'decode --base64', desc:'Decode Base64 strings', unlockedAt:'start' },
-  decode_hex:  { name:'decode --hex',    desc:'Decode hex strings',    unlockedAt:'start' },
-  grep:        { name:'grep',            desc:'Search file contents',  unlockedAt:'start' },
-  ping:        { name:'ping',            desc:'Ping an IP address',    unlockedAt:'start' },
-  crack_basic: { name:'crack (basic)',   desc:'Basic wordlist attack',  unlockedAt:'M01' },
-  decode_caesar:{ name:'decode --caesar',desc:'Caesar cipher decode',  unlockedAt:'M02' },
-  scan_range:  { name:'scan --range',    desc:'Ping a subnet range',   unlockedAt:'M02' },
-  wipe:        { name:'wipe',            desc:'Securely delete a log entry', unlockedAt:'M03' },
-  crack_advanced:{ name:'crack (advanced)',desc:'Pattern + l33tspeak cracker', unlockedAt:'M03' },
-  steghide:    { name:'steghide',        desc:'Extract hidden data from files', unlockedAt:'M04' },
-  trace:       { name:'trace',           desc:'Follow a multi-hop network path', unlockedAt:'M04' },
-};
+'use strict';
 
-// ═══════════════════════════════════════════════
-//  STORY DATA — briefings + news per mission
-// ═══════════════════════════════════════════════
-const storyData = {
-  M01: {
-    ghost: {
-      briefing: `Job's done. The encoded transmission led exactly where you expected.\nYour contact says there's more work. Bigger targets. The collective noticed your results.\nLay low for now. Next assignment incoming.`,
-      news: { headline: 'NovaCorp Reports "Minor Network Anomaly", Assures No Data Breach', body: 'NovaCorp\'s PR team issued a statement Friday denying reports of unauthorized access to internal systems. "We detected unusual activity but our security team resolved the issue immediately," said a spokesperson. Analysts remain skeptical.' },
-      toolUnlock: null,
-    },
-    sentinel: {
-      briefing: `Good work decoding that packet. The destination IP traces to a known relay node — this isn\'t amateur hour.\nYour supervisor flagged the case to the incident response team. They want you on lead.\nStart pulling logs. Find out how deep this goes.`,
-      news: { headline: 'ClearNet Security Contracted to Investigate NovaCorp Breach', body: 'Cybersecurity firm ClearNet has been quietly retained by NovaCorp following what sources describe as a "significant but contained" data incident. The investigation is ongoing.' },
-      toolUnlock: null,
-    },
-  },
-  M02: {
-    ghost: {
-      briefing: `The auth log entry is gone and the network entry point is mapped.\nThe collective is impressed. They're bringing you in on a corporate job.\nSame skills, higher stakes. The target is NovaCorp's internal R&D server.\nYou'll need a new tool for what's coming.`,
-      news: { headline: 'String of Corporate Cyber Incidents Points to Organized Threat Actor', body: 'Security researchers say a series of intrusions across tech firms share a common signature. "This is not opportunistic — someone is building toward a specific goal," said one analyst who declined to be named.' },
-      toolUnlock: 'decode_caesar',
-    },
-    sentinel: {
-      briefing: `The attacker's IP is confirmed. It traces through three relay nodes before going cold.\nYour firm has been officially contracted by NovaCorp. Full access granted.\nThe pattern of intrusions suggests a single sophisticated operator. You named them PHANTOM.\nNew decoding tool authorized for your toolkit.`,
-      news: { headline: 'ClearNet Analyst Names Suspect "PHANTOM" in Ongoing Corporate Breach Investigation', body: 'Internal documents obtained by this publication reveal investigators have identified a single threat actor responsible for multiple recent intrusions. The operative, codenamed PHANTOM, remains at large.' },
-      toolUnlock: 'decode_caesar',
-    },
-  },
-  M03: {
-    ghost: {
-      briefing: `Root access achieved. The collective is happy.\nBut someone's been asking questions. A security firm called ClearNet is sniffing around.\nFinish the jobs fast. You've got what you need — including a new cracking tool.\nThe next target is bigger. A financial institution.`,
-      news: { headline: 'Hackers Breach Root Level Access at Major Tech Firm', body: 'Security experts confirmed late Thursday that an unidentified attacker achieved root-level system access at a prominent technology company. The breach duration and full scope of data accessed remain unknown.' },
-      toolUnlock: 'crack_advanced',
-    },
-    sentinel: {
-      briefing: `Three vulnerabilities patched. The audit results are damning — this system was wide open.\nClearNet has escalated the case. PHANTOM is escalating too.\nIntel suggests their next move is financial. A major bank is in the crosshairs.\nAdvanced cracking tool cleared for your use.`,
-      news: { headline: 'PHANTOM Threat Actor Escalates Activity, Financial Sector on Alert', body: 'The Financial Services Information Sharing and Analysis Center (FS-ISAC) has issued a private advisory warning member banks of an "imminent and credible" cyber threat. Details are being withheld pending investigation.' },
-      toolUnlock: 'crack_advanced',
-    },
-  },
-  M04: {
-    ghost: {
-      briefing: `The breadcrumb trail led exactly where it needed to.\nThe collective has a new contract. Organized crime. A syndicate's private server.\nThey want data — and they want it untraceable.\nYou've earned access to the steganography suite.`,
-      news: { headline: 'Interpol Warns of Cyber-Criminal Syndicate Expanding Digital Operations', body: 'International law enforcement agencies are tracking a criminal organization believed to have contracted outside hackers to steal financial and operational data from rival groups and legitimate businesses alike.' },
-      toolUnlock: 'steghide',
-    },
-    sentinel: {
-      briefing: `PHANTOM's pivot chain traced to an offshore relay. The pattern is getting clearer.\nYour firm has been approached by federal regulators. This is going national.\nPHANTOM is working for someone — possibly organized crime. The stakes just went up.\nTrace tool now active in your toolkit.`,
-      news: { headline: 'Federal Agencies Join Investigation into PHANTOM Hacker as Criminal Links Emerge', body: 'The FBI\'s Cyber Division confirmed it has joined an ongoing investigation into the threat actor known as PHANTOM, following evidence suggesting ties to international organized crime networks.' },
-      toolUnlock: 'trace',
-    },
-  },
-  M05: {
-    ghost: {
-      briefing: `You beat the clock. The collective is calling this your best work yet.\nBut ClearNet is getting close. Too close.\nTime to move to the final phase. Government targets. The big score.\nAfter this — you either vanish or you get caught.`,
-      news: { headline: 'Government Networks Under Increased Threat as PHANTOM Goes Dark', body: 'Intelligence officials warn that PHANTOM, responsible for a string of corporate and financial cyberattacks, has gone silent — often a precursor to a major operation. Federal agencies are on high alert.' },
-      toolUnlock: null,
-    },
-    sentinel: {
-      briefing: `The kill-switch worked. System saved.\nBut PHANTOM is still out there — and they've gone quiet. That means they're planning something big.\nYour contract has been escalated to a federal mandate. Stop PHANTOM before they hit government infrastructure.\nThis is the endgame.`,
-      news: { headline: 'ClearNet Analyst Given Federal Mandate to Stop PHANTOM Before Infrastructure Attack', body: 'In an unprecedented move, federal authorities have granted a private cybersecurity analyst sweeping access to government networks to track and neutralize the threat actor known as PHANTOM.' },
-      toolUnlock: null,
-    },
-  },
-};
-
-// ═══════════════════════════════════════════════
-//  FILESYSTEM DATA
-// ═══════════════════════════════════════════════
-const missionFilesystems = {
-  M01: {
-    ghost: {
-      '/': { type:'dir', children:['home','var','tmp','etc'] },
-      '/home': { type:'dir', children:['ghost'] },
-      '/home/ghost': { type:'dir', children:['readme.txt','emails'] },
-      '/home/ghost/readme.txt': { type:'file', perms:'-rw-r--r--', content:'Welcome, operative.\nYour target system has been partially compromised.\nCheck /tmp for intercepted transmissions.\nCheck /etc/config for credentials.' },
-      '/home/ghost/emails': { type:'dir', children:['contact_01.txt'] },
-      '/home/ghost/emails/contact_01.txt': { type:'file', perms:'-rw-------', content:'FROM: unknown@darknet.onion\nTO: operative\nSUBJECT: First assignment\n\nProve yourself. The encoded transmission in /tmp is your first target.\nDecode it and report back the access code.\nDo not leave traces.' },
-      '/var': { type:'dir', children:['logs'] },
-      '/var/logs': { type:'dir', children:['access.log'] },
-      '/var/logs/access.log': { type:'file', perms:'-rw-r--r--', content:'2024-01-15 09:00:01 CONNECT 10.0.0.1\n2024-01-15 09:00:44 AUTH admin OK\n2024-01-15 09:12:18 CONNECT 10.0.0.1\n2024-01-15 09:12:55 AUTH admin OK' },
-      '/tmp': { type:'dir', children:['message.enc','drop.txt'] },
-      '/tmp/message.enc': { type:'file', perms:'-rw-r--r--', content:'Intercepted transmission:\nUEhBTlRPTQ==\nEncoding: Base64\n\nDecode to find the access code.' },
-      '/tmp/drop.txt': { type:'file', perms:'-rw-rw-rw-', content:'Staging area. Leave exfil files here.' },
-      '/etc': { type:'dir', children:['hosts','config'] },
-      '/etc/hosts': { type:'file', perms:'-rw-r--r--', content:'127.0.0.1   localhost\n192.168.1.1 gateway\n10.0.0.47   backup-primary.internal' },
-      '/etc/config': { type:'dir', children:['.passwd','network.conf'] },
-      '/etc/config/.passwd': { type:'file', perms:'-rw-------', hidden:true, content:'[CREDENTIALS FILE]\nroot:$shadow$x$12345\nadmin:$shadow$x$67890' },
-      '/etc/config/network.conf': { type:'file', perms:'-rw-r--r--', content:'INTERFACE=eth0\nGATEWAY=192.168.1.1\nDNS=8.8.8.8' },
-    },
-    sentinel: {
-      '/': { type:'dir', children:['home','var','tmp','etc'] },
-      '/home': { type:'dir', children:['sentinel'] },
-      '/home/sentinel': { type:'dir', children:['briefing.txt','emails'] },
-      '/home/sentinel/briefing.txt': { type:'file', perms:'-rw-r--r--', content:'Operative.\nSuspicious encoded data was detected leaving our network.\nInvestigate /var/outbound for the offending packet.\nAlso check /var/logs/integrity.log for tampered files.' },
-      '/home/sentinel/emails': { type:'dir', children:['supervisor_01.txt'] },
-      '/home/sentinel/emails/supervisor_01.txt': { type:'file', perms:'-rw-------', content:'FROM: director@clearnet.sec\nTO: analyst\nSUBJECT: Urgent — data exfiltration detected\n\nWe have a live incident. Encoded data left the network from an internal host.\nIdentify what was transmitted and which file was tampered with.\nReport back ASAP.' },
-      '/var': { type:'dir', children:['logs','outbound'] },
-      '/var/logs': { type:'dir', children:['access.log','integrity.log'] },
-      '/var/logs/access.log': { type:'file', perms:'-rw-r--r--', content:'2024-01-15 00:12:44 AUTH user:admin     ip:10.0.0.1       OK\n2024-01-15 02:33:11 AUTH user:guest     ip:192.168.1.5    OK\n2024-01-15 09:15:03 AUTH user:admin     ip:10.0.0.1       OK' },
-      '/var/logs/integrity.log': { type:'file', perms:'-rw-r--r--', content:'File integrity check — 2024-01-15:\n  access.log     MODIFIED  3.2MB -> 847KB  [TAMPERED]\n  config.json    OK\n  users.db       OK\n  .env           OK' },
-      '/var/outbound': { type:'dir', children:['packet_44A.enc'] },
-      '/var/outbound/packet_44A.enc': { type:'file', perms:'-rw-r--r--', content:'Captured outbound packet:\nSU5UUlVERVI=\nEncoding: Base64\nDestination: 45.33.32.156\n\nDecode to identify the transmitted data.' },
-      '/tmp': { type:'dir', children:[] },
-      '/etc': { type:'dir', children:['hosts'] },
-      '/etc/hosts': { type:'file', perms:'-rw-r--r--', content:'127.0.0.1   localhost\n192.168.1.1 gateway' },
-    },
-  },
-  M02: {
-    ghost: {
-      '/': { type:'dir', children:['home','var'] },
-      '/home': { type:'dir', children:['ghost'] },
-      '/home/ghost': { type:'dir', children:['mission.txt','emails'] },
-      '/home/ghost/mission.txt': { type:'file', perms:'-rw-r--r--', content:'Target: NovaCorp internal network.\nObjective 1: Find and identify the timestamp of your auth log entry.\nObjective 2: Locate the SSH-open node on their subnet for your entry point.' },
-      '/home/ghost/emails': { type:'dir', children:['contact_02.txt'] },
-      '/home/ghost/emails/contact_02.txt': { type:'file', perms:'-rw-------', content:'FROM: unknown@darknet.onion\nTO: operative\nSUBJECT: Deep trace assignment\n\nNovaCorp\'s auth logs have your fingerprints. Find the timestamp — we need to scrub it.\nAlso: map their internal subnet. We need an SSH entry point for the next job.\nThe network scan results are already on their system. Find them.' },
-      '/var': { type:'dir', children:['logs','net'] },
-      '/var/logs': { type:'dir', children:['auth.log'] },
-      '/var/logs/auth.log': { type:'file', perms:'-rw-r--r--', content:'2024-01-15 00:12:44  AUTH  user:admin  ip:10.0.0.1       OK\n2024-01-15 02:33:11  AUTH  user:guest  ip:192.168.1.5    OK\n2024-01-15 03:47:22  AUTH  user:root   ip:45.33.32.156   FAIL\n2024-01-15 03:47:31  AUTH  user:root   ip:45.33.32.156   FAIL\n2024-01-15 03:47:44  AUTH  user:root   ip:45.33.32.156   OK\n2024-01-15 09:15:03  AUTH  user:admin  ip:10.0.0.1       OK' },
-      '/var/net': { type:'dir', children:['scan_results.txt'] },
-      '/var/net/scan_results.txt': { type:'file', perms:'-rw-r--r--', content:'Subnet scan 192.168.1.0/24:\n\n192.168.1.1   ONLINE   ports: 80, 443\n192.168.1.3   OFFLINE\n192.168.1.5   ONLINE   ports: 80, 443, 8080\n192.168.1.7   ONLINE   ports: 22, 80\n192.168.1.9   ONLINE   ports: 443' },
-    },
-    sentinel: {
-      '/': { type:'dir', children:['home','var','etc'] },
-      '/home': { type:'dir', children:['sentinel'] },
-      '/home/sentinel': { type:'dir', children:['alert.txt','emails'] },
-      '/home/sentinel/alert.txt': { type:'file', perms:'-rw-r--r--', content:'SECURITY ALERT — 2024-01-15\nUnauthorized root login confirmed. Auth logs in /var/logs.\nAdditionally: a rogue device is active on the network.\nCheck /var/net for registry vs active host comparison.' },
-      '/home/sentinel/emails': { type:'dir', children:['supervisor_02.txt'] },
-      '/home/sentinel/emails/supervisor_02.txt': { type:'file', perms:'-rw-------', content:'FROM: director@clearnet.sec\nTO: analyst\nSUBJECT: Two findings — act fast\n\nFirst: pull the auth logs and find the attacker\'s IP. That\'s our primary lead.\nSecond: network team flagged a device that shouldn\'t be there. Find it.\nBoth are linked. Same operator.' },
-      '/var': { type:'dir', children:['logs','net'] },
-      '/var/logs': { type:'dir', children:['auth.log'] },
-      '/var/logs/auth.log': { type:'file', perms:'-rw-r--r--', content:'2024-01-15 00:12:44  AUTH  user:admin  ip:10.0.0.1       OK\n2024-01-15 02:33:11  AUTH  user:guest  ip:192.168.1.5    OK\n2024-01-15 03:47:22  AUTH  user:root   ip:45.33.32.156   FAIL\n2024-01-15 03:47:31  AUTH  user:root   ip:45.33.32.156   FAIL\n2024-01-15 03:47:44  AUTH  user:root   ip:45.33.32.156   OK\n2024-01-15 09:15:03  AUTH  user:admin  ip:10.0.0.1       OK' },
-      '/var/net': { type:'dir', children:['registry.txt','active_hosts.txt'] },
-      '/var/net/registry.txt': { type:'file', perms:'-rw-r--r--', content:'Registered devices:\n  192.168.1.1    ROUTER\n  192.168.1.5    WEB-SERVER\n  192.168.1.10   ADMIN-LAPTOP' },
-      '/var/net/active_hosts.txt': { type:'file', perms:'-rw-r--r--', content:'Active hosts detected on network:\n  192.168.1.1    ONLINE\n  192.168.1.5    ONLINE\n  192.168.1.10   ONLINE\n  192.168.1.99   ONLINE' },
-      '/etc': { type:'dir', children:['hosts'] },
-      '/etc/hosts': { type:'file', perms:'-rw-r--r--', content:'127.0.0.1   localhost\n192.168.1.1 gateway' },
-    },
-  },
-  M03: {
-    ghost: {
-      '/': { type:'dir', children:['home','var','etc','db'] },
-      '/home': { type:'dir', children:['ghost'] },
-      '/home/ghost': { type:'dir', children:['notes.txt','emails'] },
-      '/home/ghost/notes.txt': { type:'file', perms:'-rw-r--r--', content:'Three objectives for root access:\n1. Crack the DB admin password hash in /db/passwords.db\n2. Disable the security monitor (find its PID via ps aux)\n3. Exploit the world-writable system file (check /etc with ls -la)' },
-      '/home/ghost/emails': { type:'dir', children:['contact_03.txt'] },
-      '/home/ghost/emails/contact_03.txt': { type:'file', perms:'-rw-------', content:'FROM: collective@darknet.onion\nTO: operative\nSUBJECT: Root access required\n\nWe need root on NovaCorp\'s primary server.\nThree vectors identified. Use whichever gets you in.\nClearNet is sniffing around — be fast.' },
-      '/db': { type:'dir', children:['passwords.db'] },
-      '/db/passwords.db': { type:'file', perms:'-rw-r-----', content:'NovaCorp user password hashes:\n  admin   : 5f4dcc3b5aa765d61d8327deb882cf99  [MD5]\n  guest   : d8578edf8458ce06fbc5bb76a58c5ca4  [MD5]\n\nHint: admin password is a common word followed by two digits.' },
-      '/etc': { type:'dir', children:['passwd','shadow','hosts'] },
-      '/etc/passwd': { type:'file', perms:'-rwxrwxrwx', content:'root:x:0:0:root:/root:/bin/bash\nadmin:x:1000:1000::/home/admin:/bin/sh' },
-      '/etc/shadow': { type:'file', perms:'-rw-r-----', content:'root:$6$rounds=5000$...:18000:0:99999:7:::\nadmin:$6$rounds=5000$...:18000:0:99999:7:::' },
-      '/etc/hosts': { type:'file', perms:'-rw-r--r--', content:'127.0.0.1  localhost' },
-      '/var': { type:'dir', children:['logs'] },
-      '/var/logs': { type:'dir', children:['access.log'] },
-      '/var/logs/access.log': { type:'file', perms:'-rw-r--r--', content:'[system log — nothing unusual]' },
-    },
-    sentinel: {
-      '/': { type:'dir', children:['home','var','etc'] },
-      '/home': { type:'dir', children:['sentinel'] },
-      '/home/sentinel': { type:'dir', children:['audit_brief.txt','emails'] },
-      '/home/sentinel/audit_brief.txt': { type:'file', perms:'-rw-r--r--', content:'Security audit — three critical findings:\n1. A dangerously weak password was detected — hash in /var/audit/weak_hash.txt\n2. A malicious process is running — use ps aux to find it\n3. A system file has world-write permissions — check /etc with ls -la' },
-      '/home/sentinel/emails': { type:'dir', children:['supervisor_03.txt'] },
-      '/home/sentinel/emails/supervisor_03.txt': { type:'file', perms:'-rw-------', content:'FROM: director@clearnet.sec\nTO: analyst\nSUBJECT: Full audit required — PHANTOM was here\n\nPHANTOM had root access. We need to know how they got in.\nRun the full audit — weak passwords, rogue processes, permission misconfigs.\nThis goes in the federal report.' },
-      '/var': { type:'dir', children:['audit','logs'] },
-      '/var/audit': { type:'dir', children:['weak_hash.txt'] },
-      '/var/audit/weak_hash.txt': { type:'file', perms:'-rw-r--r--', content:'Weak password hash flagged by scanner:\n  Hash      : 0d107d09f5bbe40cade3de5c71e9e9b7  [MD5]\n  Risk      : CRITICAL\n  Notes     : One of the most commonly used passwords globally.' },
-      '/var/logs': { type:'dir', children:['syslog'] },
-      '/var/logs/syslog': { type:'file', perms:'-rw-r--r--', content:'ERR_0xF00 — Root escalation attempt logged\n[system unstable — investigate immediately]' },
-      '/etc': { type:'dir', children:['passwd','shadow','hosts'] },
-      '/etc/passwd': { type:'file', perms:'-rwxrwxrwx', content:'root:x:0:0:root:/root:/bin/bash\nadmin:x:1000:1000::/home/admin:/bin/sh' },
-      '/etc/shadow': { type:'file', perms:'-rw-r-----', content:'root:$6$...:18000:0:99999:7:::\nadmin:$6$...:18000:0:99999:7:::' },
-      '/etc/hosts': { type:'file', perms:'-rw-r--r--', content:'127.0.0.1  localhost' },
-    },
-  },
-  M04: {
-    ghost: {
-      '/': { type:'dir', children:['home','var','etc'] },
-      '/home': { type:'dir', children:['ghost'] },
-      '/home/ghost': { type:'dir', children:['briefing.txt','emails'] },
-      '/home/ghost/briefing.txt': { type:'file', perms:'-rw-r--r--', content:'Two objectives:\n1. Decode the binary transmission in /var/data/binary.dat\n2. Follow the config trail to find the backup server IP.' },
-      '/home/ghost/emails': { type:'dir', children:['contact_04.txt'] },
-      '/home/ghost/emails/contact_04.txt': { type:'file', perms:'-rw-------', content:'FROM: collective@darknet.onion\nTO: operative\nSUBJECT: Protocol Ghost\n\nThe binary contains a codename for the next op.\nThe backup server is where the data lives — we need that IP.\nFollow the config chain. It\'s all there if you look.' },
-      '/var': { type:'dir', children:['logs','data'] },
-      '/var/logs': { type:'dir', children:['backup.conf'] },
-      '/var/logs/backup.conf': { type:'file', perms:'-rw-r--r--', content:'# NovaCorp Backup Configuration\nbackup_schedule=daily\nbackup_dest="server_bravo"\nretention_days=30' },
-      '/var/data': { type:'dir', children:['binary.dat','dns_cache.txt'] },
-      '/var/data/binary.dat': { type:'file', perms:'-rw-r--r--', content:'Intercepted binary transmission:\n01000001  01000011  01000101\n\nConvert each 8-bit group to ASCII.\nA=65=01000001  B=66=01000010  C=67=01000011' },
-      '/var/data/dns_cache.txt': { type:'file', perms:'-rw-r--r--', content:'DNS cache:\n  server_bravo              CNAME  backup-primary.internal\n  backup-secondary.internal A      10.0.0.50' },
-      '/etc': { type:'dir', children:['hosts','resolv.conf'] },
-      '/etc/hosts': { type:'file', perms:'-rw-r--r--', content:'127.0.0.1        localhost\n192.168.1.1      gateway\n10.0.0.47        backup-primary.internal\n10.0.0.50        backup-secondary.internal' },
-      '/etc/resolv.conf': { type:'file', perms:'-rw-r--r--', content:'nameserver 8.8.8.8\nsearch internal' },
-    },
-    sentinel: {
-      '/': { type:'dir', children:['home','var','data'] },
-      '/home': { type:'dir', children:['sentinel'] },
-      '/home/sentinel': { type:'dir', children:['briefing.txt','emails'] },
-      '/home/sentinel/briefing.txt': { type:'file', perms:'-rw-r--r--', content:'Two objectives:\n1. Decode the binary payload in /data/payload.dat to identify the attack vector\n2. Trace PHANTOM\'s full pivot chain in /var/forensics/ to find their exit IP.' },
-      '/home/sentinel/emails': { type:'dir', children:['supervisor_04.txt'] },
-      '/home/sentinel/emails/supervisor_04.txt': { type:'file', perms:'-rw-------', content:'FROM: director@clearnet.sec\nTO: analyst\nSUBJECT: PHANTOM\'s trail — follow it\n\nWe intercepted a binary payload. Decode it — it contains the operation codename.\nAlso: forensics recovered PHANTOM\'s pivot chain. Follow it file by file.\nThe exit IP is the only real lead we have on their physical location.' },
-      '/var': { type:'dir', children:['forensics'] },
-      '/var/forensics': { type:'dir', children:['pivot_01.txt','pivot_02.txt','pivot_03.txt'] },
-      '/var/forensics/pivot_01.txt': { type:'file', perms:'-rw-r--r--', content:'Entry point confirmed: 192.168.1.7\n(internal compromised host — NovaCorp network)\nNext pivot recorded in pivot_02.txt' },
-      '/var/forensics/pivot_02.txt': { type:'file', perms:'-rw-r--r--', content:'Pivot 1: 10.10.10.15  (DMZ proxy — anonymous)\nPivot 2: 172.16.0.88  (offshore relay node)\nFinal destination recorded in pivot_03.txt' },
-      '/var/forensics/pivot_03.txt': { type:'file', perms:'-rw-r--r--', content:'Exfil destination (external IP):\n185.220.101.5\n\nThis is PHANTOM\'s exit node. All stolen data went here.' },
-      '/data': { type:'dir', children:['payload.dat'] },
-      '/data/payload.dat': { type:'file', perms:'-rw-r--r--', content:'Intercepted binary payload:\n01000001  01000011  01000101\n\nConvert each 8-bit group to ASCII to identify the operation codename.' },
-    },
-  },
-  M05: {
-    ghost: {
-      '/': { type:'dir', children:['tmp','var','home'] },
-      '/home': { type:'dir', children:['ghost'] },
-      '/home/ghost': { type:'dir', children:['emails'] },
-      '/home/ghost/emails': { type:'dir', children:['contact_05.txt'] },
-      '/home/ghost/emails/contact_05.txt': { type:'file', perms:'-rw-------', content:'FROM: collective@darknet.onion\nTO: operative\nSUBJECT: Zero Day — final test\n\nOne shot. The auth token expires in 60 seconds.\nDecode it and get in before the window closes.\nThis is the last job before the big one.' },
-      '/tmp': { type:'dir', children:['token.enc','readme.txt'] },
-      '/tmp/readme.txt': { type:'file', perms:'-rw-r--r--', content:'Auth token window is open.\nYou have 60 seconds from puzzle start.\nFile: /tmp/token.enc\nDecode and submit immediately.' },
-      '/tmp/token.enc': { type:'file', perms:'-rw-r--r--', content:'One-time auth token:\nT1ZFUkRSSVZF\nEncoding: Base64' },
-      '/var': { type:'dir', children:['logs'] },
-      '/var/logs': { type:'dir', children:['system.log'] },
-      '/var/logs/system.log': { type:'file', perms:'-rw-r--r--', content:'ERR_0x4F1 — Auth token expiring\nERR_0x2A9 — Firewall conflict on port 22\n[window is open — act now]' },
-    },
-    sentinel: {
-      '/': { type:'dir', children:['tmp','var','home'] },
-      '/home': { type:'dir', children:['sentinel'] },
-      '/home/sentinel': { type:'dir', children:['emails'] },
-      '/home/sentinel/emails': { type:'dir', children:['supervisor_05.txt'] },
-      '/home/sentinel/emails/supervisor_05.txt': { type:'file', perms:'-rw-------', content:'FROM: director@clearnet.sec\nTO: analyst\nSUBJECT: ACTIVE INCIDENT — ransomware detected\n\nRansomware is encrypting files RIGHT NOW.\nFind the kill-switch code in /tmp and decode it.\nYou have 60 seconds before the encryption completes. Go.' },
-      '/tmp': { type:'dir', children:['killswitch.enc','alert.txt'] },
-      '/tmp/alert.txt': { type:'file', perms:'-rw-r--r--', content:'RANSOMWARE ACTIVE — files encrypting\nKill-switch located in this directory.\nFile: /tmp/killswitch.enc\nDecode and submit to halt encryption.' },
-      '/tmp/killswitch.enc': { type:'file', perms:'-rw-r--r--', content:'Kill-switch code (encoded):\nT1ZFUkRSSVZF\nEncoding: Base64' },
-      '/var': { type:'dir', children:['logs'] },
-      '/var/logs': { type:'dir', children:['system.log'] },
-      '/var/logs/system.log': { type:'file', perms:'-rw-r--r--', content:'ERR_0xDEAD — System integrity compromised\nERR_0xF00  — Root escalation by unknown process\n[encryption spreading — /home at 34%]' },
-    },
-  },
-};
-
-// ═══════════════════════════════════════════════
-//  PS AUX SNAPSHOTS
-// ═══════════════════════════════════════════════
-const psSnapshots = {
-  M03: {
-    ghost: [
-      'PID    USER    CPU%   MEM%   COMMAND',
-      '1      root    0.0    0.1    /sbin/init',
-      '412    root    0.0    0.3    sshd',
-      '891    www     1.2    2.1    nginx',
-      '1204   root    0.1    0.4    cron',
-      '4821   root    98.7   0.1    sec_monitor',
-      '5103   dbuser  2.1    8.4    postgres',
-    ],
-    sentinel: [
-      'PID    USER    CPU%   MEM%   COMMAND',
-      '1      root    0.0    0.1    /sbin/init',
-      '412    root    0.0    0.3    sshd',
-      '891    www     1.2    2.1    nginx',
-      '3377   root    0.0    0.1    .sshd',
-      '5103   dbuser  2.1    8.4    postgres',
-      '8801   root    0.2    0.6    auditd',
-    ],
-  },
-};
-const defaultPs = [
-  'PID    USER    CPU%   MEM%   COMMAND',
-  '1      root    0.0    0.1    /sbin/init',
-  '412    root    0.0    0.3    sshd',
-  '891    www     1.2    2.1    nginx',
-  '5103   dbuser  2.1    8.4    postgres',
-];
-
-// ═══════════════════════════════════════════════
-//  PUZZLE DEFINITIONS
-// ═══════════════════════════════════════════════
-const puzzles = {
-  decode: {
-    title:'Decode Message', timed:false,
-    ghost:    { objective:'An encoded transmission was intercepted. Find the encoded file in /tmp, decode it using decode --base64, and submit the plaintext access code.', answer:'PHANTOM' },
-    sentinel: { objective:'Encoded data was detected leaving the network. Locate the packet file in /var/outbound, decode it, and submit what was transmitted.', answer:'INTRUDER' },
-  },
-  file: {
-    title:'File Investigation', timed:false,
-    ghost:    { objective:'The target config directory contains a hidden credentials file. Navigate to /etc/config and use ls -la to find it. Submit its filename.', answer:'.passwd' },
-    sentinel: { objective:'A file was tampered with during the breach. Check /var/logs/integrity.log to identify which file was modified. Submit its name.', answer:'access.log' },
-  },
-  log: {
-    title:'Log Analysis', timed:false,
-    ghost:    { objective:'Your intrusion left a trace in /var/logs/auth.log. Find the timestamp (HH:MM) of the suspicious root login from an external IP and submit it.', answer:'03:47' },
-    sentinel: { objective:'A brute-force attack succeeded against root. Read /var/logs/auth.log and identify the attacker\'s IP address. Submit it.', answer:'45.33.32.156' },
-  },
-  network: {
-    title:'Network Mapping', timed:false,
-    ghost:    { objective:'Find the network scan results in /var/net/. Identify the host with SSH (port 22) open — that is your entry point. Submit its IP.', answer:'192.168.1.7' },
-    sentinel: { objective:'Compare /var/net/registry.txt against /var/net/active_hosts.txt. Identify the unauthorized host on the network. Submit its IP.', answer:'192.168.1.99' },
-  },
-  crack: {
-    title:'Password Cracking', timed:false,
-    ghost:    { objective:'Find the password hash file in /db/. The admin hash is MD5. It is a common word followed by two digits. Submit the plaintext password.', answer:'shadow99' },
-    sentinel: { objective:'A critically weak password hash was flagged. Find it in /var/audit/. It is one of the most commonly used passwords ever. Submit it.', answer:'letmein' },
-  },
-  process: {
-    title:'Process Investigation', timed:false,
-    ghost:    { objective:'Run ps aux. Find the security monitoring process consuming abnormal CPU. Submit its PID number.', answer:'4821' },
-    sentinel: { objective:'Run ps aux. A malicious process is disguised as a legitimate service. Identify the rogue process and submit its PID.', answer:'3377' },
-  },
-  perms: {
-    title:'Permissions Puzzle', timed:false,
-    ghost:    { objective:'Run ls -la /etc to see file permissions. Find the world-writable system file (rwxrwxrwx) — your privilege escalation vector. Submit its full path.', answer:'/etc/passwd' },
-    sentinel: { objective:'Run ls -la /etc. One critical system file has catastrophically open permissions. Find it and submit its full path.', answer:'/etc/passwd' },
-  },
-  binary: {
-    title:'Binary Decode', timed:false,
-    ghost:    { objective:'Find the binary file in /var/data/. Convert each 8-bit group to its ASCII character. Submit the decoded word.', answer:'ACE' },
-    sentinel: { objective:'Find the binary payload in /data/. Decode each 8-bit group to ASCII to identify the operation codename. Submit it.', answer:'ACE' },
-  },
-  breadcrumbs: {
-    title:'Digital Breadcrumbs', timed:false,
-    ghost:    { objective:'Start with /var/logs/backup.conf. Follow the hostname through /var/data/dns_cache.txt, then resolve it in /etc/hosts. Submit the final IP address.', answer:'10.0.0.47' },
-    sentinel: { objective:'Read the pivot files in /var/forensics/ in order. Follow PHANTOM\'s path from entry to exit. Submit their external exit IP.', answer:'185.220.101.5' },
-  },
-  timed: {
-    title:'Timed Breach', timed:true, timeLimit:60,
-    ghost:    { objective:'The auth token is expiring. Find /tmp/token.enc, decode it with decode --base64, and submit the result before time runs out.', answer:'OVERDRIVE' },
-    sentinel: { objective:'Ransomware is active. Find /tmp/killswitch.enc, decode it with decode --base64, and submit immediately to stop the encryption.', answer:'OVERDRIVE' },
-  },
-};
-
-// ═══════════════════════════════════════════════
-//  MISSION CONFIG
-// ═══════════════════════════════════════════════
-const MISSIONS = [
-  { id:'M01', name:'Cold Boot',      act:1, repRequired:0,   repGate:0,   puzzles:['decode','file'],             toolUnlock:'crack_basic' },
-  { id:'M02', name:'Deep Trace',     act:1, repRequired:0,   repGate:20,  puzzles:['log','network'],             toolUnlock:null },
-  { id:'M03', name:'Root Access',    act:1, repRequired:0,   repGate:50,  puzzles:['crack','process','perms'],   toolUnlock:null },
-  { id:'M04', name:'Ghost Protocol', act:1, repRequired:0,   repGate:90,  puzzles:['binary','breadcrumbs'],      toolUnlock:null },
-  { id:'M05', name:'Zero Day',       act:1, repRequired:0,   repGate:130, puzzles:['timed'],                     toolUnlock:null },
-];
-
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════
 //  GAME STATE
-// ═══════════════════════════════════════════════
-const state = {
-  path: null,
-  rep: 0,
-  missions: MISSIONS.map(m => ({ ...m, status: 'locked' })),
-  currentMission: null,
-  currentPuzzle: null,
-  puzzleState: {},
-  fs: {},
-  cwd: '/',
-  ownedTools: new Set(['decode_b64','decode_hex','grep','ping']),
-  history: [],
-  histIdx: -1,
-  timerInterval: null,
+// ═══════════════════════════════════════════
+const G = {
+  firstName:'', lastName:'', password:'',
+  employeeId:'', email:'', fullName:'',
+  chapter:1, phase:'boot',
+  cwd:'/', fs:{},
+  history:[], histIdx:-1,
+  inbox:[], selectedEmail:null,
+  onboardingStep:0,
+  coworkers:[
+    {name:'James Okafor',    role:'SOC Lead',        email:'j.okafor',   status:'online'},
+    {name:'Maya Chen',       role:'Senior Analyst',  email:'m.chen',     status:'online'},
+    {name:'Sofia Reyes',     role:'Threat Intel',    email:'s.reyes',    status:'online'},
+    {name:'Toshi Nakamura',  role:'Analyst II',      email:'t.nakamura', status:'online'},
+  ],
 };
 
-// ═══════════════════════════════════════════════
-//  FILESYSTEM HELPERS
-// ═══════════════════════════════════════════════
-function resolvePath(input) {
-  if (!input) return state.cwd;
-  if (input === '/') return '/';
-  let base = input.startsWith('/') ? '' : state.cwd;
-  let parts = (base + '/' + input).split('/').filter(Boolean);
-  let resolved = [];
-  for (let p of parts) {
-    if (p === '..') resolved.pop();
-    else if (p !== '.') resolved.push(p);
-  }
-  return '/' + resolved.join('/');
+// ═══════════════════════════════════════════
+//  FILESYSTEM — CHAPTER 1
+// ═══════════════════════════════════════════
+function buildChapter1FS() {
+  const n = G.firstName.toLowerCase() + '.' + G.lastName.toLowerCase();
+  return {
+    '/':{type:'dir',children:['home','mail','docs','oracle','cases']},
+    '/home':{type:'dir',children:[n]},
+    ['/home/'+n]:{type:'dir',children:['profile.txt','.bash_history']},
+    ['/home/'+n+'/profile.txt']:{type:'file',perms:'-rw-r--r--',content:
+      'DELPHI EMPLOYEE PROFILE\n' +
+      '══════════════════════\n' +
+      'Name:        ' + G.fullName + '\n' +
+      'Employee ID: ' + G.employeeId + '\n' +
+      'Email:       ' + G.email + '\n' +
+      'Department:  Security Operations Center\n' +
+      'Role:        Analyst II\n' +
+      'Clearance:   Level 2\n' +
+      'Start Date:  October 1, 2032\n' +
+      'Status:      ACTIVE\n' +
+      '\nOracle Access: GRANTED\nOracle Profile: Behavioral baseline — establishing...'},
+    ['/home/'+n+'/.bash_history']:{type:'file',perms:'-rw-------',hidden:true,content:
+      '# Session history\nls\npwd\ncat /mail/from_okafor.txt'},
+    '/mail':{type:'dir',children:['welcome.txt','from_hr.txt','from_okafor.txt']},
+    '/mail/welcome.txt':{type:'file',perms:'-rw-r--r--',content:
+      'FROM:    noreply@delphi.com\n' +
+      'TO:      ' + G.email + '\n' +
+      'SUBJECT: Welcome to Delphi\n' +
+      'DATE:    October 1, 2032 — 08:00\n' +
+      '──────────────────────────────────\n\n' +
+      G.firstName + ',\n\n' +
+      'Welcome to Delphi.\n\n' +
+      'Your employee account has been created and your workstation\n' +
+      'has been provisioned. You have been assigned to the Security\n' +
+      'Operations Center as an Analyst II.\n\n' +
+      'Your credentials:\n' +
+      '  Employee ID:  ' + G.employeeId + '\n' +
+      '  Email:        ' + G.email + '\n' +
+      '  Clearance:    Level 2\n\n' +
+      'Oracle access has been enabled for your account. Oracle is\n' +
+      'Delphi\'s internal analytics and threat intelligence platform.\n' +
+      'Your manager will walk you through it during onboarding.\n\n' +
+      'Your first day begins now.\n\n' +
+      '— Delphi People Operations'},
+    '/mail/from_hr.txt':{type:'file',perms:'-rw-r--r--',content:
+      'FROM:    hr@delphi.com\n' +
+      'TO:      ' + G.email + '\n' +
+      'SUBJECT: Your access and onboarding schedule\n' +
+      'DATE:    October 1, 2032 — 08:01\n' +
+      '──────────────────────────────────\n\n' +
+      G.firstName + ',\n\n' +
+      'A few things to know before your first shift:\n\n' +
+      '1. Your terminal password is the one you set during account\n' +
+      '   creation. Keep it secure. Do not share it.\n\n' +
+      '2. You have been assigned Level 2 clearance. This grants\n' +
+      '   access to the SOC terminal, case management system,\n' +
+      '   internal mail, and Oracle v4.2.\n\n' +
+      '3. Your onboarding includes three training investigations.\n' +
+      '   These are real cases with known outcomes — designed\n' +
+      '   to teach you our tools and workflows.\n\n' +
+      '4. James Okafor is your SOC Lead. Copy him on anything\n' +
+      '   significant. His door is always open.\n\n' +
+      '5. Oracle will assist you throughout. It is not infallible.\n' +
+      '   Treat its outputs as signals, not conclusions.\n\n' +
+      'Questions? Reply to this email or stop by HR on Floor 4.\n\n' +
+      '— Delphi Human Resources'},
+    '/mail/from_okafor.txt':{type:'file',perms:'-rw-r--r--',content:
+      'FROM:    j.okafor@delphi-soc.com\n' +
+      'TO:      ' + G.email + '\n' +
+      'SUBJECT: Welcome to the team\n' +
+      'DATE:    October 1, 2032 — 08:14\n' +
+      '──────────────────────────────────\n\n' +
+      G.firstName + ',\n\n' +
+      'James Okafor. SOC Lead. Welcome.\n\n' +
+      'I will keep this short because you will hear plenty from\n' +
+      'me over the next few weeks.\n\n' +
+      'We run a serious operation here. At any given moment,\n' +
+      'millions of people are relying on the infrastructure\n' +
+      'you are helping protect. Treat it that way.\n\n' +
+      'Your training cases are already in the queue. Start with\n' +
+      'the terminal — type  ls  to see what is available,\n' +
+      'cat <filename>  to read anything that looks relevant.\n\n' +
+      'Oracle is your most powerful tool. Learn to read its\n' +
+      'confidence scores. A 20% confidence means look closer.\n' +
+      'A 90% confidence means act. But always verify.\n\n' +
+      'One more thing: trust your instincts. The data tells you\n' +
+      'what happened. You figure out why.\n\n' +
+      'Good luck. Not that you will need it.\n\n' +
+      '— Okafor'},
+    '/docs':{type:'dir',children:['soc_handbook.txt','oracle_reference.txt','security_policy.txt']},
+    '/docs/soc_handbook.txt':{type:'file',perms:'-rw-r--r--',content:
+      'DELPHI SECURITY OPERATIONS CENTER\n' +
+      'ANALYST HANDBOOK — EDITION 7\n' +
+      '══════════════════════════════\n\n' +
+      'SECTION 1: ROLE AND RESPONSIBILITIES\n' +
+      '────────────────────────────────────\n' +
+      'SOC analysts monitor, investigate, and respond to security\n' +
+      'events across Delphi\'s global infrastructure. You are the\n' +
+      'first line of defense for systems used by billions.\n\n' +
+      'SECTION 2: TERMINAL COMMANDS\n' +
+      '────────────────────────────\n' +
+      '  ls / ls -la        List directory contents\n' +
+      '  cd <directory>     Change directory\n' +
+      '  cat <file>         Read a file\n' +
+      '  grep <pat> <file>  Search inside a file\n' +
+      '  ps aux             List running processes\n' +
+      '  ping <ip>          Test network connectivity\n' +
+      '  pwd                Print current directory\n' +
+      '  clear              Clear terminal\n\n' +
+      'SECTION 3: CASE WORKFLOW\n' +
+      '────────────────────────\n' +
+      'Cases are assigned to your queue automatically.\n' +
+      'Each case has an objective displayed in the right panel.\n' +
+      'Complete the required actions to close a case.\n\n' +
+      'SECTION 4: ORACLE\n' +
+      '─────────────────\n' +
+      'Oracle scores are probabilistic, not definitive.\n' +
+      'Always read the underlying data before drawing conclusions.\n' +
+      'If Oracle and the evidence disagree, investigate further.\n\n' +
+      'SECTION 5: ESCALATION\n' +
+      '──────────────────────\n' +
+      'Severity 1 incidents escalate automatically to SOC Lead.\n' +
+      'When in doubt, escalate. Better safe than sorry.'},
+    '/docs/oracle_reference.txt':{type:'file',perms:'-rw-r--r--',content:
+      'ORACLE v4.2 — ANALYST QUICK REFERENCE\n' +
+      '══════════════════════════════════════\n\n' +
+      'Oracle is Delphi\'s centralized intelligence platform.\n' +
+      'It monitors all Delphi systems in real time and surfaces\n' +
+      'anomalies, patterns, and attribution candidates.\n\n' +
+      'CONFIDENCE SCORES:\n' +
+      '  0–20%    Noise. Log and monitor.\n' +
+      '  21–50%   Worth investigating. Pull the logs.\n' +
+      '  51–70%   Moderate concern. Prioritize review.\n' +
+      '  71–90%   High concern. Act promptly.\n' +
+      '  91–100%  Critical. Immediate response required.\n\n' +
+      'ATTRIBUTION:\n' +
+      'Oracle generates probabilistic attribution candidates\n' +
+      'based on behavioral correlation across systems.\n' +
+      'Attribution is a starting point, not a conclusion.\n\n' +
+      'VERSION NOTES (v4.2):\n' +
+      'Improved cross-system correlation engine.\n' +
+      'Enhanced lateral movement detection.\n' +
+      'Behavioral baseline calibration: 14-day window.\n\n' +
+      'Access the Oracle tab in the navigation bar for\n' +
+      'real-time attribution data.'},
+    '/docs/security_policy.txt':{type:'file',perms:'-rw-r--r--',content:
+      'DELPHI INFORMATION SECURITY POLICY\n' +
+      '════════════════════════════════════\n\n' +
+      'Classification: Internal — All Employees\n' +
+      'Last Updated: September 2032\n\n' +
+      '1. CREDENTIAL SECURITY\n' +
+      '   Never share your password. Never write it down.\n' +
+      '   Report compromised credentials immediately.\n\n' +
+      '2. SYSTEM ACCESS\n' +
+      '   Access only systems within your clearance level.\n' +
+      '   All access is logged and reviewed by Oracle.\n\n' +
+      '3. INCIDENT REPORTING\n' +
+      '   Report all security incidents through the SOC terminal.\n' +
+      '   Do not attempt to resolve Severity 1 incidents alone.\n\n' +
+      '4. DATA HANDLING\n' +
+      '   Do not copy or transmit sensitive data externally.\n' +
+      '   Employee data is subject to strict access controls.\n\n' +
+      '5. ORACLE DATA\n' +
+      '   Oracle attribution data is classified internal.\n' +
+      '   Do not share Oracle reports outside the SOC.\n\n' +
+      'Violations are subject to disciplinary action up to\n' +
+      'and including termination and legal proceedings.'},
+    '/oracle':{type:'dir',children:['status.txt','baseline.txt']},
+    '/oracle/status.txt':{type:'file',perms:'-rw-r--r--',content:
+      'ORACLE STATUS — October 1, 2032 08:00\n\n' +
+      'System:       Online\n' +
+      'Version:      4.2.1\n' +
+      'Active cases: 0\n' +
+      'Anomalies:    0\n' +
+      'Attribution:  No active analysis\n\n' +
+      'Infrastructure monitoring: ALL SYSTEMS GREEN\n' +
+      'Baseline calibration: In progress for new analyst\n\n' +
+      'Oracle is monitoring 847 internal systems in real time.'},
+    '/oracle/baseline.txt':{type:'file',perms:'-rw-r--r--',content:
+      'ORACLE BEHAVIORAL BASELINE — ' + G.fullName + '\n\n' +
+      'Status: INITIALIZING\n' +
+      'Employee ID: ' + G.employeeId + '\n' +
+      'Baseline window: 14 days\n' +
+      'Data collected: 0 days\n\n' +
+      'Oracle is establishing a behavioral baseline for your\n' +
+      'account. This typically takes 14 days of normal activity.\n\n' +
+      'During this period, your activity may generate higher\n' +
+      'anomaly scores than an established analyst. This is normal.'},
+    '/cases':{type:'dir',children:['README.txt']},
+    '/cases/README.txt':{type:'file',perms:'-rw-r--r--',content:
+      'CASE MANAGEMENT SYSTEM\n\n' +
+      'Your case queue is empty.\n' +
+      'Training cases will be assigned after onboarding is complete.\n\n' +
+      'Cases appear here automatically when assigned.\n' +
+      'Use the right panel to view active case objectives.\n' +
+      'Complete required actions to close a case.'},
+  };
 }
 
-function getNode(path) { return state.fs[resolvePath(path)] || null; }
+// ═══════════════════════════════════════════
+//  INBOX DATA
+// ═══════════════════════════════════════════
+function buildInbox() {
+  return [
+    {
+      id:'mail-001', from:'Delphi People Operations', fromEmail:'noreply@delphi.com',
+      subject:'Welcome to Delphi', time:'08:00', unread:true,
+      body: G.firstName + ',\n\nWelcome to Delphi.\n\nYour employee account has been created and your workstation has been provisioned. You have been assigned to the Security Operations Center as an Analyst II.\n\nYour credentials:\n  Employee ID:  ' + G.employeeId + '\n  Email:        ' + G.email + '\n  Clearance:    Level 2\n\nOracle access has been enabled for your account. Oracle is Delphi\'s internal analytics and threat intelligence platform. Your manager will walk you through it during onboarding.\n\nYour first day begins now.\n\n— Delphi People Operations',
+      replies: null,
+    },
+    {
+      id:'mail-002', from:'HR — Delphi', fromEmail:'hr@delphi.com',
+      subject:'Your access and onboarding schedule', time:'08:01', unread:true,
+      body: G.firstName + ',\n\nA few things to know before your first shift:\n\n1. Your terminal password is the one you set during account creation. Keep it secure. Do not share it.\n\n2. You have Level 2 clearance. This grants access to the SOC terminal, case management, internal mail, and Oracle v4.2.\n\n3. Your onboarding includes training investigations — real cases with known outcomes, designed to teach you our tools.\n\n4. James Okafor is your SOC Lead. Copy him on anything significant.\n\n5. Oracle will assist you throughout. Treat its outputs as signals, not conclusions.\n\nQuestions? Reply to this message.\n\n— Delphi Human Resources',
+      replies:[
+        {label:'Understood, thank you.', body:'Understood. I will review the materials and get started.\n\n— ' + G.fullName},
+        {label:'Do I need to do anything before starting?', body:'Is there anything I need to complete before beginning my first case?\n\n— ' + G.fullName},
+        {label:'Where can I find the SOC handbook?', body:'Where would I find the SOC analyst handbook for reference?\n\n— ' + G.fullName},
+      ],
+    },
+    {
+      id:'mail-003', from:'James Okafor', fromEmail:'j.okafor@delphi-soc.com',
+      subject:'Welcome to the team', time:'08:14', unread:true,
+      body: G.firstName + ',\n\nJames Okafor. SOC Lead. Welcome.\n\nWe run a serious operation here. At any given moment, millions of people are relying on the infrastructure you are helping protect. Treat it that way.\n\nYour training cases are already in the queue. Start with the terminal — type  ls  to see what is available,  cat <filename>  to read anything that looks relevant.\n\nOracle is your most powerful tool. Learn to read its confidence scores. A 20% confidence means look closer. A 90% confidence means act. But always verify.\n\nOne more thing: trust your instincts. The data tells you what happened. You figure out why.\n\nGood luck. Not that you will need it.\n\n— Okafor',
+      replies:[
+        {label:'Thank you. Ready to get started.', body:'Thank you, sir. I have reviewed the materials and I am ready to begin.\n\n— ' + G.fullName},
+        {label:'Quick question about Oracle.', body:'I read the Oracle reference doc but had a question — should I be logging every anomaly I see, even the low-confidence ones?\n\n— ' + G.fullName},
+        {label:'Noted. I will start on the terminal now.', body:'Understood. Starting on the terminal now.\n\n— ' + G.fullName},
+        {label:'Is there anything specific I should prioritize?', body:'Any specific area you want me to focus on during training, or just work through the cases as they come?\n\n— ' + G.fullName},
+      ],
+    },
+  ];
+}
+
+// ═══════════════════════════════════════════
+//  ONBOARDING — CHAPTER 1 OBJECTIVE
+// ═══════════════════════════════════════════
+const ONBOARDING_STEPS = [
+  {
+    title:'Workstation Setup Complete',
+    objective:'Your account is active. Explore your terminal to get familiar with the environment.',
+    body:'You have access to your home directory, mail, docs, oracle data, and the cases folder. Read your welcome emails. Review the SOC handbook. When you are ready, type  ready  to proceed to your first assignment.',
+    hint:'Try:  ls  /  cat /mail/from_okafor.txt  /  cat /docs/soc_handbook.txt',
+    trigger:'ready',
+    completionMsg:'Onboarding complete. Your first training case has been assigned.',
+  },
+];
+
+// ═══════════════════════════════════════════
+//  BOOT SEQUENCE
+// ═══════════════════════════════════════════
+function runBoot() {
+  show('boot-screen');
+  const lines = [
+    {t:'',c:''},
+    {t:'DELPHI SYSTEMS CORPORATION',c:'blue'},
+    {t:'Secure Boot Sequence — v9.4.1',c:'dim'},
+    {t:'',c:''},
+    {t:'[ OK ]  Loading hardware security module...',c:'dim'},
+    {t:'[ OK ]  Initializing encrypted storage...',c:'dim'},
+    {t:'[ OK ]  Verifying system integrity...',c:'dim'},
+    {t:'[ OK ]  Loading cryptographic certificates...',c:'dim'},
+    {t:'[ OK ]  Establishing secure network tunnel...',c:'dim'},
+    {t:'',c:''},
+    {t:'[ OK ]  Delphi Infrastructure Layer — Connected',c:'white'},
+    {t:'[ OK ]  Oracle v4.2 — Online',c:'cyan'},
+    {t:'[ OK ]  Security Operations Center — Active',c:'white'},
+    {t:'',c:''},
+    {t:'WARNING: All activity on this terminal is monitored',c:'warn'},
+    {t:'         and logged by Oracle Security Systems.',c:'warn'},
+    {t:'',c:''},
+    {t:'> System ready.',c:'success'},
+    {t:'',c:''},
+  ];
+  const el = document.getElementById('boot-lines');
+  let i = 0;
+  function next() {
+    if (i >= lines.length) { setTimeout(() => { hide('boot-screen'); runCredentialSetup(); }, 800); return; }
+    const d = document.createElement('div');
+    d.className = 'boot-line visible ' + lines[i].c;
+    d.textContent = lines[i].t;
+    el.appendChild(d);
+    i++;
+    setTimeout(next, lines[i-1].t ? 80 : 40);
+  }
+  next();
+}
+
+// ═══════════════════════════════════════════
+//  CREDENTIAL SETUP
+// ═══════════════════════════════════════════
+let credStep = 0;
+let credLines = [];
+let credPWConfirm = '';
+
+function credPrint(text, cls='') {
+  const el = document.getElementById('cred-output');
+  const d = document.createElement('div');
+  d.className = 'cred-line ' + cls;
+  d.textContent = text;
+  el.appendChild(d);
+  el.scrollTop = el.scrollHeight;
+}
+
+function credDelay(lines, cls, delay, cb) {
+  let i = 0;
+  function next() {
+    if (i >= lines.length) { if(cb) cb(); return; }
+    credPrint(lines[i], cls); i++;
+    setTimeout(next, delay || 80);
+  }
+  next();
+}
+
+function runCredentialSetup() {
+  show('credential-screen');
+  const el = document.getElementById('cred-output');
+  const inp = document.getElementById('cred-input');
+  inp.focus();
+
+  const intro = [
+    '',
+    '  ██████╗ ███████╗██╗     ██████╗ ██╗  ██╗██╗',
+    '  ██╔══██╗██╔════╝██║     ██╔══██╗██║  ██║██║',
+    '  ██║  ██║█████╗  ██║     ██████╔╝███████║██║',
+    '  ██║  ██║██╔══╝  ██║     ██╔═══╝ ██╔══██║██║',
+    '  ██████╔╝███████╗███████╗██║     ██║  ██║██║',
+    '  ╚═════╝ ╚══════╝╚══════╝╚═╝     ╚═╝  ╚═╝╚═╝',
+    '',
+  ];
+  intro.forEach(l => credPrint(l, l.includes('█') ? 'blue' : ''));
+
+  setTimeout(() => {
+    credDelay([
+      'DELPHI PEOPLE OPERATIONS — SECURE ONBOARDING TERMINAL',
+      'Delphi Corporation  |  Security Operations Division',
+      'Session: New Employee Account Creation',
+      '──────────────────────────────────────────────────────',
+      '',
+      'Welcome to Delphi.',
+      '',
+      'This terminal will guide you through the creation of your',
+      'employee account. You will need to provide your full name',
+      'and create a secure password.',
+      '',
+      'Your Delphi employee ID, email address, and system access',
+      'credentials will be generated automatically.',
+      '',
+      'All information entered here is encrypted and stored',
+      'securely within Delphi\'s HR systems.',
+      '',
+      '──────────────────────────────────────────────────────',
+    ], '', 55, () => {
+      credStep = 1;
+      setTimeout(() => {
+        credPrint('');
+        credPrint('STEP 1 OF 3 — FIRST NAME', 'cyan');
+        credPrint('');
+        credPrint('Enter your first name:', 'white');
+        credPrint('');
+        document.getElementById('cred-prompt').textContent = 'first_name >';
+        inp.placeholder = 'First name...';
+        inp.type = 'text';
+        inp.focus();
+      }, 400);
+    });
+  }, 600);
+
+  inp.onkeydown = (e) => {
+    if (e.key !== 'Enter') return;
+    const val = inp.value.trim();
+    inp.value = '';
+    handleCredInput(val);
+  };
+}
+
+function handleCredInput(val) {
+  const inp = document.getElementById('cred-input');
+
+  if (credStep === 1) {
+    // First name
+    if (!val || val.length < 2) { credPrint('Please enter a valid first name.', 'error'); return; }
+    G.firstName = val.charAt(0).toUpperCase() + val.slice(1).toLowerCase();
+    credPrint('> ' + G.firstName, 'cyan');
+    credStep = 2;
+    setTimeout(() => {
+      credPrint('');
+      credPrint('STEP 2 OF 3 — LAST NAME', 'cyan');
+      credPrint('');
+      credPrint('Enter your last name:', 'white');
+      credPrint('');
+      document.getElementById('cred-prompt').textContent = 'last_name >';
+      inp.placeholder = 'Last name...';
+    }, 300);
+    return;
+  }
+
+  if (credStep === 2) {
+    if (!val || val.length < 2) { credPrint('Please enter a valid last name.', 'error'); return; }
+    G.lastName = val.charAt(0).toUpperCase() + val.slice(1).toLowerCase();
+    G.fullName = G.firstName + ' ' + G.lastName;
+    credPrint('> ' + G.lastName, 'cyan');
+    credStep = 3;
+    setTimeout(() => {
+      credPrint('');
+      credPrint('STEP 3 OF 3 — CREATE PASSWORD', 'cyan');
+      credPrint('');
+      credPrint('Create a secure password for your Delphi account.', 'white');
+      credPrint('Requirements: 8+ characters, at least one number.', '');
+      credPrint('');
+      document.getElementById('cred-prompt').textContent = 'password >';
+      inp.placeholder = 'Password...';
+      inp.type = 'password';
+    }, 300);
+    return;
+  }
+
+  if (credStep === 3) {
+    if (!val || val.length < 8 || !/\d/.test(val)) {
+      credPrint('Password must be 8+ characters and contain at least one number.', 'error'); return;
+    }
+    G.password = val;
+    credPrint('> ••••••••', 'cyan');
+    credStep = 4;
+    setTimeout(() => {
+      credPrint('');
+      credPrint('Confirm your password:', 'white');
+      credPrint('');
+      document.getElementById('cred-prompt').textContent = 'confirm >';
+      inp.placeholder = 'Confirm password...';
+    }, 300);
+    return;
+  }
+
+  if (credStep === 4) {
+    if (val !== G.password) {
+      credPrint('> ••••••••', 'cyan');
+      credPrint('Passwords do not match. Please try again.', 'error');
+      credStep = 3;
+      setTimeout(() => {
+        credPrint('');
+        credPrint('Create a secure password:', 'white');
+        credPrint('');
+        document.getElementById('cred-prompt').textContent = 'password >';
+        inp.placeholder = 'Password...';
+      }, 300);
+      return;
+    }
+    credPrint('> ••••••••', 'cyan');
+    credStep = 5;
+    generateAccount();
+    return;
+  }
+}
+
+function generateAccount() {
+  const inp = document.getElementById('cred-input');
+  inp.disabled = true;
+
+  const firstInit = G.firstName.charAt(0).toLowerCase();
+  const lastSlug = G.lastName.toLowerCase().replace(/[^a-z]/g,'');
+  G.email = firstInit + '.' + lastSlug + '@delphi-soc.com';
+  const idNum = Math.floor(10000 + Math.random() * 89999);
+  G.employeeId = 'DSC-' + idNum;
+
+  setTimeout(() => {
+    credPrint('');
+    credPrint('──────────────────────────────────────────────────────', 'dim');
+    credPrint('');
+    credPrint('Processing account creation...', '');
+  }, 400);
+
+  const steps2 = [
+    {t:'  Verifying identity information...', d:500},
+    {t:'  Generating employee ID...', d:700},
+    {t:'  Provisioning email address...', d:600},
+    {t:'  Configuring Level 2 clearance...', d:500},
+    {t:'  Granting Oracle v4.2 access...', d:700},
+    {t:'  Encrypting credentials...', d:500},
+    {t:'  Provisioning workstation...', d:600},
+    {t:'  Notifying Security Operations...', d:400},
+  ];
+
+  let delay = 900;
+  steps2.forEach((s) => {
+    setTimeout(() => credPrint(s.t, 'dim'), delay);
+    delay += s.d;
+  });
+
+  setTimeout(() => {
+    credPrint('');
+    credPrint('──────────────────────────────────────────────────────', 'dim');
+    credPrint('');
+    credPrint('ACCOUNT CREATED SUCCESSFULLY', 'success');
+    credPrint('');
+    credPrint('  Full Name:    ' + G.fullName, 'white');
+    credPrint('  Employee ID:  ' + G.employeeId, 'cyan');
+    credPrint('  Email:        ' + G.email, 'cyan');
+    credPrint('  Department:   Security Operations Center', 'white');
+    credPrint('  Role:         Analyst II', 'white');
+    credPrint('  Clearance:    Level 2', 'white');
+    credPrint('  Oracle:       Access Granted', 'white');
+    credPrint('');
+    credPrint('──────────────────────────────────────────────────────', 'dim');
+    credPrint('');
+    credPrint('Your credentials have been saved. You will use your', '');
+    credPrint('employee ID and password to log in to all Delphi systems.', '');
+    credPrint('');
+    credPrint('Press ENTER to access your terminal.', 'blue');
+
+    inp.disabled = false;
+    inp.type = 'text';
+    inp.placeholder = 'Press Enter to continue...';
+    document.getElementById('cred-prompt').textContent = '';
+
+    inp.onkeydown = (e) => {
+      if (e.key === 'Enter') {
+        hide('credential-screen');
+        showChapterCard('ACT I — THE INCIDENT', 'CHAPTER 1', 'Onboarding', () => {
+          launchTerminal();
+        });
+      }
+    };
+    inp.focus();
+  }, delay + 300);
+}
+
+// ═══════════════════════════════════════════
+//  CHAPTER CARD
+// ═══════════════════════════════════════════
+function showChapterCard(act, title, sub, cb) {
+  show('chapter-card');
+  document.getElementById('cc-act').textContent = act;
+  document.getElementById('cc-title').textContent = title;
+  document.getElementById('cc-sub').textContent = sub;
+  setTimeout(() => { hide('chapter-card'); cb(); }, 3500);
+}
+
+// ═══════════════════════════════════════════
+//  LAUNCH TERMINAL
+// ═══════════════════════════════════════════
+function launchTerminal() {
+  G.fs = buildChapter1FS();
+  G.cwd = '/home/' + G.firstName.toLowerCase() + '.' + G.lastName.toLowerCase();
+  G.inbox = buildInbox();
+
+  // Update sidebar
+  document.getElementById('sb-fullname').textContent = G.fullName;
+  document.getElementById('sb-id').textContent = 'ID: ' + G.employeeId;
+  document.getElementById('d-date').textContent = 'October 1, 2032';
+  document.getElementById('d-prompt').textContent = G.firstName.toLowerCase() + '@delphi-soc:' + G.cwd + '$';
+  document.getElementById('d-path').textContent = G.cwd;
+
+  // Build coworker list
+  const cl = document.getElementById('coworker-list');
+  cl.innerHTML = '';
+  G.coworkers.forEach(c => {
+    const d = document.createElement('div');
+    d.className = 'd-coworker-row';
+    d.innerHTML = '<span class="d-coworker-name">' + c.name + '</span>' +
+      '<span class="d-coworker-status"><div class="d-coworker-dot"></div>' + c.status + '</span>';
+    cl.appendChild(d);
+  });
+
+  // Update inbox badge
+  updateInboxBadge();
+
+  // Right panel — onboarding objective
+  loadOnboardingPanel();
+
+  // Show terminal
+  document.body.classList.add('terminal-active');
+
+  // Boot print
+  dClear();
+  dBlank();
+  dPrint('Delphi Security Operations Center — Secure Terminal', 'heading');
+  dPrint('October 1, 2032  |  Session: ' + G.employeeId, 'info');
+  dBlank();
+  dPrint('Welcome, ' + G.firstName + '. Your workstation is ready.', 'success');
+  dBlank();
+  dPrint('3 new messages in your inbox — type  inbox  or use the nav above.', 'system');
+  dPrint('Documentation is available in /docs/', 'info');
+  dPrint('Your home directory: ' + G.cwd, 'info');
+  dBlank();
+  dPrint('Type  help  for available commands.', 'dim');
+  dBlank();
+
+  setTimeout(() => document.getElementById('d-input').focus(), 100);
+}
+
+function loadOnboardingPanel() {
+  const step = ONBOARDING_STEPS[0];
+  document.getElementById('d-panel-body').innerHTML =
+    '<div class="d-card">' +
+    '<div class="d-card-title">' + step.title + '</div>' +
+    '<div class="d-card-sub">CHAPTER 1 — ONBOARDING</div>' +
+    '<div class="d-progress-track"><div class="d-progress-fill" style="width:0%"></div></div>' +
+    '<div class="d-card-body" style="margin-top:10px;">' + step.body + '</div>' +
+    '<div class="d-card-hint">When ready:<br><span>type  ready</span></div>' +
+    '</div>';
+}
+
+// ═══════════════════════════════════════════
+//  FILESYSTEM HELPERS
+// ═══════════════════════════════════════════
+function resolvePath(input) {
+  if (!input) return G.cwd;
+  if (input === '/') return '/';
+  let base = input.startsWith('/') ? '' : G.cwd;
+  let parts = (base + '/' + input).split('/').filter(Boolean);
+  let r = [];
+  for (let p of parts) { if (p==='..') r.pop(); else if (p!=='.') r.push(p); }
+  return '/' + r.join('/');
+}
+function getNode(path) { return G.fs[resolvePath(path)] || null; }
 
 function listDir(path, showHidden) {
-  if (!state.currentMission && !tState.active) { print('No filesystem loaded. Start a mission first.', 'warn'); return; }
   let p = resolvePath(path);
-  let node = state.fs[p];
-  if (!node) { print('ls: ' + (path||'.') + ': No such directory', 'error'); return; }
-  if (node.type !== 'dir') { print('ls: ' + path + ': Not a directory', 'error'); return; }
-  let children = (node.children || []).filter(c => showHidden || !c.startsWith('.'));
-  if (children.length === 0) { print('(empty)', 'dim'); return; }
+  let node = G.fs[p];
+  if (!node) { dPrint('ls: cannot access \'' + (path||'.') + '\': No such file or directory', 'error'); return; }
+  if (node.type !== 'dir') { dPrint('ls: ' + path + ': Not a directory', 'error'); return; }
+  let children = (node.children||[]).filter(c => showHidden || !c.startsWith('.'));
+  if (!children.length) { dPrint('(empty)', 'dim'); return; }
   children.forEach(name => {
     let cp = p === '/' ? '/' + name : p + '/' + name;
-    let child = state.fs[cp];
-    if (!child) return;
-    let perms = child.perms || (child.type === 'dir' ? 'drwxr-xr-x' : '-rw-r--r--');
-    let display = name + (child.type === 'dir' ? '/' : '');
-    let flag = perms.includes('rwxrwxrwx') ? '  [!]' : '';
-    if (name.startsWith('.') && showHidden) flag += '  [hidden]';
-    let cls = child.type === 'dir' ? 'system' : flag.includes('[!]') ? 'warn' : 'info';
-    print(perms + '  ' + display + flag, cls);
+    let child = G.fs[cp]; if (!child) return;
+    let perms = child.perms || (child.type==='dir' ? 'drwxr-xr-x' : '-rw-r--r--');
+    let flag = '';
+    if (name.startsWith('.') && showHidden) flag = '  [hidden]';
+    dPrint(perms + '  ' + name + (child.type==='dir' ? '/' : '') + flag,
+      child.type==='dir' ? 'system' : 'info');
   });
 }
-
 function catFile(path) {
-  if (!state.currentMission && !tState.active) { print('No filesystem loaded. Start a mission first.', 'warn'); return; }
   let node = getNode(path);
-  if (!node) { print('cat: ' + path + ': No such file or directory', 'error'); return; }
-  if (node.type === 'dir') { print('cat: ' + path + ': Is a directory', 'error'); return; }
-  print(node.content || '(empty file)', 'info');
+  if (!node) { dPrint('cat: ' + path + ': No such file or directory', 'error'); return; }
+  if (node.type==='dir') { dPrint('cat: ' + path + ': Is a directory', 'error'); return; }
+  dPrint(node.content || '(empty file)', 'info');
+}
+function grepFile(pat, fp) {
+  let node = getNode(fp);
+  if (!node) { dPrint('grep: ' + fp + ': No such file', 'error'); return; }
+  if (node.type==='dir') { dPrint('grep: ' + fp + ': Is a directory', 'error'); return; }
+  let matches = (node.content||'').split('\n').filter(l => l.toLowerCase().includes(pat.toLowerCase()));
+  if (!matches.length) { dPrint('(no matches for \'' + pat + '\')', 'dim'); return; }
+  matches.forEach(l => dPrint(l, 'success'));
 }
 
-function grepFile(pattern, filePath) {
-  if (!state.currentMission && !tState.active) { print('No filesystem loaded. Start a mission first.', 'warn'); return; }
-  let node = getNode(filePath);
-  if (!node) { print('grep: ' + filePath + ': No such file or directory', 'error'); return; }
-  if (node.type === 'dir') { print('grep: ' + filePath + ': Is a directory', 'error'); return; }
-  let matches = (node.content||'').split('\n').filter(l => l.toLowerCase().includes(pattern.toLowerCase()));
-  if (matches.length === 0) { print('(no matches)', 'dim'); return; }
-  matches.forEach(l => print(l, 'success'));
-}
-
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════
 //  TERMINAL OUTPUT
-// ═══════════════════════════════════════════════
-function print(text, cls = 'prompt') {
-  const out = document.getElementById('output');
+// ═══════════════════════════════════════════
+function dPrint(text, cls='cmd') {
+  const out = document.getElementById('d-output');
   const d = document.createElement('div');
-  d.className = 'line ' + cls;
+  d.className = 'd-line ' + cls;
   d.textContent = text;
   out.appendChild(d);
   out.scrollTop = out.scrollHeight;
 }
-function clearTerminal() { document.getElementById('output').innerHTML = ''; }
+function dClear() { document.getElementById('d-output').innerHTML = ''; }
+function dBlank() { dPrint('', 'blank'); }
+function dHint(text) { document.getElementById('d-hint').textContent = text; }
 function updatePrompt() {
-  const name = state.path === 'ghost' ? 'ghost' : 'sentinel';
-  document.getElementById('prompt-label').textContent = name + '@netbreaker:' + state.cwd + '$';
-  document.getElementById('hdr-dir').textContent = state.cwd;
+  document.getElementById('d-prompt').textContent = G.firstName.toLowerCase() + '@delphi-soc:' + G.cwd + '$';
+  document.getElementById('d-path').textContent = G.cwd;
 }
 
-// ═══════════════════════════════════════════════
-//  REPUTATION & TOOLS
-// ═══════════════════════════════════════════════
-function gainRep(n) {
-  state.rep = Math.max(0, state.rep + n);
-  document.getElementById('sb-rep').textContent = state.rep;
-  document.getElementById('hdr-rep').textContent = state.rep;
-  document.getElementById('rep-fill').style.width = Math.min(100, (state.rep / 3)) + '%';
-  updateMissionList();
+// ═══════════════════════════════════════════
+//  TAB SWITCHING
+// ═══════════════════════════════════════════
+function switchTab(tab) {
+  ['terminal','inbox','oracle'].forEach(t => {
+    document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+  });
+  document.getElementById('terminal-pane').style.display = tab === 'terminal' ? 'flex' : 'none';
+  document.getElementById('inbox-pane').style.display = tab === 'inbox' ? 'flex' : 'none';
+  document.getElementById('oracle-pane').style.display = tab === 'oracle' ? 'flex' : 'none';
+  if (tab === 'terminal') setTimeout(() => document.getElementById('d-input').focus(), 50);
+  if (tab === 'inbox') renderInboxList();
 }
 
-function unlockTool(toolId) {
-  if (!toolId || state.ownedTools.has(toolId)) return;
-  state.ownedTools.add(toolId);
-  updateToolList();
+// ═══════════════════════════════════════════
+//  INBOX
+// ═══════════════════════════════════════════
+function updateInboxBadge() {
+  const unread = G.inbox.filter(m => m.unread).length;
+  document.getElementById('inbox-badge').textContent = unread;
+  document.getElementById('inbox-badge').style.display = unread > 0 ? '' : 'none';
 }
 
-function updateToolList() {
-  const tl = document.getElementById('tool-list');
-  tl.innerHTML = '';
-  Object.entries(TOOLS).forEach(([id, t]) => {
-    const owned = state.ownedTools.has(id);
+function renderInboxList() {
+  const list = document.getElementById('inbox-list');
+  list.innerHTML = '';
+  G.inbox.forEach(m => {
     const d = document.createElement('div');
-    d.className = 'tool-item ' + (owned ? 'owned' : 'locked');
-    d.innerHTML = `<div class="tool-dot"></div>${t.name}`;
-    d.title = t.desc;
-    tl.appendChild(d);
+    d.className = 'inbox-item ' + (m.unread ? 'unread' : '') + (G.selectedEmail === m.id ? ' selected' : '');
+    d.innerHTML =
+      (m.unread ? '<div class="inbox-unread-dot"></div>' : '') +
+      '<div class="inbox-from">' + m.from + '</div>' +
+      '<div class="inbox-subject">' + m.subject + '</div>' +
+      '<div class="inbox-time">' + m.time + '</div>';
+    d.onclick = () => openEmail(m.id);
+    list.appendChild(d);
   });
 }
 
-// ═══════════════════════════════════════════════
-//  MISSION LIST
-// ═══════════════════════════════════════════════
-function updateMissionList() {
-  // Chronological: a mission is only available if the previous is completed AND rep >= repGate
-  // locked_seq = not reached yet | locked_rep = reached but rep too low (shows side missions)
-  state.missions.forEach((m, idx) => {
-    if (m.status === 'completed') return;
-    const prevCompleted = idx === 0 || state.missions[idx - 1].status === 'completed';
-    if (!prevCompleted) {
-      m.status = 'locked_seq';
-    } else if (state.rep < m.repGate) {
-      m.status = 'locked_rep';
-    } else {
-      m.status = 'available';
+function openEmail(id) {
+  const email = G.inbox.find(m => m.id === id);
+  if (!email) return;
+  email.unread = false;
+  G.selectedEmail = id;
+  updateInboxBadge();
+  renderInboxList();
+
+  const viewer = document.getElementById('inbox-viewer');
+  let repliesHtml = '';
+  if (email.replies && !email.replied) {
+    repliesHtml =
+      '<div class="inbox-reply-area">' +
+      '<div class="inbox-reply-label">Reply</div>' +
+      email.replies.map((r, i) =>
+        '<div class="reply-option" onclick="sendReply(\'' + id + '\',' + i + ')">' + r.label + '</div>'
+      ).join('') +
+      '</div>';
+  } else if (email.replied) {
+    repliesHtml = '<div class="inbox-reply-area"><div class="reply-sent">✓ Reply sent — ' + email.repliedWith + '</div></div>';
+  }
+
+  viewer.innerHTML =
+    '<div class="inbox-viewer-header">' +
+    '<div class="inbox-viewer-from">' + email.from + '</div>' +
+    '<div class="inbox-viewer-meta">' + email.fromEmail + '  ·  ' + email.time + '</div>' +
+    '<div class="inbox-viewer-subject">' + email.subject + '</div>' +
+    '</div>' +
+    '<div class="inbox-viewer-body">' + email.body + '</div>' +
+    repliesHtml;
+}
+
+function sendReply(id, idx) {
+  const email = G.inbox.find(m => m.id === id);
+  if (!email || !email.replies) return;
+  const reply = email.replies[idx];
+  email.replied = true;
+  email.repliedWith = reply.label;
+
+  // Inject a response email after a moment
+  setTimeout(() => {
+    if (id === 'mail-002') {
+      addInboxEmail({
+        id:'mail-002r', from:'HR — Delphi', fromEmail:'hr@delphi.com',
+        subject:'Re: Your access and onboarding schedule', time:'08:32', unread:true,
+        body: G.firstName + ',\n\nGlad to have you on board.\n\nTo answer your question directly:\nThe SOC handbook is in your docs folder — type  cat /docs/soc_handbook.txt  in the terminal.\n\nIf you need anything else just reach out.\n\n— Delphi Human Resources',
+        replies: null,
+      });
     }
-  });
-
-  const stuckMission = state.missions.find(m => m.status === 'locked_rep');
-  state.sideMissionsAvailable = !!stuckMission;
-  if (stuckMission) state.repNeeded = stuckMission.repGate;
-
-  const ml = document.getElementById('mission-list');
-  ml.innerHTML = '';
-  let currentAct = 0;
-
-  state.missions.forEach(m => {
-    if (m.status === 'locked_seq') return;
-    if (m.act !== currentAct) {
-      currentAct = m.act;
-      const al = document.createElement('div');
-      al.className = 'act-label';
-      al.textContent = 'ACT ' + m.act;
-      ml.appendChild(al);
+    if (id === 'mail-003') {
+      addInboxEmail({
+        id:'mail-003r', from:'James Okafor', fromEmail:'j.okafor@delphi-soc.com',
+        subject:'Re: Welcome to the team', time:'08:41', unread:true,
+        body: G.firstName + ',\n\nGood.\n\nLog everything. Even the small anomalies. Oracle catches most things but not everything. Your judgment matters more than you think.\n\nSee you at the 09:00 briefing.\n\n— Okafor',
+        replies: null,
+      });
     }
-    const displayStatus = m.status === 'locked_rep' ? 'locked' : m.status;
-    const d = document.createElement('div');
-    d.className = 'mission-item ' + displayStatus + (state.currentMission?.id === m.id ? ' active' : '');
-    let badge = '';
-    if (m.status === 'completed')  badge = '<span class="m-check">&#10003;</span>';
-    if (m.status === 'locked_rep') badge = '<span class="m-rep">' + m.repGate + ' rep</span>';
-    d.innerHTML = m.id + ' ' + m.name + badge;
-    if (m.status === 'available') d.onclick = () => processCmd('start ' + m.id);
-    ml.appendChild(d);
-  });
+    updateInboxBadge();
+    renderInboxList();
+  }, 1500);
 
-  // Side mission slot — only visible when player is rep-gated
-  if (state.sideMissionsAvailable) {
-    const sl = document.createElement('div');
-    sl.className = 'act-label';
-    sl.textContent = 'SIDE MISSIONS';
-    ml.appendChild(sl);
-    const sd = document.createElement('div');
-    sd.className = 'mission-item';
-    sd.style.cssText = 'color:var(--amber);font-size:11px;padding:4px 6px;cursor:default';
-    sd.textContent = 'Coming in Act 1 update';
-    ml.appendChild(sd);
-  }
-
-  document.getElementById('sb-rep').textContent = state.rep;
-  document.getElementById('hdr-rep').textContent = state.rep;
-  const act = state.currentMission ? state.currentMission.act : '—';
-  document.getElementById('sb-act').textContent = act === '—' ? '—' : 'Act ' + act;
+  openEmail(id); // re-render to show sent state
 }
 
-
-// ═══════════════════════════════════════════════
-//  BOOT SEQUENCE
-// ═══════════════════════════════════════════════
-function runBoot() {
-  const lines = [
-    'NETBREAKER OS v0.2.0',
-    'Copyright (c) 2024 Unknown',
-    '',
-    'Initializing kernel modules...',
-    'Loading network interfaces...',
-    'Mounting encrypted volumes...',
-    'Checking filesystem integrity...',
-    '',
-    'ERR_0x4F1 — Auth token expired',
-    'ERR_0x2A9 — Firewall rule conflict detected',
-    '',
-    'Starting secure shell daemon...',
-    'Anonymizing network traffic...',
-    'Establishing encrypted tunnel...',
-    '',
-    'All systems nominal.',
-    '',
-    '> Ready.',
-  ];
-  const el = document.getElementById('boot-output');
-  let i = 0;
-  const interval = setInterval(() => {
-    if (i >= lines.length) {
-      clearInterval(interval);
-      setTimeout(() => {
-        document.getElementById('boot-overlay').style.display = 'none';
-        document.getElementById('intro-overlay').style.display = 'flex';
-      }, 600);
-      return;
-    }
-    const d = document.createElement('div');
-    d.textContent = lines[i];
-    if (lines[i].startsWith('ERR_')) d.style.color = 'var(--amber)';
-    else if (lines[i] === '> Ready.') d.style.color = 'var(--green)';
-    el.appendChild(d);
-    i++;
-  }, 80);
+function addInboxEmail(email) {
+  G.inbox.push(email);
+  updateInboxBadge();
 }
 
-// ═══════════════════════════════════════════════
-//  PATH SELECTION
-// ═══════════════════════════════════════════════
-function selectPath(path) {
-  state.path = path;
-  document.getElementById('intro-overlay').style.display = 'none';
-  updateMissionList();
-  updateToolList();
-  document.getElementById('hdr-path').textContent = path.toUpperCase();
-  document.getElementById('sb-path').textContent = path.toUpperCase();
-  state.cwd = '/';
-  updatePrompt();
-
-  print('');
-  if (path === 'ghost') {
-    print('◢◢◢  GHOST OPERATIVE TERMINAL  ◣◣◣', 'big');
-    print('');
-    print('Welcome to the shadows.', 'warn');
-    print('Your first assignment is waiting.', 'info');
-  } else {
-    print('◈◈◈  SENTINEL SECURITY TERMINAL  ◈◈◈', 'big');
-    print('');
-    print('Welcome, Operative. An incident has been detected.', 'system');
-    print('Your first case is open.', 'info');
-  }
-  print('');
-  print('─────────────────────────────────────────', 'dim');
-  print('  Type  tutorial    → learn the basics (recommended)', 'info');
-  print('  Type  missions    → skip and go straight in', 'info');
-  print('─────────────────────────────────────────', 'dim');
-  print('');
-  document.getElementById('cmd-input').focus();
-}
-
-// ═══════════════════════════════════════════════
-//  MISSIONS
-// ═══════════════════════════════════════════════
-function showMissions() {
-  print('');
-  print('[ MISSION BOARD ]', 'title');
-  print('');
-  let currentAct = 0;
-  state.missions.forEach(m => {
-    if (m.act !== currentAct) {
-      currentAct = m.act;
-      print('  — ACT ' + m.act + ' —', 'warn');
-    }
-    if (m.status === 'locked_seq') return;
-    const icon = m.status === 'completed' ? '✓' : m.status === 'available' ? '▶' : '!';
-    const cls  = m.status === 'completed' ? 'success' : m.status === 'available' ? 'prompt' : m.status === 'locked_rep' ? 'warn' : 'dim';
-    const gate = m.status === 'locked_rep' ? '  [need ' + m.repGate + ' rep — ' + (m.repGate - state.rep) + ' more]' : '';
-    print(' ' + icon + '  ' + m.id + '  ' + m.name.padEnd(16) + gate, cls);
-  });
-  print('');
-  print('Current reputation: ' + state.rep, 'info');
-  print('Type  start <id>  to begin an available mission.', 'info');
-  print('');
-}
-
-function startMission(id) {
-  const mission = state.missions.find(m => m.id === id);
-  if (!mission) { print('Unknown mission: ' + id, 'error'); return; }
-  if (mission.status === 'locked_seq') {
-    print('Mission not yet available. Complete the previous mission first.', 'error'); return;
-  }
-  if (mission.status === 'locked_rep') {
-    const needed = mission.repGate - state.rep;
-    print('Insufficient reputation. Need ' + mission.repGate + ' rep — you have ' + state.rep + ' (' + needed + ' more needed).', 'error');
-    print('Side missions are available to earn more reputation.', 'warn');
-    return;
-  }
-  if (mission.status === 'locked') {
-    print('Mission locked.', 'error'); return;
-  }
-
-  if (state.timerInterval) { clearInterval(state.timerInterval); state.timerInterval = null; }
-
-  state.currentMission = mission;
-  state.puzzleState = { puzzleIdx: 0, completed: [] };
-  document.getElementById('hdr-mission').textContent = mission.id;
-
-  const fsData = missionFilesystems[id];
-  state.fs = fsData ? (fsData[state.path] || {}) : {};
-  state.cwd = '/';
-  updatePrompt();
-  updateMissionList();
-
-  print('');
-  print('[ MISSION ' + mission.id + ': ' + mission.name.toUpperCase() + ' ]', 'title');
-  print('');
-  print('System loaded. Navigate with ls, cd, cat, grep.', 'info');
-  print('Submit your answer with:  submit <answer>', 'info');
-  print('');
-  loadPuzzle(mission.puzzles[0]);
-}
-
-// ═══════════════════════════════════════════════
-//  PUZZLE ENGINE
-// ═══════════════════════════════════════════════
-function loadPuzzle(pKey) {
-  if (state.timerInterval) { clearInterval(state.timerInterval); state.timerInterval = null; }
-  const p = puzzles[pKey];
-  if (!p) return;
-  state.currentPuzzle = pKey;
-  const v = state.path === 'ghost' ? p.ghost : p.sentinel;
-  const total = state.currentMission.puzzles.length;
-  const idx   = state.puzzleState.puzzleIdx;
-
-  let timerHtml = p.timed ? '<div class="timed-header">TIME: <span id="timer-display">' + p.timeLimit + '</span>s</div>' : '';
-
-  document.getElementById('puzzle-content').innerHTML = `
-    <div class="puzzle-title">${p.title}</div>
-    <div style="font-size:10px;color:var(--text-dim);letter-spacing:2px;margin-bottom:8px">
-      ${state.currentMission.id} · PUZZLE ${idx+1}/${total}
-    </div>
-    <div id="progress-bar"><div id="progress-fill" style="width:${(idx/total)*100}%"></div></div>
-    ${timerHtml}
-    <div class="puzzle-obj-label">Objective</div>
-    <div class="puzzle-desc">${v.objective}</div>
-    <div class="puzzle-submit-hint">
-      When you have the answer:<br>
-      <span>submit &lt;answer&gt;</span>
-    </div>`;
-
-  if (p.timed) startTimer(p.timeLimit);
-
-  print('');
-  print('Puzzle: ' + p.title, 'system');
-  print('Read your objective in the right panel.', 'info');
-  if (p.timed) print('WARNING: Time-limited — act fast!', 'warn');
-  print('');
-}
-
-function startTimer(seconds) {
-  let remaining = seconds;
-  state.timerInterval = setInterval(() => {
-    remaining--;
-    const el = document.getElementById('timer-display');
-    if (el) { el.textContent = remaining; el.parentElement.style.color = remaining <= 10 ? '#ff6666' : 'var(--red)'; }
-    if (remaining <= 0) {
-      clearInterval(state.timerInterval); state.timerInterval = null;
-      const pc = document.getElementById('puzzle-content');
-      if (pc) pc.insertAdjacentHTML('beforeend','<div class="fail-banner">✗ TIME EXPIRED</div>');
-      gainRep(-10);
-      print('✗ Time expired. -10 reputation.', 'error');
-      setTimeout(advancePuzzle, 2000);
-    }
-  }, 1000);
-}
-
-function submitAnswer(ans) {
-  if (!state.currentPuzzle) { print('No active puzzle.', 'error'); return; }
-  const p = puzzles[state.currentPuzzle];
-  const v = state.path === 'ghost' ? p.ghost : p.sentinel;
-
-  if (ans.toLowerCase() === v.answer.toLowerCase()) {
-    if (state.timerInterval) { clearInterval(state.timerInterval); state.timerInterval = null; }
-    const pc = document.getElementById('puzzle-content');
-    if (pc) pc.insertAdjacentHTML('beforeend','<div class="success-banner">◢ ACCESS GRANTED ◣</div>');
-    gainRep(15);
-    print('');
-    print('✓ CORRECT — ' + p.title + ' solved.', 'success');
-    print('+15 reputation.', 'success');
-    state.puzzleState.completed.push(state.currentPuzzle);
-    setTimeout(advancePuzzle, 1800);
-  } else {
-    const pc = document.getElementById('puzzle-content');
-    if (pc) pc.insertAdjacentHTML('beforeend','<div class="fail-banner">✗ INCORRECT</div>');
-    setTimeout(()=>{ const f=document.querySelector('.fail-banner'); if(f) f.remove(); },1500);
-    gainRep(-5);
-    print('✗ Incorrect. -5 reputation.', 'error');
-  }
-}
-
-function advancePuzzle() {
-  state.puzzleState.puzzleIdx++;
-  const mission = state.currentMission;
-  if (state.puzzleState.puzzleIdx >= mission.puzzles.length) completeMission();
-  else loadPuzzle(mission.puzzles[state.puzzleState.puzzleIdx]);
-}
-
-function completeMission() {
-  if (state.timerInterval) { clearInterval(state.timerInterval); state.timerInterval = null; }
-  const mission = state.currentMission;
-  mission.status = 'completed';
-  gainRep(25);
-
-  // unlock tool tied to this mission
-  if (mission.toolUnlock) unlockTool(mission.toolUnlock);
-
-  updateMissionList();
-  showStoryScreen(mission.id);
-}
-
-// ═══════════════════════════════════════════════
-//  STORY SCREEN
-// ═══════════════════════════════════════════════
-function showStoryScreen(missionId) {
-  const story = storyData[missionId]?.[state.path];
-  if (!story) { afterStory(missionId); return; }
-
-  const missionConfig = MISSIONS.find(m => m.id === missionId);
-
-  // tool unlock from story data (for Act 2+ tool drops)
-  const storyTool = story.toolUnlock ? TOOLS[story.toolUnlock] : null;
-  if (story.toolUnlock) unlockTool(story.toolUnlock);
-
-  let toolHtml = '';
-  if (storyTool) {
-    toolHtml = `<div class="story-tool-unlock">
-      <div class="story-tool-label">◈ NEW TOOL UNLOCKED</div>
-      <div class="story-tool-name">${storyTool.name}</div>
-      <div class="story-tool-desc">${storyTool.desc}</div>
-    </div>`;
-  }
-
-  document.getElementById('story-inner').innerHTML = `
-    <div class="story-label">◢ MISSION ${missionId} COMPLETE — +25 REP ◣</div>
-    <div class="story-briefing">${story.briefing.replace(/\n/g,'<br>')}</div>
-    ${story.news ? `<div class="story-news">
-      <div class="story-news-label">◈ INTERCEPTED NEWS FEED</div>
-      <div class="story-news-headline">${story.news.headline}</div>
-      <div class="story-news-body">${story.news.body}</div>
-    </div>` : ''}
-    ${toolHtml}
-    <button class="story-continue" onclick="closeStoryScreen('${missionId}')">[ CONTINUE ]</button>
-  `;
-
-  document.getElementById('story-overlay').classList.add('active');
-}
-
-function closeStoryScreen(missionId) {
-  document.getElementById('story-overlay').classList.remove('active');
-  afterStory(missionId);
-}
-
-function afterStory(missionId) {
-  updateMissionList();
-  updateToolList();
-
-  const nextMission = state.missions.find(m => m.status === 'available' || m.status === 'locked');
-  document.getElementById('puzzle-content').innerHTML = `
-    <div style="text-align:center;padding:20px 0">
-      <div style="font-family:var(--font-vt);font-size:30px;color:var(--green);margin-bottom:10px">MISSION COMPLETE</div>
-      <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px">Reputation: ${state.rep}</div>
-      <button class="btn" onclick="showMissions()">[ MISSION BOARD ]</button>
-    </div>`;
-
-  print('');
-  print('◢◢◢  MISSION ' + missionId + ' COMPLETE  ◣◣◣', 'big');
-  print('Total reputation: ' + state.rep, 'success');
-  print('Type  missions  to see what\'s available next.', 'info');
-  print('');
-  document.getElementById('cmd-input').focus();
-}
-
-// ═══════════════════════════════════════════════
-//  TOOLS COMMAND
-// ═══════════════════════════════════════════════
-function showTools() {
-  print('');
-  print('[ TOOL INVENTORY ]', 'title');
-  print('');
-  Object.entries(TOOLS).forEach(([id, t]) => {
-    if (state.ownedTools.has(id)) {
-      print('  ◈  ' + t.name.padEnd(22) + t.desc, 'success');
-    } else {
-      print('  ✗  ' + t.name.padEnd(22) + '[locked]', 'dim');
-    }
-  });
-  print('');
-}
-
-// ═══════════════════════════════════════════════
-//  TUTORIAL ENGINE
-// ═══════════════════════════════════════════════
-
-const tutorialFS = {
-  '/': { type:'dir', children:['home','intel'] },
-  '/home': { type:'dir', children:['welcome.txt','emails'] },
-  '/home/welcome.txt': { type:'file', perms:'-rw-r--r--', content:'Welcome to the system.\nYour first lead is in the intel directory.\nCheck /intel for more information.' },
-  '/home/emails': { type:'dir', children:['.secret_msg.txt'] },
-  '/home/emails/.secret_msg.txt': { type:'file', perms:'-rw-------', hidden:true, content:'Hidden message found.\nEncoded payload: dHV0b3JpYWw=' },
-  '/intel': { type:'dir', children:['readme.txt','encoded.txt'] },
-  '/intel/readme.txt': { type:'file', perms:'-rw-r--r--', content:'Two files in this directory.\nOne is visible. One is encoded.\nDecode the encoded file to find the final answer.' },
-  '/intel/encoded.txt': { type:'file', perms:'-rw-r--r--', content:'Encoded payload:\ndHV0b3JpYWw=\nEncoding: Base64' },
-};
-
-// Tutorial steps: each has a prompt, the expected command(s), and a response
-const tutorialGhost = [
-  {
-    prompt: [
-      '[ GHOST OPERATIVE TUTORIAL ]',
-      '',
-      'You operate in the shadows. Your goal is to breach target systems,',
-      'extract data, and vanish without a trace.',
-      'Every mission gives you access to a target\'s filesystem.',
-      'You navigate it using terminal commands to find the answers.',
-      '',
-      'Let\'s start with the basics.',
-      '',
-      '━━━ STEP 1: LIST FILES ━━━',
-      'The  ls  command lists files and folders in your current location.',
-      '',
-      '▶  Type:  ls',
-    ],
-    accept: ['ls'],
-    response: ['Good. You can see the directories available at root.','Directories are shown in blue. Files in green.',''],
-  },
-  {
-    prompt: [
-      '━━━ STEP 2: NAVIGATE DIRECTORIES ━━━',
-      'Use  cd <folder>  to move into a directory.',
-      'Use  cd ..  to go back up one level.',
-      'Your current location always shows in the prompt.',
-      '',
-      '▶  Type:  cd intel',
-    ],
-    accept: ['cd intel'],
-    response: ['You\'re now inside /intel.','Notice the prompt updated to show your location.',''],
-  },
-  {
-    prompt: [
-      '━━━ STEP 3: READ FILES ━━━',
-      'Use  cat <filename>  to read the contents of a file.',
-      '',
-      '▶  Type:  cat readme.txt',
-    ],
-    accept: ['cat readme.txt', 'cat /intel/readme.txt'],
-    response: [''],
-  },
-  {
-    prompt: [
-      '━━━ STEP 4: HIDDEN FILES ━━━',
-      'Some files are hidden — they start with a dot (.).',
-      'Regular  ls  won\'t show them.',
-      'Use  ls -la  to reveal everything including hidden files.',
-      '',
-      '▶  Type:  ls -la  (try it in /home/emails — navigate there first)',
-      '▶  Or just type:  ls -la /home/emails',
-    ],
-    accept: ['ls -la', 'ls -la /home/emails', 'ls -al', 'ls -al /home/emails'],
-    response: ['Hidden files revealed. Anything starting with a dot is hidden by default.','In real missions, critical clues are often in hidden files.',''],
-  },
-  {
-    prompt: [
-      '━━━ STEP 5: SEARCH INSIDE FILES ━━━',
-      'Use  grep <pattern> <file>  to search for specific text inside a file.',
-      'It returns only the lines that match your search.',
-      '',
-      '▶  Type:  grep encoded /intel/readme.txt',
-    ],
-    accept: ['grep encoded /intel/readme.txt', 'grep encoded readme.txt'],
-    response: ['Grep found the matching line instantly.','In log analysis missions, grep is essential for finding attacker IPs and timestamps.',''],
-  },
-  {
-    prompt: [
-      '━━━ STEP 6: DECODING ━━━',
-      'Encoded data appears throughout missions.',
-      'Use  decode --base64 <string>  to decode Base64.',
-      'Use  decode --hex <string>  to decode hex.',
-      '',
-      'First, read the encoded file:',
-      '▶  Type:  cat /intel/encoded.txt',
-    ],
-    accept: ['cat /intel/encoded.txt', 'cat encoded.txt'],
-    response: ['You can see the encoded payload. Now decode it.',''],
-  },
-  {
-    prompt: [
-      '▶  Type:  decode --base64 dHV0b3JpYWw=',
-    ],
-    accept: ['decode --base64 dHV0b3JpYWw='],
-    response: ['The decoded result is the answer to a puzzle.','In real missions you find the encoded string in the filesystem, decode it, then submit the result.',''],
-  },
-  {
-    prompt: [
-      '━━━ STEP 7: SUBMITTING ANSWERS ━━━',
-      'When you have the answer to a puzzle, use:',
-      '  submit <answer>',
-      '',
-      'The answer to the tutorial puzzle is what you just decoded.',
-      '',
-      '▶  Type:  submit tutorial',
-    ],
-    accept: ['submit tutorial'],
-    response: [''],
-    isPractice: true,
-  },
-  {
-    prompt: [
-      '━━━ STEP 8: OTHER USEFUL COMMANDS ━━━',
-      '',
-      '  pwd              → print current directory',
-      '  ps aux           → list running processes',
-      '  ping <ip>        → ping an IP address',
-      '  whoami           → show current user',
-      '  clear            → clear the terminal',
-      '  tools            → list your unlocked tools',
-      '  missions         → view mission board',
-      '  help             → open the full Operator\'s Manual',
-      '',
-      '━━━ STEP 9: REPUTATION ━━━',
-      '',
-      'Every correct answer earns +15 reputation.',
-      'Wrong answers cost -5 reputation.',
-      'Higher missions require minimum reputation to unlock.',
-      'Completing missions earns +25 bonus reputation.',
-      '',
-      '━━━ TUTORIAL COMPLETE ━━━',
-      '',
-      'You\'re ready, operative.',
-      '',
-      '▶  Type:  missions  to see your first assignment.',
-    ],
-    accept: ['missions', 'start m01', 'start M01'],
-    isLast: true,
-    response: [''],
-  },
-];
-
-const tutorialSentinel = [
-  {
-    prompt: [
-      '[ SENTINEL OPERATIVE TUTORIAL ]',
-      '',
-      'You are a cybersecurity analyst. Your goal is to investigate breaches,',
-      'identify attackers, patch vulnerabilities, and protect critical systems.',
-      'Every mission loads a target filesystem for you to investigate.',
-      'You use terminal commands to uncover evidence and submit your findings.',
-      '',
-      '━━━ STEP 1: LIST FILES ━━━',
-      'The  ls  command lists files and folders in your current location.',
-      '',
-      '▶  Type:  ls',
-    ],
-    accept: ['ls'],
-    response: ['Good. You can see the directories available at root.','Directories are shown in blue. Files in green.',''],
-  },
-  {
-    prompt: [
-      '━━━ STEP 2: NAVIGATE DIRECTORIES ━━━',
-      'Use  cd <folder>  to move into a directory.',
-      'Use  cd ..  to go back up. Your location shows in the prompt.',
-      '',
-      '▶  Type:  cd intel',
-    ],
-    accept: ['cd intel'],
-    response: ['You\'re now inside /intel.','Notice the prompt shows your current path.',''],
-  },
-  {
-    prompt: [
-      '━━━ STEP 3: READ FILES ━━━',
-      'Use  cat <filename>  to read the contents of a file.',
-      '',
-      '▶  Type:  cat readme.txt',
-    ],
-    accept: ['cat readme.txt', 'cat /intel/readme.txt'],
-    response: [''],
-  },
-  {
-    prompt: [
-      '━━━ STEP 4: HIDDEN FILES ━━━',
-      'Attackers often hide evidence in dot files (files starting with .).',
-      'Use  ls -la  to reveal hidden files.',
-      '',
-      '▶  Type:  ls -la /home/emails',
-    ],
-    accept: ['ls -la', 'ls -la /home/emails', 'ls -al', 'ls -al /home/emails'],
-    response: ['Hidden file found. In real investigations, deleted or hidden files often contain key evidence.',''],
-  },
-  {
-    prompt: [
-      '━━━ STEP 5: SEARCH INSIDE FILES ━━━',
-      'Use  grep <pattern> <file>  to search for text inside a file.',
-      'Essential for scanning long log files for attacker activity.',
-      '',
-      '▶  Type:  grep encoded /intel/readme.txt',
-    ],
-    accept: ['grep encoded /intel/readme.txt', 'grep encoded readme.txt'],
-    response: ['Grep isolates matching lines instantly — critical for log analysis.',''],
-  },
-  {
-    prompt: [
-      '━━━ STEP 6: DECODING ━━━',
-      'Attackers encode stolen data to obscure it.',
-      'Use  decode --base64 <string>  to decode intercepted payloads.',
-      '',
-      '▶  Type:  cat /intel/encoded.txt',
-    ],
-    accept: ['cat /intel/encoded.txt', 'cat encoded.txt'],
-    response: ['You can see the encoded payload. Now decode it.',''],
-  },
-  {
-    prompt: [
-      '▶  Type:  decode --base64 dHV0b3JpYWw=',
-    ],
-    accept: ['decode --base64 dHV0b3JpYWw='],
-    response: ['Decoded. In real missions you\'ll find encoded payloads in intercepted files and need to identify what was transmitted.',''],
-  },
-  {
-    prompt: [
-      '━━━ STEP 7: SUBMITTING FINDINGS ━━━',
-      'When you\'ve identified the answer to a case, use:',
-      '  submit <answer>',
-      '',
-      '▶  Type:  submit tutorial',
-    ],
-    accept: ['submit tutorial'],
-    response: [''],
-    isPractice: true,
-  },
-  {
-    prompt: [
-      '━━━ STEP 8: OTHER USEFUL COMMANDS ━━━',
-      '',
-      '  pwd              → print current directory',
-      '  ps aux           → list running processes (find rogue ones)',
-      '  ping <ip>        → check if a host is online',
-      '  whoami           → show current user',
-      '  clear            → clear the terminal',
-      '  tools            → list your unlocked tools',
-      '  missions         → view mission board',
-      '  help             → open the full Operator\'s Manual',
-      '',
-      '━━━ STEP 9: REPUTATION ━━━',
-      '',
-      'Correct answers earn +15 reputation.',
-      'Wrong answers cost -5 reputation.',
-      'Reputation gates higher missions — earn it to unlock them.',
-      '',
-      '━━━ TUTORIAL COMPLETE ━━━',
-      '',
-      'You\'re ready, Operative. Your first case is open.',
-      '',
-      '▶  Type:  missions  to view the mission board.',
-    ],
-    accept: ['missions', 'start m01', 'start M01'],
-    isLast: true,
-    response: [''],
-  },
-];
-
-const tState = {
-  active: false,
-  step: 0,
-  steps: [],
-  waitingForCmd: false,
-};
-
-function startTutorial() {
-  tState.active = true;
-  tState.step = 0;
-  tState.steps = state.path === 'ghost' ? tutorialGhost : tutorialSentinel;
-
-  // load tutorial filesystem
-  state.fs = tutorialFS;
-  state.cwd = '/';
-  updatePrompt();
-
-  clearTerminal();
-  print('');
-  showTutorialStep(0);
-}
-
-function showTutorialStep(idx) {
-  if (idx >= tState.steps.length) { endTutorial(); return; }
-  const step = tState.steps[idx];
-  tState.step = idx;
-  tState.waitingForCmd = true;
-
-  print('');
-  step.prompt.forEach(line => {
-    if (line.startsWith('━━━')) print(line, 'warn');
-    else if (line.startsWith('▶')) print(line, 'system');
-    else if (line === '') print('', 'dim');
-    else print(line, 'info');
-  });
-  print('');
-
-  // update right panel
-  document.getElementById('puzzle-content').innerHTML = `
-    <div style="font-family:var(--font-vt);font-size:18px;color:var(--green-mid);margin-bottom:10px">TUTORIAL</div>
-    <div style="font-size:10px;color:var(--text-dim);letter-spacing:2px;margin-bottom:12px">STEP ${idx+1} / ${tState.steps.length}</div>
-    <div id="progress-bar"><div id="progress-fill" style="width:${((idx)/tState.steps.length)*100}%"></div></div>
-    <div style="font-size:12px;color:var(--green-dim);line-height:1.8;margin-bottom:14px">
-      ${step.prompt.filter(l=>!l.startsWith('▶')&&!l.startsWith('━━━')&&l!=='').slice(0,3).join('<br>')}
-    </div>
-    <div style="font-size:11px;color:var(--text-dim);border:1px solid var(--border);padding:8px 10px;line-height:1.8">
-      ${step.isLast ? 'Tutorial complete! Type <span style="color:var(--amber)">missions</span> to begin.' : 'Type the command shown in the terminal with the <span style="color:var(--blue)">▶</span> arrow.'}
-    </div>`;
-}
-
-function handleTutorialCmd(cmd) {
-  if (!tState.active) return false;
-
-  const step = tState.steps[tState.step];
-  const accepted = step.accept.some(a => cmd.toLowerCase() === a.toLowerCase());
-
-  // For step 6 (cat encoded.txt) and step 3 (cat readme.txt) — run the real command then advance
-  const isFileCmd = cmd.startsWith('ls') || cmd.startsWith('cd') || cmd.startsWith('cat') || cmd.startsWith('grep') || cmd.startsWith('decode') || cmd === 'pwd';
-
-  if (isFileCmd) {
-    // actually execute filesystem commands during tutorial
-    return false; // let processCmd handle it, then check acceptance
-  }
-
-  if (accepted) {
-    if (step.isPractice) {
-      print('');
-      print('◢ CORRECT — puzzle solved ◣', 'success');
-      print('That\'s how submit works in real missions.', 'info');
-      print('');
-    }
-    step.response.forEach(r => { if (r) print(r, 'info'); });
-    setTimeout(() => showTutorialStep(tState.step + 1), 400);
-    if (step.isLast) { tState.active = false; endTutorial(); }
-    return true;
-  }
-
-  return false;
-}
-
-function checkTutorialAdvance(cmd) {
-  if (!tState.active) return;
-  const step = tState.steps[tState.step];
-  const accepted = step.accept.some(a => cmd.toLowerCase() === a.toLowerCase());
-  if (accepted) {
-    step.response.forEach(r => { if (r) print(r, 'info'); });
-    setTimeout(() => showTutorialStep(tState.step + 1), 500);
-  }
-}
-
-function endTutorial() {
-  tState.active = false;
-  state.fs = {};
-  state.cwd = '/';
-  updatePrompt();
-  document.getElementById('puzzle-content').innerHTML = `
-    <div style="color:var(--text-dim);font-size:12px;margin-top:20px;text-align:center">
-      Tutorial complete.<br><br>
-      Type <span style="color:var(--green)">missions</span> to begin.
-    </div>`;
-}
-
-// ═══════════════════════════════════════════════
-//  HELP
-// ═══════════════════════════════════════════════
-function toggleHelp() {
-  const h = document.getElementById('help-overlay');
-  h.style.display = h.style.display === 'block' ? 'none' : 'block';
-  if (h.style.display === 'block') h.scrollTop = 0;
-}
-
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════
 //  COMMAND PROCESSOR
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════
 function processCmd(raw) {
   const cmd = raw.trim();
   if (!cmd) return;
-  state.history.unshift(cmd);
-  state.histIdx = -1;
-  print(document.getElementById('prompt-label').textContent + ' ' + cmd, 'dim');
+  G.history.unshift(cmd); G.histIdx = -1;
 
-  if (!state.path) { print('Choose Ghost or Sentinel first.', 'error'); return; }
+  dPrint(document.getElementById('d-prompt').textContent + ' ' + cmd, 'dim');
+  dHint('');
 
-  // Tutorial command
-  if (cmd === 'tutorial') { startTutorial(); return; }
-
-  // During tutorial — intercept submit and navigation then check for step advance
-  if (tState.active) {
-    const step = tState.steps[tState.step];
-    const accepted = step.accept.some(a => cmd.toLowerCase() === a.toLowerCase());
-    // run filesystem commands normally, then check if they match the expected command
-    const isNavCmd = cmd.startsWith('ls') || cmd.startsWith('cd') || cmd.startsWith('cat') || cmd.startsWith('grep') || cmd.startsWith('decode') || cmd === 'pwd';
-    if (cmd.startsWith('submit ')) {
-      const ans = cmd.slice(7).trim();
-      if (step.isPractice && ans.toLowerCase() === 'tutorial') {
-        print('');
-        print('◢ CORRECT — puzzle solved ◣', 'success');
-        print('That\'s how submit works in real missions.', 'info');
-        step.response.forEach(r => { if (r) print(r, 'info'); });
-        setTimeout(() => showTutorialStep(tState.step + 1), 500);
-      } else if (step.isPractice) {
-        print('✗ Not quite. The answer is what you decoded. Try: submit tutorial', 'error');
-      }
-      return;
-    }
-    if (cmd === 'missions' && step.isLast) { tState.active = false; endTutorial(); showMissions(); return; }
-    if ((cmd === 'start M01' || cmd === 'start m01') && step.isLast) { tState.active = false; endTutorial(); startMission('M01'); return; }
-    if (isNavCmd) {
-      // run the command, then check advancement
-    } else if (!accepted && !step.isLast) {
-      print('Follow the tutorial prompt. Expected: ' + step.accept[0], 'warn');
-      return;
-    }
-  }
-
-  if (cmd === 'ls')              { listDir(state.cwd, false); if (tState.active) checkTutorialAdvance(cmd); return; }
-  if (cmd === 'ls -la' || cmd === 'ls -al') { listDir(state.cwd, true); if (tState.active) checkTutorialAdvance(cmd); return; }
-  if (cmd.startsWith('ls -la ') || cmd.startsWith('ls -al ')) { listDir(cmd.split(' ')[2], true); if (tState.active) checkTutorialAdvance(cmd); return; }
-  if (cmd.startsWith('ls '))     { listDir(cmd.split(' ')[1], false); if (tState.active) checkTutorialAdvance(cmd); return; }
+  // ── Filesystem ──
+  if (cmd === 'ls') { listDir(G.cwd, false); return; }
+  if (cmd === 'ls -la' || cmd === 'ls -al') { listDir(G.cwd, true); return; }
+  if (cmd.startsWith('ls -la ') || cmd.startsWith('ls -al ')) { listDir(cmd.split(' ')[2], true); return; }
+  if (cmd.startsWith('ls ')) { listDir(cmd.split(' ')[1], false); return; }
 
   if (cmd.startsWith('cd ')) {
-    const target = cmd.slice(3).trim();
-    const resolved = resolvePath(target);
-    const node = state.fs[resolved];
-    if (!node) { print('cd: ' + target + ': No such directory', 'error'); return; }
-    if (node.type !== 'dir') { print('cd: ' + target + ': Not a directory', 'error'); return; }
-    state.cwd = resolved; updatePrompt(); if (tState.active) checkTutorialAdvance(cmd); return;
+    const t = cmd.slice(3).trim();
+    const r = resolvePath(t);
+    const n = G.fs[r];
+    if (!n) { dPrint('cd: ' + t + ': No such file or directory', 'error'); return; }
+    if (n.type !== 'dir') { dPrint('cd: ' + t + ': Not a directory', 'error'); return; }
+    G.cwd = r; updatePrompt(); return;
   }
 
-  if (cmd.startsWith('cat '))  { catFile(cmd.slice(4).trim()); if (tState.active) checkTutorialAdvance(cmd); return; }
+  if (cmd.startsWith('cat ')) { catFile(cmd.slice(4).trim()); return; }
 
   if (cmd.startsWith('grep ')) {
-    const parts = cmd.split(' ');
-    if (parts.length < 3) { print('Usage: grep <pattern> <file>', 'error'); return; }
-    grepFile(parts[1], parts.slice(2).join(' ')); if (tState.active) checkTutorialAdvance(cmd); return;
+    const p = cmd.split(' ');
+    if (p.length < 3) { dPrint('Usage: grep <pattern> <file>', 'error'); return; }
+    grepFile(p[1], p.slice(2).join(' ')); return;
   }
 
-  if (cmd.startsWith('decode --base64 ')) {
-    const enc = cmd.slice(16).trim();
-    try { print('Decoded: ' + atob(enc), 'success'); } catch { print('Invalid Base64.', 'error'); }
-    if (tState.active) checkTutorialAdvance(cmd); return;
-  }
-  if (cmd.startsWith('decode --hex ')) {
-    const hex = cmd.slice(13).trim().replace(/\s/g,'');
-    try { print('Decoded: ' + hex.match(/.{1,2}/g).map(b=>String.fromCharCode(parseInt(b,16))).join(''), 'success'); }
-    catch { print('Invalid hex.', 'error'); }
+  // ── System ──
+  if (cmd === 'pwd')    { dPrint(G.cwd, 'info'); return; }
+  if (cmd === 'clear')  { dClear(); return; }
+  if (cmd === 'whoami') { dPrint(G.firstName.toLowerCase() + '@delphi-soc  |  ' + G.fullName + '  |  ' + G.employeeId, 'info'); return; }
+  if (cmd === 'date')   { dPrint('October 1, 2032 — Delphi Time Zone: UTC', 'info'); return; }
+  if (cmd === 'ps aux') {
+    dPrint('PID    USER            CPU%  MEM%  COMMAND', 'info');
+    dPrint('1      root            0.0   0.1   systemd', 'info');
+    dPrint('412    delphi-core     0.2   1.4   oracle-agent v4.2', 'info');
+    dPrint('891    delphi-core     1.1   2.8   soc-monitor', 'info');
+    dPrint('1024   ' + G.firstName.toLowerCase().padEnd(15) + ' 0.0   0.2   bash', 'info');
     return;
   }
-  if (cmd.startsWith('decode --caesar ')) {
-    if (!state.ownedTools.has('decode_caesar')) { print('Tool not unlocked: decode --caesar', 'error'); return; }
-    const parts = cmd.split(' ');
-    const shift = parseInt(parts[2]) || 13;
-    const text  = parts.slice(3).join(' ');
-    const decoded = text.replace(/[a-zA-Z]/g, c => {
-      const base = c <= 'Z' ? 65 : 97;
-      return String.fromCharCode(((c.charCodeAt(0) - base - shift + 26) % 26) + base);
-    });
-    print('Decoded (shift ' + shift + '): ' + decoded, 'success'); return;
+  if (cmd === 'ping' || cmd.startsWith('ping ')) {
+    const target = cmd.split(' ')[1] || 'delphi-gateway';
+    dPrint('PING ' + target + '...', 'info');
+    setTimeout(() => dPrint('Reply from ' + target + ': bytes=32 time=4ms TTL=128', 'success'), 400); return;
   }
 
-  if (cmd.startsWith('submit ')) { submitAnswer(cmd.slice(7).trim()); return; }
+  // ── Navigation shortcuts ──
+  if (cmd === 'inbox') { switchTab('inbox'); dPrint('Opening inbox...', 'system'); return; }
+  if (cmd === 'oracle') { switchTab('oracle'); dPrint('Opening Oracle interface...', 'system'); return; }
 
-  if (cmd.startsWith('ping ')) {
-    const ip = cmd.split(' ')[1];
-    print('PING ' + ip + ' ...', 'info');
-    setTimeout(() => print('Reply from ' + ip + ': bytes=32 time=14ms TTL=64', 'success'), 400); return;
+  // ── Help ──
+  if (cmd === 'help') {
+    dBlank();
+    dPrint('DELPHI SOC TERMINAL — AVAILABLE COMMANDS', 'heading');
+    dPrint('──────────────────────────────────────────', 'dim');
+    dPrint('FILESYSTEM', 'subheading');
+    dPrint('  ls / ls -la [path]        List directory contents', 'info');
+    dPrint('  cd <directory>            Change directory (cd .. to go up)', 'info');
+    dPrint('  cat <file>                Read a file', 'info');
+    dPrint('  grep <pattern> <file>     Search inside a file', 'info');
+    dPrint('  pwd                       Print current directory', 'info');
+    dBlank();
+    dPrint('NAVIGATION', 'subheading');
+    dPrint('  inbox                     Open your inbox', 'info');
+    dPrint('  oracle                    Open Oracle interface', 'info');
+    dBlank();
+    dPrint('SYSTEM', 'subheading');
+    dPrint('  ps aux                    List running processes', 'info');
+    dPrint('  ping <host>               Test network connectivity', 'info');
+    dPrint('  whoami                    Show current user', 'info');
+    dPrint('  date                      Show current date', 'info');
+    dPrint('  clear                     Clear terminal output', 'info');
+    dBlank();
+    dPrint('CASES', 'subheading');
+    dPrint('  ready                     Signal ready to begin first assignment', 'info');
+    dBlank();
+    return;
   }
 
-  if (cmd === 'ps aux') {
-    const mid = state.currentMission?.id;
-    const snap = (mid && psSnapshots[mid]) ? psSnapshots[mid][state.path] : defaultPs;
-    snap.forEach(l => print(l, 'info')); return;
+  // ── Onboarding trigger ──
+  if (cmd === 'ready') {
+    dBlank();
+    dPrint('Onboarding acknowledged.', 'success');
+    dPrint('Assigning first training case...', 'system');
+    dBlank();
+    setTimeout(() => {
+      document.getElementById('d-panel-body').innerHTML =
+        '<div class="d-card">' +
+        '<div class="d-card-title">Onboarding Complete</div>' +
+        '<div class="d-card-sub">CHAPTER 1 — COMPLETE</div>' +
+        '<div class="d-success-card"><div class="d-success-card-text">✓ Day 1 complete. Training cases assigned for Chapter 2.</div></div>' +
+        '<div class="d-card-body" style="margin-top:10px;">Chapter 2 will begin with your first real training investigation. Check back soon.</div>' +
+        '</div>';
+      dPrint('Chapter 1 complete. Day 1 is done, ' + G.firstName + '.', 'success');
+      dPrint('Training investigations begin next shift.', 'info');
+      dBlank();
+      dPrint('Logging off. See you tomorrow.', 'dim');
+    }, 1500);
+    return;
   }
 
-  if (cmd === 'tools')   { showTools(); return; }
-  if (cmd === 'missions'){ showMissions(); return; }
-  if (cmd === 'help' || cmd === 'man') { toggleHelp(); return; }
-  if (cmd.startsWith('man ') || cmd.startsWith('help ')) { toggleHelp(); return; }
-  if (cmd.startsWith('start ')) { startMission(cmd.split(' ')[1]); return; }
-  if (cmd === 'clear')   { clearTerminal(); return; }
-  if (cmd === 'pwd')     { print(state.cwd, 'info'); return; }
-  if (cmd === 'whoami')  { print(state.path === 'ghost' ? 'ghost [uid=0 root]' : 'sentinel [uid=1000]', 'info'); return; }
-  if (cmd === 'uptime')  { print('up 47 days, 3:22,  load average: 0.12, 0.08, 0.05', 'info'); return; }
-  if (cmd === 'uname -a'){ print('Linux netbreaker-target 5.15.0-78-generic #85 SMP x86_64', 'info'); return; }
-  if (cmd === 'ifconfig'){ print('eth0: inet 192.168.1.5  netmask 255.255.255.0', 'info'); return; }
-
-  print('Command not found: ' + cmd + '  — type  help  for the manual.', 'error');
+  // ── Unknown ──
+  dPrint(cmd + ': command not found  —  type  help  for available commands', 'error');
 }
 
-// ═══════════════════════════════════════════════
-//  INPUT
-// ═══════════════════════════════════════════════
-const input = document.getElementById('cmd-input');
-input.addEventListener('keydown', e => {
-  if (e.key === 'Enter') { const v = input.value; processCmd(v); input.value = ''; }
-  if (e.key === 'ArrowUp') { state.histIdx = Math.min(state.histIdx+1,state.history.length-1); input.value = state.history[state.histIdx]||''; e.preventDefault(); }
-  if (e.key === 'ArrowDown') { state.histIdx = Math.max(state.histIdx-1,-1); input.value = state.histIdx===-1?'':state.history[state.histIdx]; e.preventDefault(); }
+// ═══════════════════════════════════════════
+//  INPUT HANDLER
+// ═══════════════════════════════════════════
+const dInput = document.getElementById('d-input');
+dInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') { const v = dInput.value; dInput.value = ''; processCmd(v); }
+  if (e.key === 'ArrowUp') { G.histIdx = Math.min(G.histIdx+1, G.history.length-1); dInput.value = G.history[G.histIdx]||''; e.preventDefault(); }
+  if (e.key === 'ArrowDown') { G.histIdx = Math.max(G.histIdx-1,-1); dInput.value = G.histIdx===-1?'':G.history[G.histIdx]; e.preventDefault(); }
 });
+
 document.addEventListener('click', e => {
-  if (!e.target.closest('#help-overlay') && !e.target.closest('#intro-overlay') && !e.target.closest('#puzzle-panel') && !e.target.closest('#story-overlay') && !e.target.closest('#boot-overlay')) {
-    input.focus();
+  if (document.getElementById('terminal-pane').style.display !== 'none' &&
+      !e.target.closest('.d-right-panel') && !e.target.closest('.d-sidebar') &&
+      !e.target.closest('.d-nav') && !e.target.closest('.d-topbar')) {
+    dInput.focus();
   }
 });
 
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════
+//  UTILITIES
+// ═══════════════════════════════════════════
+function show(id) { const el = document.getElementById(id); el.classList.remove('hidden'); el.style.display = el.tagName === 'DIV' ? 'flex' : ''; }
+function hide(id) { const el = document.getElementById(id); el.classList.add('hidden'); el.style.display = 'none'; }
+
+// ═══════════════════════════════════════════
 //  INIT
-// ═══════════════════════════════════════════════
-updateToolList();
+// ═══════════════════════════════════════════
+document.getElementById('boot-screen').classList.remove('hidden');
+document.getElementById('boot-screen').style.display = 'flex';
 runBoot();
 </script>
 </body>
