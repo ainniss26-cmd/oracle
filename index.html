@@ -3,1674 +3,1146 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NETBREAKER — Terminal Hacking Game</title>
+<title>ORACLE</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@300;400;500&family=VT323&display=swap" rel="stylesheet">
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --green: #00ff41; --green-dim: #00aa2a; --green-dark: #003310; --green-mid: #00cc33;
-    --red: #ff3333; --amber: #ffaa00; --blue: #00aaff;
-    --bg: #0a0f0a; --bg2: #0d140d; --border: #003a00;
-    --text-dim: #007a1a;
-    --font-mono: 'Share Tech Mono', monospace; --font-vt: 'VT323', monospace;
-  }
-  html, body { height: 100%; overflow: hidden; }
-  body { background: var(--bg); color: var(--green); font-family: var(--font-mono); font-size: 13px; line-height: 1.5; display: flex; flex-direction: column; }
-  #scanline { position:fixed;top:0;left:0;right:0;bottom:0; background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px); pointer-events:none; z-index:9999; }
-
-  /* HEADER */
-  .header { border-bottom:1px solid var(--border); padding:6px 12px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0; background:var(--bg2); }
-  .header-title { font-family:var(--font-vt); font-size:22px; color:var(--green); letter-spacing:4px; }
-  .header-info { display:flex; gap:16px; font-size:11px; color:var(--text-dim); align-items:center; }
-  .header-info span { color:var(--green); }
-
-  /* LAYOUT */
-  #main { display:flex; flex:1; overflow:hidden; }
-
-  /* SIDEBAR */
-  #sidebar { width:210px; border-right:1px solid var(--border); padding:10px; overflow-y:auto; flex-shrink:0; background:var(--bg2); }
-  .sidebar-section { margin-bottom:16px; }
-  .sidebar-label { font-size:10px; color:var(--text-dim); letter-spacing:2px; text-transform:uppercase; margin-bottom:6px; border-bottom:1px solid var(--border); padding-bottom:4px; }
-  .mission-item { padding:4px 6px; border-radius:2px; font-size:11px; color:var(--text-dim); transition:all 0.15s; display:flex; justify-content:space-between; align-items:center; }
-  .mission-item.available { color:var(--green-dim); cursor:pointer; }
-  .mission-item.available:hover { color:var(--green); background:var(--green-dark); }
-  .mission-item.active { color:var(--green); background:var(--green-dark); }
-  .mission-item.locked { color:#002200; cursor:not-allowed; }
-  .mission-item.completed { color:var(--green-dim); }
-  .mission-item .m-check { color:var(--green-dim); }
-  .mission-item .m-lock  { color:#002200; font-size:10px; }
-  .mission-item .m-rep   { color:var(--amber); font-size:10px; }
-  .stat-row { display:flex; justify-content:space-between; font-size:11px; margin-bottom:4px; color:var(--text-dim); }
-  .stat-row span { color:var(--green); }
-  .rep-bar { height:4px; background:#001500; border:1px solid var(--border); margin-top:4px; margin-bottom:8px; }
-  .rep-fill { height:100%; background:var(--green); transition:width 0.5s; }
-  .tool-item { font-size:11px; padding:2px 0; display:flex; align-items:center; gap:6px; }
-  .tool-item.owned  { color:var(--green-dim); }
-  .tool-item.locked { color:#002200; }
-  .tool-item .tool-dot { width:6px; height:6px; border-radius:50%; background:var(--green-dim); flex-shrink:0; }
-  .tool-item.locked .tool-dot { background:#002200; }
-  .act-label { font-size:10px; color:var(--amber); letter-spacing:1px; margin-top:8px; margin-bottom:4px; }
-
-  /* TERMINAL */
-  #terminal { flex:1; display:flex; flex-direction:column; overflow:hidden; }
-  #output { flex:1; overflow-y:auto; padding:12px; scroll-behavior:smooth; }
-  .line { margin-bottom:2px; white-space:pre-wrap; word-break:break-all; }
-  .line.prompt  { color:var(--green); }
-  .line.info    { color:var(--green-dim); }
-  .line.success { color:var(--green); font-weight:bold; }
-  .line.error   { color:var(--red); }
-  .line.warn    { color:var(--amber); }
-  .line.system  { color:var(--blue); }
-  .line.dim     { color:var(--text-dim); }
-  .line.big     { font-family:var(--font-vt); font-size:20px; color:var(--green); }
-  .line.title   { font-family:var(--font-vt); font-size:16px; color:var(--green-mid); letter-spacing:2px; }
-  .line.news    { color:var(--amber); font-style:italic; }
-  #input-row { border-top:1px solid var(--border); padding:8px 12px; display:flex; align-items:center; gap:8px; background:var(--bg2); flex-shrink:0; }
-  #prompt-label { color:var(--text-dim); white-space:nowrap; font-size:13px; }
-  #cmd-input { flex:1; background:transparent; border:none; outline:none; color:var(--green); font-family:var(--font-mono); font-size:13px; caret-color:var(--green); }
-
-  /* PUZZLE PANEL */
-  #puzzle-panel { width:300px; border-left:1px solid var(--border); display:flex; flex-direction:column; overflow:hidden; background:var(--bg2); }
-  .panel-header { padding:8px 12px; border-bottom:1px solid var(--border); font-size:11px; color:var(--text-dim); letter-spacing:2px; text-transform:uppercase; }
-  #puzzle-content { flex:1; overflow-y:auto; padding:14px; }
-  .puzzle-title { font-family:var(--font-vt); font-size:20px; color:var(--green-mid); margin-bottom:6px; }
-  .puzzle-obj-label { font-size:10px; color:var(--text-dim); letter-spacing:2px; text-transform:uppercase; margin-bottom:6px; }
-  .puzzle-desc { font-size:12px; color:var(--green-dim); margin-bottom:14px; line-height:1.7; }
-  .puzzle-submit-hint { font-size:11px; color:var(--text-dim); border:1px solid var(--border); padding:8px 10px; line-height:1.8; }
-  .puzzle-submit-hint span { color:var(--amber); }
-  #progress-bar { height:3px; background:var(--green-dark); margin-bottom:10px; }
-  #progress-fill { height:100%; background:var(--green); transition:width 0.5s; }
-  .success-banner { color:var(--green); text-align:center; padding:12px; border:1px solid var(--green-dim); margin-top:10px; font-family:var(--font-vt); font-size:20px; }
-  .fail-banner { color:var(--red); text-align:center; padding:10px; border:1px solid var(--red); margin-top:10px; font-family:var(--font-vt); font-size:18px; }
-  .timed-header { background:#1a0000; border:1px solid var(--red); padding:8px; margin-bottom:10px; font-family:var(--font-vt); font-size:22px; color:var(--red); text-align:center; }
-
-  /* STORY SCREEN */
-  #story-overlay { display:none; position:fixed;top:0;left:0;right:0;bottom:0; background:rgba(0,0,0,0.95); z-index:800; overflow-y:auto; padding:40px; align-items:center; justify-content:center; }
-  #story-overlay.active { display:flex; }
-  .story-inner { max-width:620px; width:100%; }
-  .story-label { font-size:10px; color:var(--text-dim); letter-spacing:3px; text-transform:uppercase; margin-bottom:16px; }
-  .story-briefing { border-left:2px solid var(--green-dim); padding:12px 16px; margin-bottom:24px; font-size:12px; color:var(--green-dim); line-height:1.8; }
-  .story-news { border:1px solid var(--amber); padding:14px; margin-bottom:24px; }
-  .story-news-label { font-size:10px; color:var(--amber); letter-spacing:2px; margin-bottom:8px; }
-  .story-news-headline { font-family:var(--font-vt); font-size:18px; color:var(--amber); margin-bottom:8px; }
-  .story-news-body { font-size:11px; color:var(--text-dim); line-height:1.8; }
-  .story-tool-unlock { border:1px solid var(--green); padding:12px; margin-bottom:24px; background:var(--green-dark); }
-  .story-tool-label { font-size:10px; color:var(--green); letter-spacing:2px; margin-bottom:6px; }
-  .story-tool-name { font-family:var(--font-vt); font-size:20px; color:var(--green); margin-bottom:4px; }
-  .story-tool-desc { font-size:11px; color:var(--green-dim); }
-  .story-continue { background:transparent; border:1px solid var(--green-dim); color:var(--green); font-family:var(--font-mono); font-size:12px; padding:10px 24px; cursor:pointer; letter-spacing:2px; text-transform:uppercase; transition:all 0.2s; display:block; margin:0 auto; }
-  .story-continue:hover { background:var(--green-dark); border-color:var(--green); }
-
-  /* BOOT SCREEN */
-  #boot-overlay { position:fixed;top:0;left:0;right:0;bottom:0; background:var(--bg); z-index:900; display:flex; flex-direction:column; justify-content:center; padding:40px; }
-  #boot-output { font-size:13px; color:var(--green-dim); line-height:2; max-width:600px; }
-
-  /* INTRO */
-  #intro-overlay { position:fixed;top:0;left:0;right:0;bottom:0; background:var(--bg); z-index:500; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px; }
-  .intro-ascii { font-family:var(--font-vt); font-size:40px; color:var(--green); text-align:center; letter-spacing:6px; margin-bottom:8px; }
-  .intro-sub { font-size:11px; color:var(--text-dim); letter-spacing:4px; text-align:center; margin-bottom:40px; }
-  .path-cards { display:flex; gap:24px; margin-bottom:30px; }
-  .path-card { border:1px solid var(--border); padding:20px; width:240px; cursor:pointer; transition:all 0.2s; background:var(--bg2); }
-  .path-card:hover { border-color:var(--green-dim); background:var(--green-dark); }
-  .path-icon { font-family:var(--font-vt); font-size:36px; margin-bottom:8px; }
-  .path-name { font-family:var(--font-vt); font-size:22px; color:var(--green); margin-bottom:6px; letter-spacing:2px; }
-  .path-desc { font-size:11px; color:var(--text-dim); line-height:1.6; }
-  .path-card.ghost .path-icon { color:var(--red); }
-  .path-card.sentinel .path-icon { color:var(--blue); }
-
-  /* HELP */
-  #help-overlay { display:none; position:fixed;top:0;left:0;right:0;bottom:0; background:rgba(0,0,0,0.92); z-index:1000; overflow-y:auto; padding:24px; }
-  .help-inner { max-width:700px; margin:0 auto; border:1px solid var(--border); padding:20px; background:var(--bg2); }
-  .help-title { font-family:var(--font-vt); font-size:28px; color:var(--green); margin-bottom:4px; }
-  .help-sub { color:var(--text-dim); font-size:11px; letter-spacing:2px; margin-bottom:20px; }
-  .help-section { margin-bottom:20px; }
-  .help-section-title { color:var(--green-mid); font-size:13px; letter-spacing:2px; border-bottom:1px solid var(--border); padding-bottom:4px; margin-bottom:10px; text-transform:uppercase; }
-  .help-entry { margin-bottom:12px; }
-  .help-entry-name { color:var(--green); font-size:13px; margin-bottom:2px; }
-  .help-entry-desc { color:var(--text-dim); font-size:12px; line-height:1.6; }
-  .cmd-ref { color:var(--amber); font-size:12px; margin-bottom:2px; }
-  .tag { display:inline-block; font-size:10px; padding:2px 6px; border:1px solid; margin-right:4px; margin-bottom:4px; border-radius:2px; }
-  .tag.ghost { border-color:var(--red); color:var(--red); }
-  .tag.sentinel { border-color:var(--blue); color:var(--blue); }
-  .tag.both { border-color:var(--text-dim); color:var(--text-dim); }
-  .btn { background:transparent; border:1px solid var(--text-dim); color:var(--green); font-family:var(--font-mono); font-size:12px; padding:6px 12px; cursor:pointer; transition:all 0.15s; text-transform:uppercase; letter-spacing:1px; }
-  .btn:hover { background:var(--green-dark); border-color:var(--green); }
-
-  ::-webkit-scrollbar { width:6px; }
-  ::-webkit-scrollbar-track { background:var(--bg); }
-  ::-webkit-scrollbar-thumb { background:var(--border); }
+* { box-sizing:border-box; margin:0; padding:0; }
+:root {
+  --d-bg:#f4f6f9; --d-bg2:#ffffff; --d-bg3:#eef1f6; --d-border:#d0d7e3;
+  --d-text:#1a2332; --d-text-dim:#6b7a90; --d-accent:#1a5fb4; --d-accent2:#2471d4;
+  --d-success:#1a7a3c; --d-warn:#b45309; --d-error:#c0392b; --d-oracle:#7c3aed;
+  --d-font:'Inter',sans-serif; --d-mono:'Share Tech Mono',monospace;
+  --g-bg:#0a0f0a; --g-bg2:#0d140d; --g-border:#003a00;
+  --g-text:#00ff41; --g-dim:#007a1a; --g-mid:#00cc33;
+  --g-red:#ff3333; --g-amber:#ffaa00; --g-blue:#00aaff;
+  --g-font:'Share Tech Mono',monospace; --g-vt:'VT323',monospace;
+}
+html,body{height:100%;overflow:hidden;}
+body{background:#000;color:#fff;font-family:'Share Tech Mono',monospace;font-size:13px;line-height:1.5;display:flex;flex-direction:column;}
+#scanline{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.04) 2px,rgba(0,0,0,0.04) 4px);pointer-events:none;z-index:9999;}
+body.ghost-mode #scanline{display:block;}
+.fs-overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+#boot-screen{background:#000;padding:40px;align-items:flex-start;}
+#boot-output{font-family:'Share Tech Mono',monospace;font-size:13px;color:#555;line-height:2;max-width:620px;width:100%;}
+#chapter-card{background:#000;}
+.chapter-inner{text-align:center;}
+.chapter-act{font-family:'Share Tech Mono',monospace;font-size:11px;color:#333;letter-spacing:6px;text-transform:uppercase;margin-bottom:16px;}
+.chapter-title{font-family:'Share Tech Mono',monospace;font-size:28px;color:#fff;letter-spacing:8px;text-transform:uppercase;margin-bottom:8px;}
+.chapter-subtitle{font-family:'Share Tech Mono',monospace;font-size:13px;color:#444;letter-spacing:4px;}
+#delphi-login{background:var(--d-bg);}
+.login-card{background:var(--d-bg2);border:1px solid var(--d-border);padding:40px;width:380px;box-shadow:0 4px 24px rgba(0,0,0,0.08);}
+.login-logo{display:flex;align-items:center;gap:10px;margin-bottom:28px;justify-content:center;}
+.login-logo-icon{width:32px;height:32px;background:var(--d-accent);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:bold;font-family:'Inter',sans-serif;}
+.login-logo-text{font-family:'Inter',sans-serif;font-size:20px;font-weight:500;color:var(--d-text);letter-spacing:2px;}
+.login-label{font-family:'Inter',sans-serif;font-size:11px;color:var(--d-text-dim);margin-bottom:4px;text-transform:uppercase;letter-spacing:1px;}
+.login-field{width:100%;background:var(--d-bg3);border:1px solid var(--d-border);padding:10px 12px;font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--d-text);margin-bottom:16px;outline:none;}
+.login-field:focus{border-color:var(--d-accent);}
+.login-btn{width:100%;background:var(--d-accent);border:none;color:#fff;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;padding:11px;cursor:pointer;letter-spacing:1px;transition:background 0.2s;}
+.login-btn:hover{background:var(--d-accent2);}
+.login-date{font-family:'Inter',sans-serif;font-size:11px;color:var(--d-text-dim);text-align:center;margin-top:20px;}
+.login-error{color:var(--d-error);font-family:'Inter',sans-serif;font-size:12px;margin-top:8px;display:none;}
+.login-error.visible{display:block;}
+#lockout-screen{background:var(--d-bg);}
+.lockout-card{background:var(--d-bg2);border:2px solid var(--d-error);padding:32px;width:440px;}
+.lockout-title{font-family:'Inter',sans-serif;font-size:14px;font-weight:500;color:var(--d-error);margin-bottom:16px;letter-spacing:1px;text-transform:uppercase;}
+.lockout-body{font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--d-text-dim);line-height:2;}
+.lockout-ref{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--d-text-dim);margin-top:16px;padding-top:12px;border-top:1px solid var(--d-border);}
+#ghost-login{background:var(--g-bg);}
+.ghost-login-inner{width:380px;border:1px solid #003a00;padding:30px;background:#0d140d;}
+.ghost-login-title{font-family:'VT323',monospace;font-size:24px;color:#00ff41;letter-spacing:4px;margin-bottom:20px;text-align:center;}
+.ghost-login-label{font-size:10px;color:#007a1a;letter-spacing:2px;margin-bottom:4px;}
+.ghost-login-field{width:100%;background:#040f04;border:1px solid #003a00;padding:8px 10px;font-family:'Share Tech Mono',monospace;font-size:13px;color:#00ff41;margin-bottom:14px;outline:none;caret-color:#00ff41;}
+.ghost-login-field:focus{border-color:#00aa2a;}
+.ghost-login-btn{width:100%;background:transparent;border:1px solid #00aa2a;color:#00ff41;font-family:'Share Tech Mono',monospace;font-size:12px;padding:9px;cursor:pointer;letter-spacing:2px;text-transform:uppercase;transition:all 0.2s;}
+.ghost-login-btn:hover{background:#003310;}
+.ghost-login-date{font-size:10px;color:#003a00;text-align:center;margin-top:14px;}
+#name-entry{background:#000;}
+.name-inner{max-width:500px;width:100%;padding:20px;}
+#delphi-terminal{display:none;flex-direction:column;height:100%;background:var(--d-bg);}
+body.delphi-mode #delphi-terminal{display:flex;}
+.d-header{background:var(--d-bg2);border-bottom:1px solid var(--d-border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:48px;flex-shrink:0;}
+.d-header-left{display:flex;align-items:center;gap:12px;}
+.d-logo{display:flex;align-items:center;gap:8px;}
+.d-logo-icon{width:24px;height:24px;background:var(--d-accent);border-radius:4px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:bold;font-family:'Inter',sans-serif;}
+.d-logo-text{font-family:'Inter',sans-serif;font-size:14px;font-weight:500;color:var(--d-text);letter-spacing:2px;}
+.d-divider{width:1px;height:20px;background:var(--d-border);}
+.d-header-section{font-family:'Inter',sans-serif;font-size:12px;color:var(--d-text-dim);}
+.d-header-right{display:flex;align-items:center;gap:20px;font-family:'Inter',sans-serif;font-size:12px;color:var(--d-text-dim);}
+.d-header-right span{color:var(--d-text);}
+.d-main{display:flex;flex:1;overflow:hidden;}
+.d-sidebar{width:220px;border-right:1px solid var(--d-border);background:var(--d-bg2);padding:16px 12px;overflow-y:auto;flex-shrink:0;}
+.d-sidebar-section{margin-bottom:20px;}
+.d-sidebar-label{font-family:'Inter',sans-serif;font-size:10px;font-weight:500;color:var(--d-text-dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--d-border);}
+.d-case-item{padding:8px 10px;border-radius:4px;margin-bottom:4px;font-family:'Inter',sans-serif;font-size:12px;cursor:default;border-left:3px solid transparent;}
+.d-case-item.active{background:#eef4ff;border-left-color:var(--d-accent);color:var(--d-accent);}
+.d-case-item.closed{color:var(--d-text-dim);border-left-color:#d0d7e3;}
+.d-case-item.closed::after{content:' — closed';font-size:10px;}
+.d-stat-row{display:flex;justify-content:space-between;font-family:'Inter',sans-serif;font-size:11px;color:var(--d-text-dim);margin-bottom:6px;}
+.d-stat-row span{color:var(--d-text);font-weight:500;}
+.d-oracle-panel{padding:10px;background:#f8f5ff;border:1px solid #d8c4ff;border-radius:4px;margin-top:8px;}
+.d-oracle-label{font-family:'Inter',sans-serif;font-size:10px;font-weight:500;color:var(--d-oracle);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
+.d-oracle-status{font-family:'Share Tech Mono',monospace;font-size:11px;color:#5b21b6;line-height:1.8;}
+.d-oracle-bar{height:3px;background:#e8daff;margin-top:6px;border-radius:2px;}
+.d-oracle-fill{height:100%;background:var(--d-oracle);border-radius:2px;transition:width 1.5s;}
+.d-terminal-area{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.d-output{flex:1;overflow-y:auto;padding:16px 20px;background:var(--d-bg);}
+.d-line{margin-bottom:3px;white-space:pre-wrap;word-break:break-all;font-family:'Share Tech Mono',monospace;font-size:13px;}
+.d-line.cmd{color:var(--d-text);}
+.d-line.info{color:var(--d-text-dim);}
+.d-line.success{color:var(--d-success);}
+.d-line.error{color:var(--d-error);}
+.d-line.warn{color:var(--d-warn);}
+.d-line.system{color:var(--d-accent);}
+.d-line.oracle{color:var(--d-oracle);}
+.d-line.dim{color:#c0c8d4;}
+.d-line.blank{margin-bottom:8px;}
+.d-line.h1{font-family:'Inter',sans-serif;font-size:15px;font-weight:500;color:var(--d-text);margin:8px 0 4px;}
+.d-input-row{border-top:1px solid var(--d-border);padding:10px 20px;display:flex;align-items:center;gap:10px;background:var(--d-bg2);flex-shrink:0;}
+.d-prompt{font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--d-accent);white-space:nowrap;}
+.d-input{flex:1;background:transparent;border:none;outline:none;font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--d-text);caret-color:var(--d-accent);}
+.d-panel{width:280px;border-left:1px solid var(--d-border);background:var(--d-bg2);display:flex;flex-direction:column;overflow:hidden;}
+.d-panel-header{padding:12px 14px;border-bottom:1px solid var(--d-border);font-family:'Inter',sans-serif;font-size:11px;font-weight:500;color:var(--d-text-dim);text-transform:uppercase;letter-spacing:1px;}
+.d-panel-content{flex:1;overflow-y:auto;padding:14px;}
+.d-obj-title{font-family:'Inter',sans-serif;font-size:14px;font-weight:500;color:var(--d-text);margin-bottom:6px;}
+.d-obj-id{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--d-text-dim);margin-bottom:12px;}
+.d-obj-body{font-family:'Inter',sans-serif;font-size:12px;color:var(--d-text-dim);line-height:1.7;margin-bottom:14px;}
+.d-obj-hint{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--d-text-dim);border:1px solid var(--d-border);padding:8px 10px;line-height:1.8;background:var(--d-bg3);}
+.d-obj-hint span{color:var(--d-accent);}
+.d-success-banner{background:#f0faf4;border:1px solid #a3d9b5;color:var(--d-success);text-align:center;padding:12px;margin-top:10px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;}
+.d-fail-banner{background:#fdf2f2;border:1px solid #f5c6c6;color:var(--d-error);text-align:center;padding:10px;margin-top:10px;font-family:'Inter',sans-serif;font-size:12px;}
+.d-progress{height:3px;background:var(--d-bg3);margin-bottom:12px;}
+.d-progress-fill{height:100%;background:var(--d-accent);transition:width 0.5s;}
+.d-oracle-attr{background:#f8f5ff;border:1px solid #d8c4ff;padding:12px;margin-bottom:12px;}
+.d-oracle-attr-title{font-family:'Inter',sans-serif;font-size:11px;font-weight:500;color:var(--d-oracle);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.d-attr-row{display:flex;justify-content:space-between;align-items:center;font-family:'Share Tech Mono',monospace;font-size:11px;padding:4px 0;border-bottom:1px solid #ede8ff;}
+.d-attr-row:last-child{border-bottom:none;}
+.d-attr-name{color:var(--d-text-dim);}
+.d-attr-score{color:var(--d-oracle);font-weight:bold;}
+.d-attr-score.high{color:var(--d-error);}
+.d-attr-bar-wrap{width:60px;height:4px;background:#e8daff;border-radius:2px;margin-left:8px;}
+.d-attr-bar{height:100%;background:var(--d-oracle);border-radius:2px;transition:width 1.5s;}
+.d-attr-bar.high{background:var(--d-error);}
+#ghost-terminal{display:none;flex-direction:column;height:100%;background:var(--g-bg);}
+body.ghost-mode #ghost-terminal{display:flex;}
+.g-header{border-bottom:1px solid var(--g-border);padding:6px 12px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;background:var(--g-bg2);}
+.g-header-title{font-family:var(--g-vt);font-size:20px;color:var(--g-text);letter-spacing:4px;}
+.g-header-info{display:flex;gap:16px;font-size:11px;color:var(--g-dim);align-items:center;}
+.g-header-info span{color:var(--g-text);}
+.g-main{display:flex;flex:1;overflow:hidden;}
+.g-sidebar{width:210px;border-right:1px solid var(--g-border);padding:10px;overflow-y:auto;flex-shrink:0;background:var(--g-bg2);}
+.g-sidebar-section{margin-bottom:16px;}
+.g-sidebar-label{font-size:10px;color:var(--g-dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;border-bottom:1px solid var(--g-border);padding-bottom:4px;}
+.g-stat-row{display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;color:var(--g-dim);}
+.g-stat-row span{color:var(--g-text);}
+.g-rep-bar{height:4px;background:#001500;border:1px solid var(--g-border);margin-top:4px;margin-bottom:8px;}
+.g-rep-fill{height:100%;background:var(--g-text);transition:width 0.5s;}
+.g-note-item{font-size:11px;color:var(--g-dim);padding:3px 0;line-height:1.6;border-bottom:1px solid #001a00;padding-bottom:6px;margin-bottom:6px;}
+.g-terminal-area{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.g-output{flex:1;overflow-y:auto;padding:12px;}
+.g-line{margin-bottom:2px;white-space:pre-wrap;word-break:break-all;}
+.g-line.prompt{color:var(--g-text);}
+.g-line.info{color:var(--g-dim);}
+.g-line.success{color:var(--g-text);font-weight:bold;}
+.g-line.error{color:var(--g-red);}
+.g-line.warn{color:var(--g-amber);}
+.g-line.system{color:var(--g-blue);}
+.g-line.dim{color:#003a00;}
+.g-line.big{font-family:var(--g-vt);font-size:20px;color:var(--g-text);}
+.g-input-row{border-top:1px solid var(--g-border);padding:8px 12px;display:flex;align-items:center;gap:8px;background:var(--g-bg2);flex-shrink:0;}
+.g-prompt-label{color:var(--g-dim);white-space:nowrap;font-size:13px;}
+.g-cmd-input{flex:1;background:transparent;border:none;outline:none;color:var(--g-text);font-family:var(--g-font);font-size:13px;caret-color:var(--g-text);}
+.g-panel{width:280px;border-left:1px solid var(--g-border);display:flex;flex-direction:column;overflow:hidden;background:var(--g-bg2);}
+.g-panel-header{padding:8px 12px;border-bottom:1px solid var(--g-border);font-size:11px;color:var(--g-dim);letter-spacing:2px;text-transform:uppercase;}
+.g-panel-content{flex:1;overflow-y:auto;padding:14px;}
+::-webkit-scrollbar{width:6px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:#ccc;border-radius:3px;}
+body.ghost-mode ::-webkit-scrollbar-thumb{background:#003a00;}
+.hidden{display:none!important;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.fade-in{animation:fadeIn 0.6s ease;}
 </style>
 </head>
 <body>
 <div id="scanline"></div>
 
-<!-- BOOT SCREEN -->
-<div id="boot-overlay">
+<!-- BOOT -->
+<div id="boot-screen" class="fs-overlay hidden">
   <div id="boot-output"></div>
 </div>
 
-<!-- INTRO / PATH SELECT -->
-<div id="intro-overlay" style="display:none">
-  <div class="intro-ascii">◢ NETBREAKER ◣</div>
-  <div class="intro-sub">TERMINAL HACKING SIMULATION v0.2.0</div>
-  <div class="intro-sub" style="margin-top:-32px;margin-bottom:40px">CHOOSE YOUR ALLEGIANCE</div>
-  <div class="path-cards">
-    <div class="path-card ghost" onclick="selectPath('ghost')">
-      <div class="path-icon">☠</div>
-      <div class="path-name">GHOST</div>
-      <div class="path-desc">Operate in the shadows. Breach systems, exfiltrate data, cover your tracks. Every target is a puzzle. Every firewall, a challenge.</div>
-      <div style="margin-top:12px;font-size:11px;color:#ff333355;">⚠ Black Hat Operative</div>
-    </div>
-    <div class="path-card sentinel" onclick="selectPath('sentinel')">
-      <div class="path-icon">◈</div>
-      <div class="path-name">SENTINEL</div>
-      <div class="path-desc">Defend the grid. Hunt intruders, patch vulnerabilities, protect critical infrastructure. You are the last line of defense.</div>
-      <div style="margin-top:12px;font-size:11px;color:#00aaff55;">◈ Ethical Hacker</div>
-    </div>
-  </div>
-  <div style="font-size:11px;color:var(--text-dim);text-align:center">Click a path to begin</div>
-</div>
-
-<!-- STORY SCREEN -->
-<div id="story-overlay">
-  <div class="story-inner" id="story-inner"></div>
-</div>
-
-<!-- HEADER -->
-<div class="header">
-  <div class="header-title">◢ NETBREAKER ◣</div>
-  <div class="header-info">
-    PATH: <span id="hdr-path">—</span> &nbsp;|&nbsp;
-    MISSION: <span id="hdr-mission">—</span> &nbsp;|&nbsp;
-    DIR: <span id="hdr-dir">~</span> &nbsp;|&nbsp;
-    REP: <span id="hdr-rep">0</span> &nbsp;|&nbsp;
-    <span style="cursor:pointer;color:var(--amber)" onclick="toggleHelp()">[ MANUAL ]</span>
+<!-- CHAPTER CARD -->
+<div id="chapter-card" class="fs-overlay hidden">
+  <div class="chapter-inner fade-in">
+    <div class="chapter-act" id="chapter-act-label"></div>
+    <div class="chapter-title" id="chapter-title-label"></div>
+    <div class="chapter-subtitle" id="chapter-subtitle-label"></div>
   </div>
 </div>
 
-<!-- MAIN -->
-<div id="main">
-  <div id="sidebar">
-    <div class="sidebar-section">
-      <div class="sidebar-label">Operative</div>
-      <div class="stat-row">Path: <span id="sb-path">—</span></div>
-      <div class="stat-row">Reputation: <span id="sb-rep">0</span></div>
-      <div class="rep-bar"><div class="rep-fill" id="rep-fill" style="width:0%"></div></div>
-      <div class="stat-row" style="margin-top:2px">Act: <span id="sb-act">—</span></div>
-    </div>
-    <div class="sidebar-section">
-      <div class="sidebar-label">Missions</div>
-      <div id="mission-list"></div>
-    </div>
-    <div class="sidebar-section">
-      <div class="sidebar-label">Tools</div>
-      <div id="tool-list"></div>
+<!-- NAME ENTRY -->
+<div id="name-entry" class="fs-overlay hidden">
+  <div class="name-inner">
+    <div id="name-output" style="font-family:'Share Tech Mono',monospace;font-size:13px;color:#555;line-height:2;margin-bottom:10px;"></div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="color:#2471d4;font-family:'Share Tech Mono',monospace;font-size:13px;">></span>
+      <input id="name-input" type="text" autocomplete="off" spellcheck="false"
+        style="background:transparent;border:none;outline:none;font-family:'Share Tech Mono',monospace;font-size:13px;color:#2471d4;caret-color:#2471d4;flex:1;" />
     </div>
   </div>
+</div>
 
-  <div id="terminal">
-    <div id="output"></div>
-    <div id="input-row">
-      <div id="prompt-label">~$</div>
-      <input id="cmd-input" type="text" autocomplete="off" spellcheck="false" placeholder="type a command..." />
+<!-- DELPHI LOGIN -->
+<div id="delphi-login" class="fs-overlay hidden">
+  <div class="login-card fade-in">
+    <div class="login-logo">
+      <div class="login-logo-icon">D</div>
+      <div class="login-logo-text">DELPHI</div>
+    </div>
+    <div style="font-family:'Inter',sans-serif;font-size:11px;color:var(--d-text-dim);margin-bottom:20px;text-align:center;letter-spacing:1px;">SECURITY OPERATIONS — SECURE ACCESS</div>
+    <div class="login-label">Employee ID</div>
+    <input class="login-field" id="login-id-field" type="text" readonly style="color:var(--d-text-dim);cursor:default;" />
+    <div class="login-label">Password</div>
+    <input class="login-field" id="login-pw-field" type="password" placeholder="Enter password" />
+    <div class="login-error" id="login-error"></div>
+    <button class="login-btn" id="login-btn" onclick="attemptLogin()">Sign In</button>
+    <div class="login-date" id="login-date"></div>
+  </div>
+</div>
+
+<!-- LOCKOUT -->
+<div id="lockout-screen" class="fs-overlay hidden">
+  <div class="lockout-card fade-in">
+    <div class="lockout-title">✗ Access Denied</div>
+    <div class="lockout-body" id="lockout-body"></div>
+    <div class="lockout-ref" id="lockout-ref"></div>
+  </div>
+</div>
+
+<!-- GHOST LOGIN -->
+<div id="ghost-login" class="fs-overlay hidden">
+  <div class="ghost-login-inner fade-in">
+    <div class="ghost-login-title">// LOCALHOST</div>
+    <div class="ghost-login-label">User</div>
+    <input class="ghost-login-field" id="ghost-login-user" type="text" readonly style="color:var(--g-dim);" />
+    <div class="ghost-login-label">Passphrase</div>
+    <input class="ghost-login-field" id="ghost-login-pw" type="password" placeholder="Enter passphrase" />
+    <button class="ghost-login-btn" onclick="ghostLogin()">Connect</button>
+    <div class="ghost-login-date" id="ghost-login-date"></div>
+  </div>
+</div>
+
+<!-- DELPHI TERMINAL -->
+<div id="delphi-terminal">
+  <div class="d-header">
+    <div class="d-header-left">
+      <div class="d-logo">
+        <div class="d-logo-icon">D</div>
+        <div class="d-logo-text">DELPHI</div>
+      </div>
+      <div class="d-divider"></div>
+      <div class="d-header-section">Security Operations Center</div>
+    </div>
+    <div class="d-header-right">
+      <span id="d-hdr-analyst">Analyst: <span>—</span></span>
+      <span id="d-hdr-date" style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--d-text-dim);">—</span>
+      <span style="cursor:pointer;color:var(--d-accent);font-size:11px;" onclick="delphi_help()">[ HELP ]</span>
     </div>
   </div>
-
-  <div id="puzzle-panel">
-    <div class="panel-header">◈ Mission Objective</div>
-    <div id="puzzle-content">
-      <div style="color:var(--text-dim);font-size:12px;margin-top:20px;text-align:center">
-        No active mission.<br><br>
-        Type <span style="color:var(--green)">missions</span> to begin.
+  <div class="d-main">
+    <div class="d-sidebar">
+      <div class="d-sidebar-section">
+        <div class="d-sidebar-label">Analyst</div>
+        <div class="d-stat-row">Name: <span id="d-sb-name">—</span></div>
+        <div class="d-stat-row">Status: <span id="d-sb-status" style="color:var(--d-success)">Active</span></div>
+        <div class="d-stat-row">Clearance: <span id="d-sb-clearance">L2</span></div>
+      </div>
+      <div class="d-sidebar-section">
+        <div class="d-sidebar-label">Case Queue</div>
+        <div id="d-case-queue"></div>
+      </div>
+      <div class="d-sidebar-section">
+        <div class="d-sidebar-label">Oracle</div>
+        <div class="d-oracle-panel">
+          <div class="d-oracle-label">◈ Oracle v4.2</div>
+          <div class="d-oracle-status" id="d-oracle-status">Monitoring...</div>
+          <div class="d-oracle-bar"><div class="d-oracle-fill" id="d-oracle-fill" style="width:0%"></div></div>
+        </div>
+      </div>
+      <div class="d-sidebar-section">
+        <div class="d-sidebar-label">Coworkers</div>
+        <div id="d-coworker-list" style="font-size:11px;color:var(--d-text-dim);font-family:'Inter',sans-serif;"></div>
+      </div>
+    </div>
+    <div class="d-terminal-area">
+      <div class="d-output" id="d-output"></div>
+      <div class="d-input-row">
+        <div class="d-prompt" id="d-prompt">analyst@delphi-soc:~$</div>
+        <input class="d-input" id="d-input" type="text" autocomplete="off" spellcheck="false" placeholder="type a command..." />
+      </div>
+    </div>
+    <div class="d-panel">
+      <div class="d-panel-header">Active Case</div>
+      <div class="d-panel-content" id="d-panel-content">
+        <div style="color:var(--d-text-dim);font-size:12px;font-family:'Inter',sans-serif;margin-top:16px;">No active case.</div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- HELP -->
-<div id="help-overlay">
-  <div class="help-inner">
-    <div class="help-title">◢ OPERATOR'S MANUAL ◣</div>
-    <div class="help-sub">NETBREAKER v0.2.0 — CLASSIFIED REFERENCE DOCUMENT</div>
-    <div class="help-section">
-      <div class="help-section-title">§1 — Terminal Commands</div>
-      <div class="cmd-ref">missions</div><div class="help-entry-desc" style="margin-bottom:8px">List all missions, their status, and required reputation.</div>
-      <div class="cmd-ref">start &lt;id&gt;</div><div class="help-entry-desc" style="margin-bottom:8px">Begin a mission (e.g. start M01). Requires minimum reputation.</div>
-      <div class="cmd-ref">ls / ls -la [path]</div><div class="help-entry-desc" style="margin-bottom:8px">List directory contents. -la reveals hidden dot files.</div>
-      <div class="cmd-ref">cd &lt;dir&gt;</div><div class="help-entry-desc" style="margin-bottom:8px">Change directory. cd .. goes up one level. cd / goes to root.</div>
-      <div class="cmd-ref">cat &lt;file&gt;</div><div class="help-entry-desc" style="margin-bottom:8px">Read a file's contents.</div>
-      <div class="cmd-ref">grep &lt;pattern&gt; &lt;file&gt;</div><div class="help-entry-desc" style="margin-bottom:8px">Search for a pattern inside a file.</div>
-      <div class="cmd-ref">decode --base64 &lt;str&gt;</div><div class="help-entry-desc" style="margin-bottom:8px">Decode a Base64 string.</div>
-      <div class="cmd-ref">decode --hex &lt;str&gt;</div><div class="help-entry-desc" style="margin-bottom:8px">Decode a hex string.</div>
-      <div class="cmd-ref">ping &lt;ip&gt;</div><div class="help-entry-desc" style="margin-bottom:8px">Ping an IP address.</div>
-      <div class="cmd-ref">ps aux</div><div class="help-entry-desc" style="margin-bottom:8px">List running processes.</div>
-      <div class="cmd-ref">tools</div><div class="help-entry-desc" style="margin-bottom:8px">List your unlocked tools and their usage.</div>
-      <div class="cmd-ref">submit &lt;answer&gt;</div><div class="help-entry-desc" style="margin-bottom:8px">Submit your answer for the active puzzle.</div>
-      <div class="cmd-ref">pwd / whoami / clear / help</div><div class="help-entry-desc" style="margin-bottom:8px">Utility commands.</div>
+<!-- GHOST TERMINAL -->
+<div id="ghost-terminal">
+  <div class="g-header">
+    <div class="g-header-title">// ORACLE</div>
+    <div class="g-header-info">
+      ACT: <span id="g-hdr-act">II</span> &nbsp;|&nbsp;
+      <span id="g-hdr-date">—</span> &nbsp;|&nbsp;
+      <span style="cursor:pointer;color:var(--g-amber);" onclick="ghost_help()">[ MANUAL ]</span>
     </div>
-    <div class="help-section">
-      <div class="help-section-title">§2 — Puzzle Types</div>
-      <div class="help-entry"><div class="help-entry-name"><span class="tag both">BOTH</span> File Investigation</div><div class="help-entry-desc">Navigate with ls, cd, cat. Hidden files need ls -la.</div></div>
-      <div class="help-entry"><div class="help-entry-name"><span class="tag both">BOTH</span> Log Analysis</div><div class="help-entry-desc">Read logs with cat, search with grep. Look for patterns.</div></div>
-      <div class="help-entry"><div class="help-entry-name"><span class="tag both">BOTH</span> Decode Messages</div><div class="help-entry-desc">Find encoded files, use decode --base64 or decode --hex.</div></div>
-      <div class="help-entry"><div class="help-entry-name"><span class="tag both">BOTH</span> Network Mapping</div><div class="help-entry-desc">Read scan results in the filesystem. Find open ports or unauthorized hosts.</div></div>
-      <div class="help-entry"><div class="help-entry-name"><span class="tag both">BOTH</span> Process Investigation</div><div class="help-entry-desc">Run ps aux. Spot rogue or anomalous processes by PID.</div></div>
-      <div class="help-entry"><div class="help-entry-name"><span class="tag both">BOTH</span> Permissions Puzzle</div><div class="help-entry-desc">ls -la shows permissions. rwxrwxrwx = world-writable = dangerous.</div></div>
-      <div class="help-entry"><div class="help-entry-name"><span class="tag both">BOTH</span> Binary Decode</div><div class="help-entry-desc">Find binary file, convert 8-bit groups to ASCII. A=65=01000001.</div></div>
-      <div class="help-entry"><div class="help-entry-name"><span class="tag both">BOTH</span> Digital Breadcrumbs</div><div class="help-entry-desc">Follow clues across multiple files. Each one leads to the next.</div></div>
-      <div class="help-entry"><div class="help-entry-name"><span class="tag both">BOTH</span> Timed Puzzles</div><div class="help-entry-desc">Clock starts on load. Find and decode before time expires.</div></div>
-    </div>
-    <div class="help-section">
-      <div class="help-section-title">§3 — Reputation & Progression</div>
-      <div class="help-entry-desc" style="color:var(--text-dim);font-size:12px;line-height:1.8">
-        Reputation is earned by solving puzzles. Lose rep for wrong answers.<br>
-        Higher missions require a minimum reputation to unlock.<br>
-        <span style="color:var(--amber)">Act 1</span> — 0 rep required &nbsp;|&nbsp;
-        <span style="color:var(--amber)">Act 2</span> — 100 rep required &nbsp;|&nbsp;
-        <span style="color:var(--amber)">Act 3</span> — 250 rep required
+  </div>
+  <div class="g-main">
+    <div class="g-sidebar">
+      <div class="g-sidebar-section">
+        <div class="g-sidebar-label">Operative</div>
+        <div class="g-stat-row">ID: <span id="g-sb-name">—</span></div>
+        <div class="g-stat-row">Status: <span style="color:var(--g-red)">Exiled</span></div>
+      </div>
+      <div class="g-sidebar-section">
+        <div class="g-sidebar-label">Objectives</div>
+        <div id="g-objectives"></div>
+      </div>
+      <div class="g-sidebar-section">
+        <div class="g-sidebar-label">Notes</div>
+        <div id="g-notes">
+          <div class="g-note-item">Delphi terminated me.<br>Oracle named me.<br>Someone else did this.</div>
+        </div>
       </div>
     </div>
-    <div class="help-section">
-      <div class="help-section-title">§4 — Error Code Database</div>
-      <div style="font-size:12px;color:var(--text-dim);line-height:2.2">
-        <div><span style="color:var(--amber)">ERR_0x4F1</span> — Auth token expired. Re-auth window: 30s</div>
-        <div><span style="color:var(--amber)">ERR_0x7B3</span> — Buffer overflow in service handler</div>
-        <div><span style="color:var(--amber)">ERR_0x2A9</span> — Firewall rule conflict. Port 22 state undefined</div>
-        <div><span style="color:var(--amber)">ERR_0x8D0</span> — Log rotation triggered. Old entries unindexed</div>
-        <div><span style="color:var(--amber)">ERR_0x3C6</span> — Process fork failed. Memory ceiling reached</div>
-        <div><span style="color:var(--red)">ERR_0xF00</span> — CRITICAL: Root escalation attempt logged</div>
-        <div><span style="color:var(--red)">ERR_0xDEAD</span> — CRITICAL: System integrity compromised</div>
+    <div class="g-terminal-area">
+      <div class="g-output" id="g-output"></div>
+      <div class="g-input-row">
+        <div class="g-prompt-label" id="g-prompt-label">~$</div>
+        <input class="g-cmd-input" id="g-cmd-input" type="text" autocomplete="off" spellcheck="false" placeholder="type a command..." />
       </div>
     </div>
-    <div style="text-align:center;margin-top:20px">
-      <button class="btn" onclick="toggleHelp()">[ CLOSE MANUAL ]</button>
+    <div class="g-panel">
+      <div class="g-panel-header">◈ Objective</div>
+      <div class="g-panel-content" id="g-panel-content">
+        <div style="color:var(--g-dim);font-size:12px;margin-top:20px;text-align:center;">Act II missions<br>coming soon.</div>
+      </div>
     </div>
   </div>
 </div>
-
 <script>
-// ═══════════════════════════════════════════════
-//  TOOL DEFINITIONS
-// ═══════════════════════════════════════════════
-const TOOLS = {
-  decode_b64:  { name:'decode --base64', desc:'Decode Base64 strings', unlockedAt:'start' },
-  decode_hex:  { name:'decode --hex',    desc:'Decode hex strings',    unlockedAt:'start' },
-  grep:        { name:'grep',            desc:'Search file contents',  unlockedAt:'start' },
-  ping:        { name:'ping',            desc:'Ping an IP address',    unlockedAt:'start' },
-  crack_basic: { name:'crack (basic)',   desc:'Basic wordlist attack',  unlockedAt:'M01' },
-  decode_caesar:{ name:'decode --caesar',desc:'Caesar cipher decode',  unlockedAt:'M02' },
-  scan_range:  { name:'scan --range',    desc:'Ping a subnet range',   unlockedAt:'M02' },
-  wipe:        { name:'wipe',            desc:'Securely delete a log entry', unlockedAt:'M03' },
-  crack_advanced:{ name:'crack (advanced)',desc:'Pattern + l33tspeak cracker', unlockedAt:'M03' },
-  steghide:    { name:'steghide',        desc:'Extract hidden data from files', unlockedAt:'M04' },
-  trace:       { name:'trace',           desc:'Follow a multi-hop network path', unlockedAt:'M04' },
+'use strict';
+const G = {
+  playerName:'', playerPW:'', mode:'boot', chapter:0, caseIdx:0,
+  fs:{}, cwd:'/', oracleConf:0, lockoutAttempts:0,
+  history:[], histIdx:-1,
+  coworkers:[
+    {name:'M. Chen',role:'Senior Analyst'},
+    {name:'J. Okafor',role:'SOC Lead'},
+    {name:'S. Reyes',role:'Threat Intel'},
+    {name:'T. Nakamura',role:'Analyst II'},
+  ],
 };
 
-// ═══════════════════════════════════════════════
-//  STORY DATA — briefings + news per mission
-// ═══════════════════════════════════════════════
-const storyData = {
-  M01: {
-    ghost: {
-      briefing: `Job's done. The encoded transmission led exactly where you expected.\nYour contact says there's more work. Bigger targets. The collective noticed your results.\nLay low for now. Next assignment incoming.`,
-      news: { headline: 'NovaCorp Reports "Minor Network Anomaly", Assures No Data Breach', body: 'NovaCorp\'s PR team issued a statement Friday denying reports of unauthorized access to internal systems. "We detected unusual activity but our security team resolved the issue immediately," said a spokesperson. Analysts remain skeptical.' },
-      toolUnlock: null,
+const CHAPTERS = [
+{
+  id:1, act:'ACT I', title:'THE INCIDENT', subtitle:'Chapter 1 — Onboarding',
+  date:'October 1, 2032', loginMsg:'Welcome to Delphi. Your first day begins now.',
+  cases:[{
+    id:'OB-001', title:'Workstation Setup', type:'onboarding',
+    objective:'Complete your workstation setup and read your welcome materials.',
+    body:'Your workstation has been provisioned. Read your welcome email, review your access credentials, and familiarize yourself with the Security Operations environment.',
+    fs:{
+      '/':{type:'dir',children:['home','mail','docs']},
+      '/home':{type:'dir',children:['.bash_history']},
+      '/home/.bash_history':{type:'file',perms:'-rw-------',hidden:true,content:'# Session history\nls\ncat /mail/welcome.txt'},
+      '/mail':{type:'dir',children:['welcome.txt','from_hr.txt','from_manager.txt']},
+      '/mail/welcome.txt':{type:'file',perms:'-rw-r--r--',content:'FROM: noreply@delphi.com\nTO: {{NAME}}@delphi-soc.com\nSUBJECT: Welcome to Delphi\n\nWelcome aboard.\n\nYou have been assigned to the Security Operations Center.\nYour employee ID and initial credentials have been configured.\n\nDelphi Security Operations protects the infrastructure that\nbillions of people rely on every day. Your work matters.\n\nYour manager will reach out shortly.\n\n— Delphi People Operations'},
+      '/mail/from_hr.txt':{type:'file',perms:'-rw-r--r--',content:'FROM: hr@delphi.com\nTO: {{NAME}}@delphi-soc.com\nSUBJECT: Your credentials and access\n\nYour Delphi employee ID: {{NAME}}\nInitial system password: delphi2032\n\nPlease change your password on first login.\nYour clearance level is L2 — Security Operations standard.\n\nOracle access has been provisioned for your role.\nOracle is an internal analytics and forecasting platform.\nIt will assist with investigations and threat attribution.\n\n— HR Systems'},
+      '/mail/from_manager.txt':{type:'file',perms:'-rw-r--r--',content:'FROM: j.okafor@delphi-soc.com\nTO: {{NAME}}@delphi-soc.com\nSUBJECT: Welcome to the team\n\nGood morning.\n\nI\'m James Okafor, SOC Lead. Welcome to the team.\n\nWe run a busy operation here. Alerts come in around the clock\nand no two days look the same. You\'ll spend your first week\ncompleting training investigations — small cases designed to\nteach you our tools and workflows.\n\nOracle will assist you throughout. It surfaces patterns,\ngenerates confidence scores, and flags anomalies you might\nmiss in raw logs. Learn to use it. Most analysts find it\nindispensable within a few weeks.\n\nAny questions, my door is open.\n\n— J. Okafor, SOC Lead'},
+      '/docs':{type:'dir',children:['soc_handbook.txt','oracle_overview.txt']},
+      '/docs/soc_handbook.txt':{type:'file',perms:'-rw-r--r--',content:'DELPHI SECURITY OPERATIONS — ANALYST HANDBOOK\n\nSection 1: Responsibilities\nSOC analysts monitor, investigate, and respond to security\nevents across Delphi\'s global infrastructure.\n\nSection 2: Tools\n  terminal    — primary investigation interface\n  cat/grep    — log and file analysis\n  ps aux      — process inspection\n  Oracle      — threat analytics and attribution\n\nSection 3: Case Management\nAll cases are assigned through the case queue.\nUse  submit <answer>  to close a case.\n\nSection 4: Escalation\nSeverity 1 incidents escalate automatically to SOC Lead.'},
+      '/docs/oracle_overview.txt':{type:'file',perms:'-rw-r--r--',content:'ORACLE — ANALYST QUICK REFERENCE\n\nOracle is Delphi\'s internal analytics and threat intelligence\nplatform. It monitors activity across all systems in real time.\n\nKey capabilities:\n  Authentication anomaly detection\n  Behavioral pattern analysis\n  Threat attribution with confidence scoring\n  Predictive incident forecasting\n\nOracle confidence scores reflect the probability that a\ngiven entity is associated with suspicious activity.\n\nScores above 70% warrant investigation.\nScores above 90% are considered high confidence.\n\nOracle does not make final decisions.\nAnalyst review is always required.\n\nVersion: Oracle v4.2'},
     },
-    sentinel: {
-      briefing: `Good work decoding that packet. The destination IP traces to a known relay node — this isn\'t amateur hour.\nYour supervisor flagged the case to the incident response team. They want you on lead.\nStart pulling logs. Find out how deep this goes.`,
-      news: { headline: 'ClearNet Security Contracted to Investigate NovaCorp Breach', body: 'Cybersecurity firm ClearNet has been quietly retained by NovaCorp following what sources describe as a "significant but contained" data incident. The investigation is ongoing.' },
-      toolUnlock: null,
+    answer:'ready', answerHint:'Read your mail and docs, then type:  submit ready',
+    oracleMsg:'New analyst provisioned. Monitoring baseline established.',
+    oracleConf:0, completionMsg:'Workstation configured. You are now active in the Security Operations Center.',
+  }],
+},
+{
+  id:2, act:'ACT I', title:'THE INCIDENT', subtitle:'Chapter 2 — Training Investigations',
+  date:'October 3, 2032', loginMsg:'Good morning. Three training cases are in your queue.',
+  cases:[
+  {
+    id:'TRN-001', title:'Suspicious Login Activity', type:'training',
+    objective:'Investigate repeated failed login attempts on an employee account. Determine whether the activity represents a genuine threat.',
+    body:'Oracle flagged repeated authentication failures on an employee account. Review the auth logs and determine the cause. Submit the employee\'s last name.',
+    fs:{
+      '/':{type:'dir',children:['logs','cases','mail']},
+      '/mail':{type:'dir',children:['case_brief.txt']},
+      '/mail/case_brief.txt':{type:'file',perms:'-rw-r--r--',content:'FROM: oracle-alerts@delphi.com\nTO: {{NAME}}@delphi-soc.com\nSUBJECT: Case TRN-001 — Authentication Anomaly\n\nOracle has flagged repeated authentication failures on:\np.morrison@delphi.com\n\nActivity began at 08:14 this morning.\n14 failed attempts recorded before eventual success.\n\nOracle confidence: 23% — Low risk, likely benign.'},
+      '/logs':{type:'dir',children:['auth.log','system.log']},
+      '/logs/auth.log':{type:'file',perms:'-rw-r--r--',content:'2032-10-03 08:14:02  FAIL    p.morrison  192.168.4.22   incorrect_password\n2032-10-03 08:14:19  FAIL    p.morrison  192.168.4.22   incorrect_password\n2032-10-03 08:14:41  FAIL    p.morrison  192.168.4.22   incorrect_password\n2032-10-03 08:15:03  FAIL    p.morrison  192.168.4.22   incorrect_password\n2032-10-03 08:15:28  FAIL    p.morrison  192.168.4.22   incorrect_password\n2032-10-03 08:15:55  FAIL    p.morrison  192.168.4.22   incorrect_password\n2032-10-03 08:16:22  FAIL    p.morrison  192.168.4.22   incorrect_password\n2032-10-03 08:16:48  FAIL    p.morrison  192.168.4.22   incorrect_password\n2032-10-03 08:17:11  FAIL    p.morrison  192.168.4.22   incorrect_password\n2032-10-03 08:17:34  FAIL    p.morrison  192.168.4.22   incorrect_password\n2032-10-03 08:17:58  FAIL    p.morrison  192.168.4.22   incorrect_password\n2032-10-03 08:18:19  FAIL    p.morrison  192.168.4.22   incorrect_password\n2032-10-03 08:18:44  FAIL    p.morrison  192.168.4.22   incorrect_password\n2032-10-03 08:19:02  FAIL    p.morrison  192.168.4.22   incorrect_password\n2032-10-03 08:19:31  SUCCESS p.morrison  192.168.4.22   password_reset_used\n2032-10-03 08:19:45  NOTE    p.morrison  submitted helpdesk ticket #4471 — forgot password'},
+      '/logs/system.log':{type:'file',perms:'-rw-r--r--',content:'2032-10-03 08:00:01  SYSTEM  Daily diagnostics passed\n2032-10-03 08:05:12  SYSTEM  Oracle v4.2 sync complete\n2032-10-03 08:14:00  ALERT   Auth anomaly flagged — p.morrison\n2032-10-03 08:19:31  INFO    Account unlocked via helpdesk — p.morrison'},
+      '/cases':{type:'dir',children:['TRN-001']},
+      '/cases/TRN-001':{type:'dir',children:['notes.txt']},
+      '/cases/TRN-001/notes.txt':{type:'file',perms:'-rw-r--r--',content:'Case TRN-001 — Suspicious Login\nStatus: Open\nAssigned: {{NAME}}\n\nMultiple failed logins followed by successful\nauthentication via password reset.\n\nDetermine root cause and close case.'},
     },
+    answer:'morrison', answerHint:'Check the auth log. Who was locked out? Submit their last name.',
+    oracleMsg:'Auth anomaly — p.morrison. Confidence 23%. Likely benign.',
+    oracleConf:5, completionMsg:'Case closed. P. Morrison forgot their password. No threat identified. Good work.',
   },
-  M02: {
-    ghost: {
-      briefing: `The auth log entry is gone and the network entry point is mapped.\nThe collective is impressed. They're bringing you in on a corporate job.\nSame skills, higher stakes. The target is NovaCorp's internal R&D server.\nYou'll need a new tool for what's coming.`,
-      news: { headline: 'String of Corporate Cyber Incidents Points to Organized Threat Actor', body: 'Security researchers say a series of intrusions across tech firms share a common signature. "This is not opportunistic — someone is building toward a specific goal," said one analyst who declined to be named.' },
-      toolUnlock: 'decode_caesar',
+  {
+    id:'TRN-002', title:'Malware Detection', type:'training',
+    objective:'A workstation in Building 3 triggered an automated malware alert. Inspect the affected machine and identify the malicious file.',
+    body:'Oracle flagged unusual file activity on workstation WS-3041. Inspect the filesystem and identify the malicious file. Submit the exact filename.',
+    fs:{
+      '/':{type:'dir',children:['workstations','logs','mail']},
+      '/mail':{type:'dir',children:['case_brief.txt']},
+      '/mail/case_brief.txt':{type:'file',perms:'-rw-r--r--',content:'FROM: oracle-alerts@delphi.com\nTO: {{NAME}}@delphi-soc.com\nSUBJECT: Case TRN-002 — Malware Alert\n\nOracle detected anomalous file behavior on WS-3041.\nAssigned user: d.walsh@delphi.com\n\nUnusual process spawning detected at 14:22.\nOracle confidence: 81% — Likely malicious.'},
+      '/logs':{type:'dir',children:['process.log','file_events.log']},
+      '/logs/process.log':{type:'file',perms:'-rw-r--r--',content:'2032-10-03 14:22:11  WS-3041  explorer.exe spawned  svchost_update.exe\n2032-10-03 14:22:14  WS-3041  svchost_update.exe attempted network connection\n2032-10-03 14:22:15  WS-3041  svchost_update.exe BLOCKED by firewall (port 4444)\n2032-10-03 14:22:16  WS-3041  svchost_update.exe attempted registry write HKLM\\Run\n2032-10-03 14:22:18  WS-3041  svchost_update.exe QUARANTINE TRIGGERED'},
+      '/logs/file_events.log':{type:'file',perms:'-rw-r--r--',content:'2032-10-03 14:21:58  WS-3041  d.walsh  DOWNLOAD  quarterly_report_v2.pdf.exe\n2032-10-03 14:22:01  WS-3041  d.walsh  OPEN      quarterly_report_v2.pdf.exe\n2032-10-03 14:22:11  WS-3041  SYSTEM   SPAWN     svchost_update.exe  [child of quarterly_report_v2.pdf.exe]'},
+      '/workstations':{type:'dir',children:['WS-3041']},
+      '/workstations/WS-3041':{type:'dir',children:['downloads','system']},
+      '/workstations/WS-3041/downloads':{type:'dir',children:['quarterly_report_v2.pdf.exe','.malware_sig']},
+      '/workstations/WS-3041/downloads/quarterly_report_v2.pdf.exe':{type:'file',perms:'-rwxrwxrwx',content:'[BINARY — QUARANTINED]\nFile type: PE32 executable disguised as PDF\nSize: 847KB\nSignature: matches known dropper family\nOrigin: external email attachment\nSHA256: 4f2a9c1b8e3d...'},
+      '/workstations/WS-3041/downloads/.malware_sig':{type:'file',hidden:true,perms:'-rw-------',content:'Oracle signature match:\nFamily: Dropper.GenericA\nConfidence: 94%\nRecommendation: Quarantine and reimage workstation.'},
+      '/workstations/WS-3041/system':{type:'dir',children:['installed_apps.txt']},
+      '/workstations/WS-3041/system/installed_apps.txt':{type:'file',perms:'-rw-r--r--',content:'Legitimate applications on WS-3041:\n  Microsoft Office 2031\n  Delphi Secure Browser v8\n  Delphi VPN Client\n  Adobe Acrobat Reader\n  [Dropper was quarantined before installation completed]'},
     },
-    sentinel: {
-      briefing: `The attacker's IP is confirmed. It traces through three relay nodes before going cold.\nYour firm has been officially contracted by NovaCorp. Full access granted.\nThe pattern of intrusions suggests a single sophisticated operator. You named them PHANTOM.\nNew decoding tool authorized for your toolkit.`,
-      news: { headline: 'ClearNet Analyst Names Suspect "PHANTOM" in Ongoing Corporate Breach Investigation', body: 'Internal documents obtained by this publication reveal investigators have identified a single threat actor responsible for multiple recent intrusions. The operative, codenamed PHANTOM, remains at large.' },
-      toolUnlock: 'decode_caesar',
-    },
+    answer:'quarterly_report_v2.pdf.exe', answerHint:'Check the downloads folder on WS-3041. Submit the malicious filename exactly.',
+    oracleMsg:'Malware — WS-3041. Dropper.GenericA. Confidence 94%. Quarantined.',
+    oracleConf:15, completionMsg:'Malware confirmed and quarantined. D. Walsh was deceived by a spoofed attachment. Workstation flagged for reimaging.',
   },
-  M03: {
-    ghost: {
-      briefing: `Root access achieved. The collective is happy.\nBut someone's been asking questions. A security firm called ClearNet is sniffing around.\nFinish the jobs fast. You've got what you need — including a new cracking tool.\nThe next target is bigger. A financial institution.`,
-      news: { headline: 'Hackers Breach Root Level Access at Major Tech Firm', body: 'Security experts confirmed late Thursday that an unidentified attacker achieved root-level system access at a prominent technology company. The breach duration and full scope of data accessed remain unknown.' },
-      toolUnlock: 'crack_advanced',
+  {
+    id:'TRN-003', title:'Unusual File Access', type:'training',
+    objective:'An employee was flagged for accessing files outside their department. Determine whether the activity is authorized.',
+    body:'Oracle flagged K. Brennan for accessing Infrastructure division files. Brennan is listed under Product Development. Investigate and submit your conclusion: authorized or unauthorized.',
+    fs:{
+      '/':{type:'dir',children:['logs','hr','cases','mail']},
+      '/mail':{type:'dir',children:['case_brief.txt']},
+      '/mail/case_brief.txt':{type:'file',perms:'-rw-r--r--',content:'FROM: oracle-alerts@delphi.com\nTO: {{NAME}}@delphi-soc.com\nSUBJECT: Case TRN-003 — Unusual Access Pattern\n\nOracle flagged K. Brennan for accessing Infrastructure\ndivision file repositories.\n\nBrennan is currently listed under Product Development.\nInfrastructure access is outside standard permissions.\n\nOracle confidence: 44% — Moderate concern.'},
+      '/logs':{type:'dir',children:['access.log','file_audit.log']},
+      '/logs/access.log':{type:'file',perms:'-rw-r--r--',content:'2032-10-03 09:12:44  k.brennan  /repos/infra/network_configs    READ\n2032-10-03 09:13:01  k.brennan  /repos/infra/server_inventory   READ\n2032-10-03 09:14:22  k.brennan  /repos/infra/deployment_docs    READ\n2032-10-03 09:31:44  k.brennan  /repos/product/sprint_board     READ\n2032-10-03 09:32:11  k.brennan  /repos/product/roadmap_2033     READ'},
+      '/logs/file_audit.log':{type:'file',perms:'-rw-r--r--',content:'k.brennan access to /repos/infra/ was granted on\n2032-09-28 by j.okafor@delphi-soc.com\nReason: Temporary cross-department transfer\nEffective: 2032-10-01 through 2032-10-31\nApproval ticket: HR-2032-8841'},
+      '/hr':{type:'dir',children:['transfers.txt','brennan_profile.txt']},
+      '/hr/transfers.txt':{type:'file',perms:'-rw-r--r--',content:'Active cross-department transfers — October 2032:\n\n  K. Brennan   Product Dev -> Infrastructure  (temp)\n  Start: 2032-10-01  End: 2032-10-31\n  Approved by: J. Okafor\n  Ticket: HR-2032-8841\n  Access provisioned: YES'},
+      '/hr/brennan_profile.txt':{type:'file',perms:'-rw-r--r--',content:'Employee: K. Brennan\nRole: Senior Product Analyst\nDepartment: Product Development (temp transfer active)\nClearance: L2\nStatus: Active\nNotes: Temporary Infrastructure assignment for Q4 network audit.'},
+      '/cases':{type:'dir',children:['TRN-003']},
+      '/cases/TRN-003':{type:'dir',children:['notes.txt']},
+      '/cases/TRN-003/notes.txt':{type:'file',perms:'-rw-r--r--',content:'Case TRN-003 — Unusual File Access\nK. Brennan accessing Infrastructure repos.\nExpected department: Product Development.\nInvestigate whether access was legitimately authorized.'},
     },
-    sentinel: {
-      briefing: `Three vulnerabilities patched. The audit results are damning — this system was wide open.\nClearNet has escalated the case. PHANTOM is escalating too.\nIntel suggests their next move is financial. A major bank is in the crosshairs.\nAdvanced cracking tool cleared for your use.`,
-      news: { headline: 'PHANTOM Threat Actor Escalates Activity, Financial Sector on Alert', body: 'The Financial Services Information Sharing and Analysis Center (FS-ISAC) has issued a private advisory warning member banks of an "imminent and credible" cyber threat. Details are being withheld pending investigation.' },
-      toolUnlock: 'crack_advanced',
+    answer:'authorized', answerHint:'Check /hr/transfers.txt and /logs/file_audit.log. Submit: authorized or unauthorized.',
+    oracleMsg:'Cross-department access flagged — K. Brennan. Confidence 44%. Awaiting review.',
+    oracleConf:10, completionMsg:'Correct. Brennan\'s access was authorized via HR-2032-8841. Oracle flagged a legitimate transfer. Case closed.',
+  }],
+},
+{
+  id:3, act:'ACT I', title:'THE INCIDENT', subtitle:'Chapter 3 — Six Months Later',
+  date:'April 14, 2033', loginMsg:'Good morning. Routine shift. Two cases in queue.',
+  timeskip:true, timeskipMsg:'Six months have passed.\n\nYou have become a trusted member of the\nSecurity Operations Center.\n\nYou know your coworkers.\nYou know the tools.\nYou know Oracle.',
+  cases:[
+  {
+    id:'SOC-1182', title:'Quarterly Permissions Audit', type:'routine',
+    objective:'Conduct a routine quarterly permissions audit. Identify the account with inappropriate elevated access that should have been downgraded.',
+    body:'Quarterly audit cycle. Review the permissions report and identify any account with access it should no longer have. Submit the account username.',
+    fs:{
+      '/':{type:'dir',children:['audit','logs','mail']},
+      '/mail':{type:'dir',children:['case_brief.txt','from_chen.txt']},
+      '/mail/case_brief.txt':{type:'file',perms:'-rw-r--r--',content:'FROM: soc-automation@delphi.com\nTO: {{NAME}}@delphi-soc.com\nSUBJECT: Case SOC-1182 — Q2 Permissions Audit\n\nQuarterly permissions review cycle initiated.\nReview /audit/permissions_report.txt and identify\nany account with inappropriate elevated access.\n\nOracle confidence: N/A — Routine audit.'},
+      '/mail/from_chen.txt':{type:'file',perms:'-rw-r--r--',content:'FROM: m.chen@delphi-soc.com\nTO: {{NAME}}@delphi-soc.com\nSUBJECT: Morning\n\nHeads up — the audit queue is backed up this quarter.\nJust flag any obvious ones and we can review together.\n\nAlso, there is coffee in the break room.\n\n— Maya'},
+      '/audit':{type:'dir',children:['permissions_report.txt','access_policy.txt']},
+      '/audit/permissions_report.txt':{type:'file',perms:'-rw-r--r--',content:'QUARTERLY PERMISSIONS REPORT — Q2 2033\n\nACCOUNT              ROLE          ACCESS   STATUS\n──────────────────────────────────────────────────\nr.torres             Analyst I     L2       OK\np.morrison           Analyst II    L2       OK\nk.brennan            Sr. Analyst   L2       OK\na.whitfield          Contractor    L4-ADMIN REVIEW\nd.walsh              Analyst I     L2       OK\nm.chen               Sr. Analyst   L3       OK\nj.okafor             SOC Lead      L4       OK\n\nNote: a.whitfield is a contractor. Admin access (L4)\nwas granted for a project concluding January 2033.\nAccess was never downgraded after project completion.'},
+      '/audit/access_policy.txt':{type:'file',perms:'-rw-r--r--',content:'DELPHI ACCESS POLICY — Section 4.2\n\nContractor access must be reviewed monthly.\nElevated access for project work must be revoked\nwithin 14 days of project completion.\n\nFailure to downgrade contractor access within the\nspecified window constitutes a policy violation.'},
+      '/logs':{type:'dir',children:['a.whitfield_access.log']},
+      '/logs/a.whitfield_access.log':{type:'file',perms:'-rw-r--r--',content:'Last 30 days of activity for a.whitfield:\n\n2033-04-14 09:04:11  a.whitfield  /admin/user_mgmt      READ\n2033-04-14 09:04:44  a.whitfield  /admin/system_config   READ\n2033-04-13 14:22:05  a.whitfield  /admin/security_keys   READ\n\nProject HALCYON concluded 2033-01-15.\nAll recent access is outside project scope.'},
     },
+    answer:'a.whitfield', answerHint:'Check the permissions report. Which account has access it should not still have? Submit the username.',
+    oracleMsg:'All systems nominal. Routine audit in progress.',
+    oracleConf:0, completionMsg:'Good catch. a.whitfield\'s admin access flagged for downgrade. Policy violation documented.',
   },
-  M04: {
-    ghost: {
-      briefing: `The breadcrumb trail led exactly where it needed to.\nThe collective has a new contract. Organized crime. A syndicate's private server.\nThey want data — and they want it untraceable.\nYou've earned access to the steganography suite.`,
-      news: { headline: 'Interpol Warns of Cyber-Criminal Syndicate Expanding Digital Operations', body: 'International law enforcement agencies are tracking a criminal organization believed to have contracted outside hackers to steal financial and operational data from rival groups and legitimate businesses alike.' },
-      toolUnlock: 'steghide',
+  {
+    id:'SOC-1187', title:'Phishing Incident', type:'routine',
+    objective:'An employee reported clicking a suspicious link. Identify the phishing domain and confirm whether credentials were compromised.',
+    body:'Employee T. Nakamura clicked a link in what appeared to be a Delphi IT email. Investigate the incident and submit the phishing domain.',
+    fs:{
+      '/':{type:'dir',children:['mail','logs','network','cases']},
+      '/mail':{type:'dir',children:['case_brief.txt','phishing_sample.txt','from_nakamura.txt']},
+      '/mail/case_brief.txt':{type:'file',perms:'-rw-r--r--',content:'FROM: t.nakamura@delphi-soc.com\nTO: {{NAME}}@delphi-soc.com\nSUBJECT: Case SOC-1187 — Possible Phishing\n\nI clicked something I should not have. The email looked\nlegitimate — Delphi IT branding, my name, everything.\nBut the link felt wrong after I clicked it.\n\nI ran a scan and nothing came back. Flagging it anyway.\n\n— Toshi'},
+      '/mail/phishing_sample.txt':{type:'file',perms:'-rw-r--r--',content:'[PRESERVED PHISHING EMAIL]\nFROM: it-support@de1phi-helpdesk.com\nTO: t.nakamura@delphi.com\nSUBJECT: Action Required — Password Expiry Notice\n\nYour Delphi account password will expire in 24 hours.\nPlease click the link below to update your credentials.\n\nhttps://de1phi-helpdesk.com/reset?user=t.nakamura\n\nThis is an automated message from Delphi IT Support.'},
+      '/mail/from_nakamura.txt':{type:'file',perms:'-rw-r--r--',content:'FROM: t.nakamura@delphi-soc.com\nTO: {{NAME}}@delphi-soc.com\nSUBJECT: More detail\n\nI caught it fast — closed the browser within a second.\nI do not think I entered anything.\n\nThe sender address looked slightly off in hindsight.\nSomething about the domain.\n\n— Toshi'},
+      '/network':{type:'dir',children:['proxy_logs.txt','dns_lookup.txt']},
+      '/network/proxy_logs.txt':{type:'file',perms:'-rw-r--r--',content:'2033-04-14 11:34:22  t.nakamura  GET  https://de1phi-helpdesk.com/reset  200\n2033-04-14 11:34:23  t.nakamura  [SESSION CLOSED BY USER]'},
+      '/network/dns_lookup.txt':{type:'file',perms:'-rw-r--r--',content:'DNS lookup: de1phi-helpdesk.com\nRegistered: 2033-04-09 (5 days ago)\nRegistrar: PrivacyShield Domains\nIP: 185.220.101.44\nOrg: Anonymous Hosting Ltd\n\nNote:\n  de1phi-helpdesk.com     (phishing — registered 5 days ago)\n  delphi-helpdesk.com     (legitimate — registered 2018)\n\nThe domain uses the numeral 1 in place of the letter l.'},
+      '/logs':{type:'dir',children:['nakamura_activity.log']},
+      '/logs/nakamura_activity.log':{type:'file',perms:'-rw-r--r--',content:'Post-click activity for t.nakamura:\n  No credential submission detected\n  No data exfiltration detected\n  No malware installation detected\n  Session closed after 1.2 seconds'},
+      '/cases':{type:'dir',children:['SOC-1187']},
+      '/cases/SOC-1187':{type:'dir',children:['notes.txt']},
+      '/cases/SOC-1187/notes.txt':{type:'file',perms:'-rw-r--r--',content:'Case SOC-1187 — Phishing\nIdentify the phishing domain and confirm impact.'},
     },
-    sentinel: {
-      briefing: `PHANTOM's pivot chain traced to an offshore relay. The pattern is getting clearer.\nYour firm has been approached by federal regulators. This is going national.\nPHANTOM is working for someone — possibly organized crime. The stakes just went up.\nTrace tool now active in your toolkit.`,
-      news: { headline: 'Federal Agencies Join Investigation into PHANTOM Hacker as Criminal Links Emerge', body: 'The FBI\'s Cyber Division confirmed it has joined an ongoing investigation into the threat actor known as PHANTOM, following evidence suggesting ties to international organized crime networks.' },
-      toolUnlock: 'trace',
+    answer:'de1phi-helpdesk.com', answerHint:'Check the phishing email and DNS lookup. What domain was used? Submit it exactly.',
+    oracleMsg:'Phishing domain detected. de1phi-helpdesk.com flagged. No credential compromise.',
+    oracleConf:0, completionMsg:'Phishing domain confirmed. No credentials compromised — Nakamura closed the session fast. Domain reported.',
+  }],
+},
+{
+  id:4, act:'ACT I', title:'THE INCIDENT', subtitle:'Chapter 4 — Early Anomalies',
+  date:'October 9, 2032', loginMsg:'Morning shift. Something small came in overnight.',
+  cases:[{
+    id:'SOC-2201', title:'Authentication Drift', type:'anomaly',
+    objective:'Low-priority alert. Minor authentication inconsistencies across three internal systems. Investigate and identify the system where the inconsistency is most pronounced.',
+    body:'Oracle flagged small inconsistencies in authentication records overnight. Investigate the logs and submit the system name with the most unusual activity.',
+    fs:{
+      '/':{type:'dir',children:['logs','mail','cases']},
+      '/mail':{type:'dir',children:['case_brief.txt','from_okafor.txt']},
+      '/mail/case_brief.txt':{type:'file',perms:'-rw-r--r--',content:'FROM: oracle-alerts@delphi.com\nTO: {{NAME}}@delphi-soc.com\nSUBJECT: Case SOC-2201 — Auth Drift (Low Priority)\n\nMinor authentication inconsistencies detected across\nmultiple systems overnight.\n\nOracle confidence: 12% — Low risk.\nRecommendation: Log and monitor. No immediate action.'},
+      '/mail/from_okafor.txt':{type:'file',perms:'-rw-r--r--',content:'FROM: j.okafor@delphi-soc.com\nTO: {{NAME}}@delphi-soc.com\nSUBJECT: The drift case\n\nJust take a look and log your findings.\nOracle says low risk and I agree.\nProbably a sync issue between auth servers.\n\n— Okafor'},
+      '/logs':{type:'dir',children:['auth_drift.log','system_sync.log']},
+      '/logs/auth_drift.log':{type:'file',perms:'-rw-r--r--',content:'AUTH DRIFT REPORT — 2032-10-09 00:00 to 06:00\n\nSYSTEM: delphi-internal-mail\n  Inconsistencies: 2 (minor — likely clock skew)\n  Severity: LOW\n\nSYSTEM: delphi-cloud-storage\n  Inconsistencies: 3 (minor — likely clock skew)\n  Severity: LOW\n\nSYSTEM: delphi-research-archive\n  Inconsistencies: 14 (unusual — no clear cause)\n  Sessions: 3 unattributed sessions (0.4s to 1.2s duration)\n  Access pattern: does not match any registered user\n  Severity: MODERATE\n\nNote: delphi-research-archive is a legacy system.\nPartly decommissioned. Low monitoring coverage.'},
+      '/logs/system_sync.log':{type:'file',perms:'-rw-r--r--',content:'Clock sync events — 2032-10-09:\n  delphi-internal-mail    synced 00:01:04  OK\n  delphi-cloud-storage    synced 00:01:07  OK (minor drift +2s)\n  delphi-research-archive synced 00:01:12  FAILED (no response)\n  delphi-research-archive retried 00:06:44 OK'},
+      '/cases':{type:'dir',children:['SOC-2201']},
+      '/cases/SOC-2201':{type:'dir',children:['notes.txt']},
+      '/cases/SOC-2201/notes.txt':{type:'file',perms:'-rw-r--r--',content:'Case SOC-2201 — Auth Drift\nPriority: Low\nInitial read: likely clock sync issue.\ndelphi-research-archive showing more activity\nthan other systems. Legacy system with low coverage.'},
     },
+    answer:'delphi-research-archive', answerHint:'Read the drift report. Which system has the most unusual inconsistency? Submit the system name.',
+    oracleMsg:'Auth drift detected. Confidence 12%. Likely benign. Monitoring.',
+    oracleConf:12, completionMsg:'Logged. delphi-research-archive flagged for monitoring. Probably nothing — but worth watching.',
+  }],
+},
+{
+  id:5, act:'ACT I', title:'THE INCIDENT', subtitle:'Chapter 5 — The Breach',
+  date:'October 14, 2032', loginMsg:'Normal shift. Nothing unusual in the queue.',
+  cases:[
+  {
+    id:'INC-0001', title:'Initial Alert', type:'breach',
+    objective:'An authentication alert just came in. Investigate and determine which system the anomaly originated from.',
+    body:'A single auth anomaly has been flagged. It looks routine but Oracle is asking for a closer look. Check the logs and submit the system name.',
+    fs:{
+      '/':{type:'dir',children:['logs','mail','alerts']},
+      '/mail':{type:'dir',children:['case_brief.txt']},
+      '/mail/case_brief.txt':{type:'file',perms:'-rw-r--r--',content:'FROM: oracle-alerts@delphi.com\nTO: {{NAME}}@delphi-soc.com\nSUBJECT: Alert INC-0001 — Authentication Anomaly\n\nSingle authentication event flagged on internal system.\nPattern slightly outside baseline.\n\nOracle confidence: 18% — Routine investigation requested.'},
+      '/logs':{type:'dir',children:['auth.log','access.log']},
+      '/logs/auth.log':{type:'file',perms:'-rw-r--r--',content:'2032-10-14 09:04:11  SUCCESS  svc-backup       delphi-research-archive  internal\n2032-10-14 09:04:44  SUCCESS  r.torres         delphi-internal-mail     192.168.1.14\n2032-10-14 09:05:02  SUCCESS  m.chen           delphi-cloud-storage     192.168.1.22\n2032-10-14 09:06:17  ANOMALY  [unresolved]     delphi-research-archive  10.0.14.88\n2032-10-14 09:06:18  NOTE     session duration: 0.3s  no further activity recorded'},
+      '/logs/access.log':{type:'file',perms:'-rw-r--r--',content:'2032-10-14 09:04:00  r.torres   /mail/inbox        READ\n2032-10-14 09:04:55  m.chen     /storage/q3-report READ\n2032-10-14 09:06:17  [unknown]  /archive/index     READ  (0.3s)'},
+      '/alerts':{type:'dir',children:['INC-0001.txt']},
+      '/alerts/INC-0001.txt':{type:'file',perms:'-rw-r--r--',content:'Alert: INC-0001\nTime: 09:06:17\nSystem: delphi-research-archive\nType: Unattributed session\nDuration: 0.3 seconds\nOracle note: IP 10.0.14.88 not in registered device list.'},
+    },
+    answer:'delphi-research-archive', answerHint:'Check the auth log. Which system had the unattributed session? Submit the system name.',
+    oracleMsg:'Single anomaly — delphi-research-archive. Confidence 18%.',
+    oracleConf:18, completionMsg:'Flagged and logged. Same system as the auth drift last week. Probably nothing. Keep an eye on it.',
   },
-  M05: {
-    ghost: {
-      briefing: `You beat the clock. The collective is calling this your best work yet.\nBut ClearNet is getting close. Too close.\nTime to move to the final phase. Government targets. The big score.\nAfter this — you either vanish or you get caught.`,
-      news: { headline: 'Government Networks Under Increased Threat as PHANTOM Goes Dark', body: 'Intelligence officials warn that PHANTOM, responsible for a string of corporate and financial cyberattacks, has gone silent — often a precursor to a major operation. Federal agencies are on high alert.' },
-      toolUnlock: null,
+  {
+    id:'INC-0002', title:'ESCALATION — Multiple Systems', type:'breach_escalation',
+    objective:'Multiple systems are now reporting anomalies simultaneously. Identify which system first reported lateral movement.',
+    body:'The incident has escalated. Dozens of anomalies are firing across multiple divisions. Triage the alerts and identify which system lateral movement first spread to after the initial entry. Submit the system name.',
+    fs:{
+      '/':{type:'dir',children:['logs','alerts','mail','cases']},
+      '/mail':{type:'dir',children:['escalation_notice.txt','from_okafor.txt','from_reyes.txt']},
+      '/mail/escalation_notice.txt':{type:'file',perms:'-rw-r--r--',content:'FROM: soc-automation@delphi.com\nTO: ALL-SOC@delphi.com\nSUBJECT: SEVERITY 1 — INCIDENT ESCALATION\n\nMultiple systems reporting simultaneous anomalies.\nAll analysts report to investigation channels.\nEmergency response protocol activated.\nIncident commander: J. Okafor'},
+      '/mail/from_okafor.txt':{type:'file',perms:'-rw-r--r--',content:'FROM: j.okafor@delphi-soc.com\nTO: ALL-SOC@delphi.com\nSUBJECT: All hands\n\nThis is real. Everyone on this now.\n{{NAME}} — you were first on it, stay on the archive logs.\nChen, Reyes — cover network and auth respectively.\nNakamura — monitor Oracle output.\n\nLog everything.\n\n— Okafor'},
+      '/mail/from_reyes.txt':{type:'file',perms:'-rw-r--r--',content:'FROM: s.reyes@delphi-soc.com\nTO: {{NAME}}@delphi-soc.com\nSUBJECT: Network is lighting up\n\nMovement between systems that should not be\ncommunicating at all. Restricted networks talking\nto each other. Someone is moving through infrastructure.\n\nI have never seen a pattern like this.\n\n— Reyes'},
+      '/logs':{type:'dir',children:['lateral_movement.log','auth_cascade.log','oracle_report_1.txt']},
+      '/logs/lateral_movement.log':{type:'file',perms:'-rw-r--r--',content:'LATERAL MOVEMENT LOG — 2032-10-14\n\n09:06:17  delphi-research-archive   initial entry (unattributed)\n09:09:44  delphi-internal-mail      accessed from research-archive (UNAUTHORIZED)\n09:11:22  delphi-cloud-storage      accessed from internal-mail (UNAUTHORIZED)\n09:12:01  delphi-code-repository    accessed from cloud-storage (UNAUTHORIZED)\n09:13:44  delphi-oracle-staging     access ATTEMPTED from code-repository (BLOCKED)\n09:14:12  delphi-hr-systems         accessed from cloud-storage (UNAUTHORIZED)\n\nFirst lateral movement: research-archive to internal-mail'},
+      '/logs/auth_cascade.log':{type:'file',perms:'-rw-r--r--',content:'Authentication cascade — 2032-10-14 09:06 to 09:20:\n\nAffected systems: 14\nNo consistent account identified across all systems.\nAuth records show conflicting session data.\nTimelines do not align across log sources.'},
+      '/logs/oracle_report_1.txt':{type:'file',perms:'-rw-r--r--',content:'ORACLE ATTRIBUTION REPORT — 14 OCT 2032 09:22\nReport 1 of ongoing analysis\n\nPossible subjects identified: 7\n\n  [REDACTED]   31%\n  [REDACTED]   24%\n  [REDACTED]   18%\n  [REDACTED]   14%\n  {{NAME}}     11%\n  [REDACTED]    9%\n  [REDACTED]    7%\n\nNote: Low confidence. Multiple active analysts\noverlap with suspicious activity. Analysis continuing.'},
+      '/alerts':{type:'dir',children:['active_alerts.txt']},
+      '/alerts/active_alerts.txt':{type:'file',perms:'-rw-r--r--',content:'ACTIVE ALERTS — 09:25\n\n  INC-0001  delphi-research-archive   ACTIVE\n  INC-0002  lateral movement          ACTIVE — SEVERITY 1\n  INC-0003  auth cascade              ACTIVE — SEVERITY 1\n  INC-0004  code-repository access    ACTIVE — SEVERITY 1\n  INC-0005  hr-systems access         ACTIVE — SEVERITY 1\n\nOracle processing. Reports generating.'},
     },
-    sentinel: {
-      briefing: `The kill-switch worked. System saved.\nBut PHANTOM is still out there — and they've gone quiet. That means they're planning something big.\nYour contract has been escalated to a federal mandate. Stop PHANTOM before they hit government infrastructure.\nThis is the endgame.`,
-      news: { headline: 'ClearNet Analyst Given Federal Mandate to Stop PHANTOM Before Infrastructure Attack', body: 'In an unprecedented move, federal authorities have granted a private cybersecurity analyst sweeping access to government networks to track and neutralize the threat actor known as PHANTOM.' },
-      toolUnlock: null,
+    answer:'delphi-internal-mail', answerHint:'Read the lateral movement log. What was the first system accessed after the initial entry? Submit the system name.',
+    oracleMsg:'Lateral movement confirmed. 14 systems affected. Attribution running. Report 1 generated.',
+    oracleConf:22, completionMsg:'Confirmed. The attacker moved from research-archive into internal-mail first. Okafor briefed. Oracle still processing.',
+  }],
+},
+{
+  id:6, act:'ACT I', title:'THE INCIDENT', subtitle:'Chapter 6 — Attribution',
+  date:'October 14, 2032', loginMsg:'Investigation continuing. Oracle reports incoming.',
+  cases:[{
+    id:'INC-ATT-001', title:'Attribution Analysis', type:'attribution',
+    objective:'Three Oracle attribution reports have been generated. Review them all. Submit your confidence score from the third report.',
+    body:'Oracle has generated three attribution reports over the course of the investigation. Your name appears in all of them and your confidence score has risen with each report. Read all three and submit your score from Report 3.',
+    fs:{
+      '/':{type:'dir',children:['logs','oracle','mail','cases']},
+      '/mail':{type:'dir',children:['from_okafor.txt','from_nakamura.txt','notice.txt']},
+      '/mail/from_okafor.txt':{type:'file',perms:'-rw-r--r--',content:'FROM: j.okafor@delphi-soc.com\nTO: {{NAME}}@delphi-soc.com\nSUBJECT: Need to speak with you\n\nCan you come to my office when you have a moment.\n\n— Okafor'},
+      '/mail/from_nakamura.txt':{type:'file',perms:'-rw-r--r--',content:'FROM: t.nakamura@delphi-soc.com\nTO: {{NAME}}@delphi-soc.com\nSUBJECT: (no subject)\n\nHey. Just heads up.\nPeople are talking.\nI do not know what is in those reports but be careful.\n\n— T'},
+      '/mail/notice.txt':{type:'file',perms:'-rw-r--r--',content:'FROM: security-division@delphi.com\nTO: {{NAME}}@delphi-soc.com\nSUBJECT: Administrative Notice\n\nYour account activity is under administrative review.\n\nDo not discuss this matter with colleagues.\nCooperate fully with any requests from the Security Division.\n\n— Delphi Security Division'},
+      '/oracle':{type:'dir',children:['report_1.txt','report_2.txt','report_3.txt']},
+      '/oracle/report_1.txt':{type:'file',perms:'-rw-r--r--',content:'ORACLE ATTRIBUTION REPORT — 14 OCT 2032 09:22\nReport 1\n\nPossible subjects: 7\n\n  [REDACTED]   31%\n  [REDACTED]   24%\n  [REDACTED]   18%\n  [REDACTED]   14%\n  {{NAME}}     11%\n  [REDACTED]    9%\n  [REDACTED]    7%\n\nNote: Multiple analysts\' activity overlaps with breach.\nLow confidence across all candidates.'},
+      '/oracle/report_2.txt':{type:'file',perms:'-rw-r--r--',content:'ORACLE ATTRIBUTION REPORT — 14 OCT 2032 11:47\nReport 2\n\nCandidates reduced to 3 following analysis.\n\n  [REDACTED]   41%\n  {{NAME}}     38%\n  [REDACTED]   21%\n\nNote: {{NAME}} — activity correlation has increased.\nSystems accessed during investigation overlap\nsignificantly with breach activity.\n\nOracle note: Subject may argue investigative access\nexplains the correlation. Analysis accounts for this.\nResidual confidence remains elevated.'},
+      '/oracle/report_3.txt':{type:'file',perms:'-rw-r--r--',content:'ORACLE ATTRIBUTION REPORT — 14 OCT 2032 14:03\nReport 3\n\nPrimary attribution candidate identified.\n\n  {{NAME}}     79%\n  [REDACTED]   14%\n  [REDACTED]    7%\n\nConclusion: With 79% confidence, Oracle identifies\n{{NAME}} as the highest-probability source of the\nbreach activity.\n\nRecommendation: Account suspension pending review.\n\nORACLE-ATT-2032-4471'},
+      '/logs':{type:'dir',children:['my_notes.txt']},
+      '/logs/my_notes.txt':{type:'file',perms:'-rw-r--r--',content:'Personal notes — {{NAME}}\n\nI have been investigating this breach since 09:06.\nEvery system I accessed was part of my investigation.\nEvery log I read was assigned to me.\n\nOracle is flagging my own work as evidence against me.\n\nI tried to explain this to Okafor.\nHe said Oracle had accounted for that possibility.\n\nI do not know what that means.'},
+      '/cases':{type:'dir',children:['INC-ATT-001']},
+      '/cases/INC-ATT-001':{type:'dir',children:['summary.txt']},
+      '/cases/INC-ATT-001/summary.txt':{type:'file',perms:'-rw-r--r--',content:'Three attribution reports have been generated.\nRead all three in /oracle/.\nSubmit your confidence score from Report 3.'},
     },
-  },
-};
-
-// ═══════════════════════════════════════════════
-//  FILESYSTEM DATA
-// ═══════════════════════════════════════════════
-const missionFilesystems = {
-  M01: {
-    ghost: {
-      '/': { type:'dir', children:['home','var','tmp','etc'] },
-      '/home': { type:'dir', children:['ghost'] },
-      '/home/ghost': { type:'dir', children:['readme.txt','emails'] },
-      '/home/ghost/readme.txt': { type:'file', perms:'-rw-r--r--', content:'Welcome, operative.\nYour target system has been partially compromised.\nCheck /tmp for intercepted transmissions.\nCheck /etc/config for credentials.' },
-      '/home/ghost/emails': { type:'dir', children:['contact_01.txt'] },
-      '/home/ghost/emails/contact_01.txt': { type:'file', perms:'-rw-------', content:'FROM: unknown@darknet.onion\nTO: operative\nSUBJECT: First assignment\n\nProve yourself. The encoded transmission in /tmp is your first target.\nDecode it and report back the access code.\nDo not leave traces.' },
-      '/var': { type:'dir', children:['logs'] },
-      '/var/logs': { type:'dir', children:['access.log'] },
-      '/var/logs/access.log': { type:'file', perms:'-rw-r--r--', content:'2024-01-15 09:00:01 CONNECT 10.0.0.1\n2024-01-15 09:00:44 AUTH admin OK\n2024-01-15 09:12:18 CONNECT 10.0.0.1\n2024-01-15 09:12:55 AUTH admin OK' },
-      '/tmp': { type:'dir', children:['message.enc','drop.txt'] },
-      '/tmp/message.enc': { type:'file', perms:'-rw-r--r--', content:'Intercepted transmission:\nUEhBTlRPTQ==\nEncoding: Base64\n\nDecode to find the access code.' },
-      '/tmp/drop.txt': { type:'file', perms:'-rw-rw-rw-', content:'Staging area. Leave exfil files here.' },
-      '/etc': { type:'dir', children:['hosts','config'] },
-      '/etc/hosts': { type:'file', perms:'-rw-r--r--', content:'127.0.0.1   localhost\n192.168.1.1 gateway\n10.0.0.47   backup-primary.internal' },
-      '/etc/config': { type:'dir', children:['.passwd','network.conf'] },
-      '/etc/config/.passwd': { type:'file', perms:'-rw-------', hidden:true, content:'[CREDENTIALS FILE]\nroot:$shadow$x$12345\nadmin:$shadow$x$67890' },
-      '/etc/config/network.conf': { type:'file', perms:'-rw-r--r--', content:'INTERFACE=eth0\nGATEWAY=192.168.1.1\nDNS=8.8.8.8' },
-    },
-    sentinel: {
-      '/': { type:'dir', children:['home','var','tmp','etc'] },
-      '/home': { type:'dir', children:['sentinel'] },
-      '/home/sentinel': { type:'dir', children:['briefing.txt','emails'] },
-      '/home/sentinel/briefing.txt': { type:'file', perms:'-rw-r--r--', content:'Operative.\nSuspicious encoded data was detected leaving our network.\nInvestigate /var/outbound for the offending packet.\nAlso check /var/logs/integrity.log for tampered files.' },
-      '/home/sentinel/emails': { type:'dir', children:['supervisor_01.txt'] },
-      '/home/sentinel/emails/supervisor_01.txt': { type:'file', perms:'-rw-------', content:'FROM: director@clearnet.sec\nTO: analyst\nSUBJECT: Urgent — data exfiltration detected\n\nWe have a live incident. Encoded data left the network from an internal host.\nIdentify what was transmitted and which file was tampered with.\nReport back ASAP.' },
-      '/var': { type:'dir', children:['logs','outbound'] },
-      '/var/logs': { type:'dir', children:['access.log','integrity.log'] },
-      '/var/logs/access.log': { type:'file', perms:'-rw-r--r--', content:'2024-01-15 00:12:44 AUTH user:admin     ip:10.0.0.1       OK\n2024-01-15 02:33:11 AUTH user:guest     ip:192.168.1.5    OK\n2024-01-15 09:15:03 AUTH user:admin     ip:10.0.0.1       OK' },
-      '/var/logs/integrity.log': { type:'file', perms:'-rw-r--r--', content:'File integrity check — 2024-01-15:\n  access.log     MODIFIED  3.2MB -> 847KB  [TAMPERED]\n  config.json    OK\n  users.db       OK\n  .env           OK' },
-      '/var/outbound': { type:'dir', children:['packet_44A.enc'] },
-      '/var/outbound/packet_44A.enc': { type:'file', perms:'-rw-r--r--', content:'Captured outbound packet:\nSU5UUlVERVI=\nEncoding: Base64\nDestination: 45.33.32.156\n\nDecode to identify the transmitted data.' },
-      '/tmp': { type:'dir', children:[] },
-      '/etc': { type:'dir', children:['hosts'] },
-      '/etc/hosts': { type:'file', perms:'-rw-r--r--', content:'127.0.0.1   localhost\n192.168.1.1 gateway' },
-    },
-  },
-  M02: {
-    ghost: {
-      '/': { type:'dir', children:['home','var'] },
-      '/home': { type:'dir', children:['ghost'] },
-      '/home/ghost': { type:'dir', children:['mission.txt','emails'] },
-      '/home/ghost/mission.txt': { type:'file', perms:'-rw-r--r--', content:'Target: NovaCorp internal network.\nObjective 1: Find and identify the timestamp of your auth log entry.\nObjective 2: Locate the SSH-open node on their subnet for your entry point.' },
-      '/home/ghost/emails': { type:'dir', children:['contact_02.txt'] },
-      '/home/ghost/emails/contact_02.txt': { type:'file', perms:'-rw-------', content:'FROM: unknown@darknet.onion\nTO: operative\nSUBJECT: Deep trace assignment\n\nNovaCorp\'s auth logs have your fingerprints. Find the timestamp — we need to scrub it.\nAlso: map their internal subnet. We need an SSH entry point for the next job.\nThe network scan results are already on their system. Find them.' },
-      '/var': { type:'dir', children:['logs','net'] },
-      '/var/logs': { type:'dir', children:['auth.log'] },
-      '/var/logs/auth.log': { type:'file', perms:'-rw-r--r--', content:'2024-01-15 00:12:44  AUTH  user:admin  ip:10.0.0.1       OK\n2024-01-15 02:33:11  AUTH  user:guest  ip:192.168.1.5    OK\n2024-01-15 03:47:22  AUTH  user:root   ip:45.33.32.156   FAIL\n2024-01-15 03:47:31  AUTH  user:root   ip:45.33.32.156   FAIL\n2024-01-15 03:47:44  AUTH  user:root   ip:45.33.32.156   OK\n2024-01-15 09:15:03  AUTH  user:admin  ip:10.0.0.1       OK' },
-      '/var/net': { type:'dir', children:['scan_results.txt'] },
-      '/var/net/scan_results.txt': { type:'file', perms:'-rw-r--r--', content:'Subnet scan 192.168.1.0/24:\n\n192.168.1.1   ONLINE   ports: 80, 443\n192.168.1.3   OFFLINE\n192.168.1.5   ONLINE   ports: 80, 443, 8080\n192.168.1.7   ONLINE   ports: 22, 80\n192.168.1.9   ONLINE   ports: 443' },
-    },
-    sentinel: {
-      '/': { type:'dir', children:['home','var','etc'] },
-      '/home': { type:'dir', children:['sentinel'] },
-      '/home/sentinel': { type:'dir', children:['alert.txt','emails'] },
-      '/home/sentinel/alert.txt': { type:'file', perms:'-rw-r--r--', content:'SECURITY ALERT — 2024-01-15\nUnauthorized root login confirmed. Auth logs in /var/logs.\nAdditionally: a rogue device is active on the network.\nCheck /var/net for registry vs active host comparison.' },
-      '/home/sentinel/emails': { type:'dir', children:['supervisor_02.txt'] },
-      '/home/sentinel/emails/supervisor_02.txt': { type:'file', perms:'-rw-------', content:'FROM: director@clearnet.sec\nTO: analyst\nSUBJECT: Two findings — act fast\n\nFirst: pull the auth logs and find the attacker\'s IP. That\'s our primary lead.\nSecond: network team flagged a device that shouldn\'t be there. Find it.\nBoth are linked. Same operator.' },
-      '/var': { type:'dir', children:['logs','net'] },
-      '/var/logs': { type:'dir', children:['auth.log'] },
-      '/var/logs/auth.log': { type:'file', perms:'-rw-r--r--', content:'2024-01-15 00:12:44  AUTH  user:admin  ip:10.0.0.1       OK\n2024-01-15 02:33:11  AUTH  user:guest  ip:192.168.1.5    OK\n2024-01-15 03:47:22  AUTH  user:root   ip:45.33.32.156   FAIL\n2024-01-15 03:47:31  AUTH  user:root   ip:45.33.32.156   FAIL\n2024-01-15 03:47:44  AUTH  user:root   ip:45.33.32.156   OK\n2024-01-15 09:15:03  AUTH  user:admin  ip:10.0.0.1       OK' },
-      '/var/net': { type:'dir', children:['registry.txt','active_hosts.txt'] },
-      '/var/net/registry.txt': { type:'file', perms:'-rw-r--r--', content:'Registered devices:\n  192.168.1.1    ROUTER\n  192.168.1.5    WEB-SERVER\n  192.168.1.10   ADMIN-LAPTOP' },
-      '/var/net/active_hosts.txt': { type:'file', perms:'-rw-r--r--', content:'Active hosts detected on network:\n  192.168.1.1    ONLINE\n  192.168.1.5    ONLINE\n  192.168.1.10   ONLINE\n  192.168.1.99   ONLINE' },
-      '/etc': { type:'dir', children:['hosts'] },
-      '/etc/hosts': { type:'file', perms:'-rw-r--r--', content:'127.0.0.1   localhost\n192.168.1.1 gateway' },
-    },
-  },
-  M03: {
-    ghost: {
-      '/': { type:'dir', children:['home','var','etc','db'] },
-      '/home': { type:'dir', children:['ghost'] },
-      '/home/ghost': { type:'dir', children:['notes.txt','emails'] },
-      '/home/ghost/notes.txt': { type:'file', perms:'-rw-r--r--', content:'Three objectives for root access:\n1. Crack the DB admin password hash in /db/passwords.db\n2. Disable the security monitor (find its PID via ps aux)\n3. Exploit the world-writable system file (check /etc with ls -la)' },
-      '/home/ghost/emails': { type:'dir', children:['contact_03.txt'] },
-      '/home/ghost/emails/contact_03.txt': { type:'file', perms:'-rw-------', content:'FROM: collective@darknet.onion\nTO: operative\nSUBJECT: Root access required\n\nWe need root on NovaCorp\'s primary server.\nThree vectors identified. Use whichever gets you in.\nClearNet is sniffing around — be fast.' },
-      '/db': { type:'dir', children:['passwords.db'] },
-      '/db/passwords.db': { type:'file', perms:'-rw-r-----', content:'NovaCorp user password hashes:\n  admin   : 5f4dcc3b5aa765d61d8327deb882cf99  [MD5]\n  guest   : d8578edf8458ce06fbc5bb76a58c5ca4  [MD5]\n\nHint: admin password is a common word followed by two digits.' },
-      '/etc': { type:'dir', children:['passwd','shadow','hosts'] },
-      '/etc/passwd': { type:'file', perms:'-rwxrwxrwx', content:'root:x:0:0:root:/root:/bin/bash\nadmin:x:1000:1000::/home/admin:/bin/sh' },
-      '/etc/shadow': { type:'file', perms:'-rw-r-----', content:'root:$6$rounds=5000$...:18000:0:99999:7:::\nadmin:$6$rounds=5000$...:18000:0:99999:7:::' },
-      '/etc/hosts': { type:'file', perms:'-rw-r--r--', content:'127.0.0.1  localhost' },
-      '/var': { type:'dir', children:['logs'] },
-      '/var/logs': { type:'dir', children:['access.log'] },
-      '/var/logs/access.log': { type:'file', perms:'-rw-r--r--', content:'[system log — nothing unusual]' },
-    },
-    sentinel: {
-      '/': { type:'dir', children:['home','var','etc'] },
-      '/home': { type:'dir', children:['sentinel'] },
-      '/home/sentinel': { type:'dir', children:['audit_brief.txt','emails'] },
-      '/home/sentinel/audit_brief.txt': { type:'file', perms:'-rw-r--r--', content:'Security audit — three critical findings:\n1. A dangerously weak password was detected — hash in /var/audit/weak_hash.txt\n2. A malicious process is running — use ps aux to find it\n3. A system file has world-write permissions — check /etc with ls -la' },
-      '/home/sentinel/emails': { type:'dir', children:['supervisor_03.txt'] },
-      '/home/sentinel/emails/supervisor_03.txt': { type:'file', perms:'-rw-------', content:'FROM: director@clearnet.sec\nTO: analyst\nSUBJECT: Full audit required — PHANTOM was here\n\nPHANTOM had root access. We need to know how they got in.\nRun the full audit — weak passwords, rogue processes, permission misconfigs.\nThis goes in the federal report.' },
-      '/var': { type:'dir', children:['audit','logs'] },
-      '/var/audit': { type:'dir', children:['weak_hash.txt'] },
-      '/var/audit/weak_hash.txt': { type:'file', perms:'-rw-r--r--', content:'Weak password hash flagged by scanner:\n  Hash      : 0d107d09f5bbe40cade3de5c71e9e9b7  [MD5]\n  Risk      : CRITICAL\n  Notes     : One of the most commonly used passwords globally.' },
-      '/var/logs': { type:'dir', children:['syslog'] },
-      '/var/logs/syslog': { type:'file', perms:'-rw-r--r--', content:'ERR_0xF00 — Root escalation attempt logged\n[system unstable — investigate immediately]' },
-      '/etc': { type:'dir', children:['passwd','shadow','hosts'] },
-      '/etc/passwd': { type:'file', perms:'-rwxrwxrwx', content:'root:x:0:0:root:/root:/bin/bash\nadmin:x:1000:1000::/home/admin:/bin/sh' },
-      '/etc/shadow': { type:'file', perms:'-rw-r-----', content:'root:$6$...:18000:0:99999:7:::\nadmin:$6$...:18000:0:99999:7:::' },
-      '/etc/hosts': { type:'file', perms:'-rw-r--r--', content:'127.0.0.1  localhost' },
-    },
-  },
-  M04: {
-    ghost: {
-      '/': { type:'dir', children:['home','var','etc'] },
-      '/home': { type:'dir', children:['ghost'] },
-      '/home/ghost': { type:'dir', children:['briefing.txt','emails'] },
-      '/home/ghost/briefing.txt': { type:'file', perms:'-rw-r--r--', content:'Two objectives:\n1. Decode the binary transmission in /var/data/binary.dat\n2. Follow the config trail to find the backup server IP.' },
-      '/home/ghost/emails': { type:'dir', children:['contact_04.txt'] },
-      '/home/ghost/emails/contact_04.txt': { type:'file', perms:'-rw-------', content:'FROM: collective@darknet.onion\nTO: operative\nSUBJECT: Protocol Ghost\n\nThe binary contains a codename for the next op.\nThe backup server is where the data lives — we need that IP.\nFollow the config chain. It\'s all there if you look.' },
-      '/var': { type:'dir', children:['logs','data'] },
-      '/var/logs': { type:'dir', children:['backup.conf'] },
-      '/var/logs/backup.conf': { type:'file', perms:'-rw-r--r--', content:'# NovaCorp Backup Configuration\nbackup_schedule=daily\nbackup_dest="server_bravo"\nretention_days=30' },
-      '/var/data': { type:'dir', children:['binary.dat','dns_cache.txt'] },
-      '/var/data/binary.dat': { type:'file', perms:'-rw-r--r--', content:'Intercepted binary transmission:\n01000001  01000011  01000101\n\nConvert each 8-bit group to ASCII.\nA=65=01000001  B=66=01000010  C=67=01000011' },
-      '/var/data/dns_cache.txt': { type:'file', perms:'-rw-r--r--', content:'DNS cache:\n  server_bravo              CNAME  backup-primary.internal\n  backup-secondary.internal A      10.0.0.50' },
-      '/etc': { type:'dir', children:['hosts','resolv.conf'] },
-      '/etc/hosts': { type:'file', perms:'-rw-r--r--', content:'127.0.0.1        localhost\n192.168.1.1      gateway\n10.0.0.47        backup-primary.internal\n10.0.0.50        backup-secondary.internal' },
-      '/etc/resolv.conf': { type:'file', perms:'-rw-r--r--', content:'nameserver 8.8.8.8\nsearch internal' },
-    },
-    sentinel: {
-      '/': { type:'dir', children:['home','var','data'] },
-      '/home': { type:'dir', children:['sentinel'] },
-      '/home/sentinel': { type:'dir', children:['briefing.txt','emails'] },
-      '/home/sentinel/briefing.txt': { type:'file', perms:'-rw-r--r--', content:'Two objectives:\n1. Decode the binary payload in /data/payload.dat to identify the attack vector\n2. Trace PHANTOM\'s full pivot chain in /var/forensics/ to find their exit IP.' },
-      '/home/sentinel/emails': { type:'dir', children:['supervisor_04.txt'] },
-      '/home/sentinel/emails/supervisor_04.txt': { type:'file', perms:'-rw-------', content:'FROM: director@clearnet.sec\nTO: analyst\nSUBJECT: PHANTOM\'s trail — follow it\n\nWe intercepted a binary payload. Decode it — it contains the operation codename.\nAlso: forensics recovered PHANTOM\'s pivot chain. Follow it file by file.\nThe exit IP is the only real lead we have on their physical location.' },
-      '/var': { type:'dir', children:['forensics'] },
-      '/var/forensics': { type:'dir', children:['pivot_01.txt','pivot_02.txt','pivot_03.txt'] },
-      '/var/forensics/pivot_01.txt': { type:'file', perms:'-rw-r--r--', content:'Entry point confirmed: 192.168.1.7\n(internal compromised host — NovaCorp network)\nNext pivot recorded in pivot_02.txt' },
-      '/var/forensics/pivot_02.txt': { type:'file', perms:'-rw-r--r--', content:'Pivot 1: 10.10.10.15  (DMZ proxy — anonymous)\nPivot 2: 172.16.0.88  (offshore relay node)\nFinal destination recorded in pivot_03.txt' },
-      '/var/forensics/pivot_03.txt': { type:'file', perms:'-rw-r--r--', content:'Exfil destination (external IP):\n185.220.101.5\n\nThis is PHANTOM\'s exit node. All stolen data went here.' },
-      '/data': { type:'dir', children:['payload.dat'] },
-      '/data/payload.dat': { type:'file', perms:'-rw-r--r--', content:'Intercepted binary payload:\n01000001  01000011  01000101\n\nConvert each 8-bit group to ASCII to identify the operation codename.' },
-    },
-  },
-  M05: {
-    ghost: {
-      '/': { type:'dir', children:['tmp','var','home'] },
-      '/home': { type:'dir', children:['ghost'] },
-      '/home/ghost': { type:'dir', children:['emails'] },
-      '/home/ghost/emails': { type:'dir', children:['contact_05.txt'] },
-      '/home/ghost/emails/contact_05.txt': { type:'file', perms:'-rw-------', content:'FROM: collective@darknet.onion\nTO: operative\nSUBJECT: Zero Day — final test\n\nOne shot. The auth token expires in 60 seconds.\nDecode it and get in before the window closes.\nThis is the last job before the big one.' },
-      '/tmp': { type:'dir', children:['token.enc','readme.txt'] },
-      '/tmp/readme.txt': { type:'file', perms:'-rw-r--r--', content:'Auth token window is open.\nYou have 60 seconds from puzzle start.\nFile: /tmp/token.enc\nDecode and submit immediately.' },
-      '/tmp/token.enc': { type:'file', perms:'-rw-r--r--', content:'One-time auth token:\nT1ZFUkRSSVZF\nEncoding: Base64' },
-      '/var': { type:'dir', children:['logs'] },
-      '/var/logs': { type:'dir', children:['system.log'] },
-      '/var/logs/system.log': { type:'file', perms:'-rw-r--r--', content:'ERR_0x4F1 — Auth token expiring\nERR_0x2A9 — Firewall conflict on port 22\n[window is open — act now]' },
-    },
-    sentinel: {
-      '/': { type:'dir', children:['tmp','var','home'] },
-      '/home': { type:'dir', children:['sentinel'] },
-      '/home/sentinel': { type:'dir', children:['emails'] },
-      '/home/sentinel/emails': { type:'dir', children:['supervisor_05.txt'] },
-      '/home/sentinel/emails/supervisor_05.txt': { type:'file', perms:'-rw-------', content:'FROM: director@clearnet.sec\nTO: analyst\nSUBJECT: ACTIVE INCIDENT — ransomware detected\n\nRansomware is encrypting files RIGHT NOW.\nFind the kill-switch code in /tmp and decode it.\nYou have 60 seconds before the encryption completes. Go.' },
-      '/tmp': { type:'dir', children:['killswitch.enc','alert.txt'] },
-      '/tmp/alert.txt': { type:'file', perms:'-rw-r--r--', content:'RANSOMWARE ACTIVE — files encrypting\nKill-switch located in this directory.\nFile: /tmp/killswitch.enc\nDecode and submit to halt encryption.' },
-      '/tmp/killswitch.enc': { type:'file', perms:'-rw-r--r--', content:'Kill-switch code (encoded):\nT1ZFUkRSSVZF\nEncoding: Base64' },
-      '/var': { type:'dir', children:['logs'] },
-      '/var/logs': { type:'dir', children:['system.log'] },
-      '/var/logs/system.log': { type:'file', perms:'-rw-r--r--', content:'ERR_0xDEAD — System integrity compromised\nERR_0xF00  — Root escalation by unknown process\n[encryption spreading — /home at 34%]' },
-    },
-  },
-};
-
-// ═══════════════════════════════════════════════
-//  PS AUX SNAPSHOTS
-// ═══════════════════════════════════════════════
-const psSnapshots = {
-  M03: {
-    ghost: [
-      'PID    USER    CPU%   MEM%   COMMAND',
-      '1      root    0.0    0.1    /sbin/init',
-      '412    root    0.0    0.3    sshd',
-      '891    www     1.2    2.1    nginx',
-      '1204   root    0.1    0.4    cron',
-      '4821   root    98.7   0.1    sec_monitor',
-      '5103   dbuser  2.1    8.4    postgres',
-    ],
-    sentinel: [
-      'PID    USER    CPU%   MEM%   COMMAND',
-      '1      root    0.0    0.1    /sbin/init',
-      '412    root    0.0    0.3    sshd',
-      '891    www     1.2    2.1    nginx',
-      '3377   root    0.0    0.1    .sshd',
-      '5103   dbuser  2.1    8.4    postgres',
-      '8801   root    0.2    0.6    auditd',
-    ],
-  },
-};
-const defaultPs = [
-  'PID    USER    CPU%   MEM%   COMMAND',
-  '1      root    0.0    0.1    /sbin/init',
-  '412    root    0.0    0.3    sshd',
-  '891    www     1.2    2.1    nginx',
-  '5103   dbuser  2.1    8.4    postgres',
+    answer:'79', answerHint:'Read all three Oracle reports in /oracle/. What is your confidence score in Report 3? Submit just the number.',
+    oracleMsg:'Attribution complete. Primary candidate identified. Confidence: 79%.',
+    oracleConf:79, completionMsg:null, isAttributionFinal:true,
+  }],
+},
 ];
 
-// ═══════════════════════════════════════════════
-//  PUZZLE DEFINITIONS
-// ═══════════════════════════════════════════════
-const puzzles = {
-  decode: {
-    title:'Decode Message', timed:false,
-    ghost:    { objective:'An encoded transmission was intercepted. Find the encoded file in /tmp, decode it using decode --base64, and submit the plaintext access code.', answer:'PHANTOM' },
-    sentinel: { objective:'Encoded data was detected leaving the network. Locate the packet file in /var/outbound, decode it, and submit what was transmitted.', answer:'INTRUDER' },
-  },
-  file: {
-    title:'File Investigation', timed:false,
-    ghost:    { objective:'The target config directory contains a hidden credentials file. Navigate to /etc/config and use ls -la to find it. Submit its filename.', answer:'.passwd' },
-    sentinel: { objective:'A file was tampered with during the breach. Check /var/logs/integrity.log to identify which file was modified. Submit its name.', answer:'access.log' },
-  },
-  log: {
-    title:'Log Analysis', timed:false,
-    ghost:    { objective:'Your intrusion left a trace in /var/logs/auth.log. Find the timestamp (HH:MM) of the suspicious root login from an external IP and submit it.', answer:'03:47' },
-    sentinel: { objective:'A brute-force attack succeeded against root. Read /var/logs/auth.log and identify the attacker\'s IP address. Submit it.', answer:'45.33.32.156' },
-  },
-  network: {
-    title:'Network Mapping', timed:false,
-    ghost:    { objective:'Find the network scan results in /var/net/. Identify the host with SSH (port 22) open — that is your entry point. Submit its IP.', answer:'192.168.1.7' },
-    sentinel: { objective:'Compare /var/net/registry.txt against /var/net/active_hosts.txt. Identify the unauthorized host on the network. Submit its IP.', answer:'192.168.1.99' },
-  },
-  crack: {
-    title:'Password Cracking', timed:false,
-    ghost:    { objective:'Find the password hash file in /db/. The admin hash is MD5. It is a common word followed by two digits. Submit the plaintext password.', answer:'shadow99' },
-    sentinel: { objective:'A critically weak password hash was flagged. Find it in /var/audit/. It is one of the most commonly used passwords ever. Submit it.', answer:'letmein' },
-  },
-  process: {
-    title:'Process Investigation', timed:false,
-    ghost:    { objective:'Run ps aux. Find the security monitoring process consuming abnormal CPU. Submit its PID number.', answer:'4821' },
-    sentinel: { objective:'Run ps aux. A malicious process is disguised as a legitimate service. Identify the rogue process and submit its PID.', answer:'3377' },
-  },
-  perms: {
-    title:'Permissions Puzzle', timed:false,
-    ghost:    { objective:'Run ls -la /etc to see file permissions. Find the world-writable system file (rwxrwxrwx) — your privilege escalation vector. Submit its full path.', answer:'/etc/passwd' },
-    sentinel: { objective:'Run ls -la /etc. One critical system file has catastrophically open permissions. Find it and submit its full path.', answer:'/etc/passwd' },
-  },
-  binary: {
-    title:'Binary Decode', timed:false,
-    ghost:    { objective:'Find the binary file in /var/data/. Convert each 8-bit group to its ASCII character. Submit the decoded word.', answer:'ACE' },
-    sentinel: { objective:'Find the binary payload in /data/. Decode each 8-bit group to ASCII to identify the operation codename. Submit it.', answer:'ACE' },
-  },
-  breadcrumbs: {
-    title:'Digital Breadcrumbs', timed:false,
-    ghost:    { objective:'Start with /var/logs/backup.conf. Follow the hostname through /var/data/dns_cache.txt, then resolve it in /etc/hosts. Submit the final IP address.', answer:'10.0.0.47' },
-    sentinel: { objective:'Read the pivot files in /var/forensics/ in order. Follow PHANTOM\'s path from entry to exit. Submit their external exit IP.', answer:'185.220.101.5' },
-  },
-  timed: {
-    title:'Timed Breach', timed:true, timeLimit:60,
-    ghost:    { objective:'The auth token is expiring. Find /tmp/token.enc, decode it with decode --base64, and submit the result before time runs out.', answer:'OVERDRIVE' },
-    sentinel: { objective:'Ransomware is active. Find /tmp/killswitch.enc, decode it with decode --base64, and submit immediately to stop the encryption.', answer:'OVERDRIVE' },
-  },
-};
-
-// ═══════════════════════════════════════════════
-//  MISSION CONFIG
-// ═══════════════════════════════════════════════
-const MISSIONS = [
-  { id:'M01', name:'Cold Boot',      act:1, repRequired:0,   repGate:0,   puzzles:['decode','file'],             toolUnlock:'crack_basic' },
-  { id:'M02', name:'Deep Trace',     act:1, repRequired:0,   repGate:20,  puzzles:['log','network'],             toolUnlock:null },
-  { id:'M03', name:'Root Access',    act:1, repRequired:0,   repGate:50,  puzzles:['crack','process','perms'],   toolUnlock:null },
-  { id:'M04', name:'Ghost Protocol', act:1, repRequired:0,   repGate:90,  puzzles:['binary','breadcrumbs'],      toolUnlock:null },
-  { id:'M05', name:'Zero Day',       act:1, repRequired:0,   repGate:130, puzzles:['timed'],                     toolUnlock:null },
-];
-
-// ═══════════════════════════════════════════════
-//  GAME STATE
-// ═══════════════════════════════════════════════
-const state = {
-  path: null,
-  rep: 0,
-  missions: MISSIONS.map(m => ({ ...m, status: 'locked' })),
-  currentMission: null,
-  currentPuzzle: null,
-  puzzleState: {},
-  fs: {},
-  cwd: '/',
-  ownedTools: new Set(['decode_b64','decode_hex','grep','ping']),
-  history: [],
-  histIdx: -1,
-  timerInterval: null,
-};
-
-// ═══════════════════════════════════════════════
-//  FILESYSTEM HELPERS
-// ═══════════════════════════════════════════════
-function resolvePath(input) {
-  if (!input) return state.cwd;
-  if (input === '/') return '/';
-  let base = input.startsWith('/') ? '' : state.cwd;
-  let parts = (base + '/' + input).split('/').filter(Boolean);
-  let resolved = [];
-  for (let p of parts) {
-    if (p === '..') resolved.pop();
-    else if (p !== '.') resolved.push(p);
-  }
-  return '/' + resolved.join('/');
+// ── FILESYSTEM ───────────────────────────────
+function fsReplace(fs, name) {
+  const out = {};
+  Object.keys(fs).forEach(k => {
+    const node = Object.assign({}, fs[k]);
+    if (node.content) node.content = node.content.replace(/\{\{NAME\}\}/g, name);
+    out[k] = node;
+  });
+  return out;
 }
-
-function getNode(path) { return state.fs[resolvePath(path)] || null; }
+function resolvePath(input) {
+  if (!input) return G.cwd;
+  if (input === '/') return '/';
+  let base = input.startsWith('/') ? '' : G.cwd;
+  let parts = (base + '/' + input).split('/').filter(Boolean);
+  let r = [];
+  for (let p of parts) { if (p === '..') r.pop(); else if (p !== '.') r.push(p); }
+  return '/' + r.join('/');
+}
+function getNode(path) { return G.fs[resolvePath(path)] || null; }
 
 function listDir(path, showHidden) {
-  if (!state.currentMission && !tState.active) { print('No filesystem loaded. Start a mission first.', 'warn'); return; }
-  let p = resolvePath(path);
-  let node = state.fs[p];
-  if (!node) { print('ls: ' + (path||'.') + ': No such directory', 'error'); return; }
-  if (node.type !== 'dir') { print('ls: ' + path + ': Not a directory', 'error'); return; }
-  let children = (node.children || []).filter(c => showHidden || !c.startsWith('.'));
-  if (children.length === 0) { print('(empty)', 'dim'); return; }
+  if (!Object.keys(G.fs).length) { dPrint('No filesystem loaded.', 'error'); return; }
+  let p = resolvePath(path); let node = G.fs[p];
+  if (!node) { dPrint('ls: ' + (path||'.') + ': No such directory', 'error'); return; }
+  if (node.type !== 'dir') { dPrint('ls: ' + path + ': Not a directory', 'error'); return; }
+  let children = (node.children||[]).filter(c => showHidden || !c.startsWith('.'));
+  if (!children.length) { dPrint('(empty)', 'dim'); return; }
   children.forEach(name => {
     let cp = p === '/' ? '/' + name : p + '/' + name;
-    let child = state.fs[cp];
-    if (!child) return;
+    let child = G.fs[cp]; if (!child) return;
     let perms = child.perms || (child.type === 'dir' ? 'drwxr-xr-x' : '-rw-r--r--');
-    let display = name + (child.type === 'dir' ? '/' : '');
     let flag = perms.includes('rwxrwxrwx') ? '  [!]' : '';
     if (name.startsWith('.') && showHidden) flag += '  [hidden]';
-    let cls = child.type === 'dir' ? 'system' : flag.includes('[!]') ? 'warn' : 'info';
-    print(perms + '  ' + display + flag, cls);
+    dPrint(perms + '  ' + name + (child.type==='dir' ? '/' : '') + flag,
+      child.type==='dir' ? 'system' : flag.includes('[!]') ? 'warn' : 'info');
   });
 }
-
 function catFile(path) {
-  if (!state.currentMission && !tState.active) { print('No filesystem loaded. Start a mission first.', 'warn'); return; }
+  if (!Object.keys(G.fs).length) { dPrint('No filesystem loaded.', 'error'); return; }
   let node = getNode(path);
-  if (!node) { print('cat: ' + path + ': No such file or directory', 'error'); return; }
-  if (node.type === 'dir') { print('cat: ' + path + ': Is a directory', 'error'); return; }
-  print(node.content || '(empty file)', 'info');
+  if (!node) { dPrint('cat: ' + path + ': No such file or directory', 'error'); return; }
+  if (node.type === 'dir') { dPrint('cat: ' + path + ': Is a directory', 'error'); return; }
+  dPrint(node.content || '(empty)', 'info');
+}
+function grepFile(pat, fp) {
+  if (!Object.keys(G.fs).length) { dPrint('grep: no filesystem', 'error'); return; }
+  let node = getNode(fp);
+  if (!node) { dPrint('grep: ' + fp + ': No such file', 'error'); return; }
+  if (node.type==='dir') { dPrint('grep: ' + fp + ': Is a directory', 'error'); return; }
+  let matches = (node.content||'').split('\n').filter(l => l.toLowerCase().includes(pat.toLowerCase()));
+  if (!matches.length) { dPrint('(no matches)', 'dim'); return; }
+  matches.forEach(l => dPrint(l, 'success'));
 }
 
-function grepFile(pattern, filePath) {
-  if (!state.currentMission && !tState.active) { print('No filesystem loaded. Start a mission first.', 'warn'); return; }
-  let node = getNode(filePath);
-  if (!node) { print('grep: ' + filePath + ': No such file or directory', 'error'); return; }
-  if (node.type === 'dir') { print('grep: ' + filePath + ': Is a directory', 'error'); return; }
-  let matches = (node.content||'').split('\n').filter(l => l.toLowerCase().includes(pattern.toLowerCase()));
-  if (matches.length === 0) { print('(no matches)', 'dim'); return; }
-  matches.forEach(l => print(l, 'success'));
-}
-
-// ═══════════════════════════════════════════════
-//  TERMINAL OUTPUT
-// ═══════════════════════════════════════════════
-function print(text, cls = 'prompt') {
-  const out = document.getElementById('output');
+// ── DELPHI TERMINAL OUTPUT ────────────────────
+function dPrint(text, cls='cmd') {
+  const out = document.getElementById('d-output');
   const d = document.createElement('div');
-  d.className = 'line ' + cls;
+  d.className = 'd-line ' + cls;
   d.textContent = text;
   out.appendChild(d);
   out.scrollTop = out.scrollHeight;
 }
-function clearTerminal() { document.getElementById('output').innerHTML = ''; }
-function updatePrompt() {
-  const name = state.path === 'ghost' ? 'ghost' : 'sentinel';
-  document.getElementById('prompt-label').textContent = name + '@netbreaker:' + state.cwd + '$';
-  document.getElementById('hdr-dir').textContent = state.cwd;
+function dClear() { document.getElementById('d-output').innerHTML = ''; }
+function dBlank() { dPrint('', 'blank'); }
+
+function updateDPrompt() {
+  document.getElementById('d-prompt').textContent = G.playerName + '@delphi-soc:' + G.cwd + '$';
+  const ch = CHAPTERS[G.chapter];
+  document.getElementById('d-hdr-date').textContent = ch ? ch.date : '';
+  document.getElementById('d-hdr-analyst').innerHTML = 'Analyst: <span>' + G.playerName + '</span>';
+  document.getElementById('d-sb-name').textContent = G.playerName;
 }
 
-// ═══════════════════════════════════════════════
-//  REPUTATION & TOOLS
-// ═══════════════════════════════════════════════
-function gainRep(n) {
-  state.rep = Math.max(0, state.rep + n);
-  document.getElementById('sb-rep').textContent = state.rep;
-  document.getElementById('hdr-rep').textContent = state.rep;
-  document.getElementById('rep-fill').style.width = Math.min(100, (state.rep / 3)) + '%';
-  updateMissionList();
-}
-
-function unlockTool(toolId) {
-  if (!toolId || state.ownedTools.has(toolId)) return;
-  state.ownedTools.add(toolId);
-  updateToolList();
-}
-
-function updateToolList() {
-  const tl = document.getElementById('tool-list');
-  tl.innerHTML = '';
-  Object.entries(TOOLS).forEach(([id, t]) => {
-    const owned = state.ownedTools.has(id);
+function updateCoworkers(online) {
+  const cl = document.getElementById('d-coworker-list');
+  cl.innerHTML = '';
+  G.coworkers.forEach(c => {
     const d = document.createElement('div');
-    d.className = 'tool-item ' + (owned ? 'owned' : 'locked');
-    d.innerHTML = `<div class="tool-dot"></div>${t.name}`;
-    d.title = t.desc;
-    tl.appendChild(d);
+    d.style.cssText = 'font-size:11px;padding:3px 0;display:flex;justify-content:space-between;border-bottom:1px solid var(--d-border);margin-bottom:4px;';
+    d.innerHTML = '<span style="color:var(--d-text)">' + c.name + '</span><span style="color:' + (online?'var(--d-success)':'#ccc') + ';font-size:10px">' + (online?'● online':'○ away') + '</span>';
+    cl.appendChild(d);
   });
 }
 
-// ═══════════════════════════════════════════════
-//  MISSION LIST
-// ═══════════════════════════════════════════════
-function updateMissionList() {
-  // Chronological: a mission is only available if the previous is completed AND rep >= repGate
-  // locked_seq = not reached yet | locked_rep = reached but rep too low (shows side missions)
-  state.missions.forEach((m, idx) => {
-    if (m.status === 'completed') return;
-    const prevCompleted = idx === 0 || state.missions[idx - 1].status === 'completed';
-    if (!prevCompleted) {
-      m.status = 'locked_seq';
-    } else if (state.rep < m.repGate) {
-      m.status = 'locked_rep';
-    } else {
-      m.status = 'available';
-    }
-  });
+function updateOracle(msg, conf) {
+  document.getElementById('d-oracle-status').textContent = msg;
+  const fill = document.getElementById('d-oracle-fill');
+  fill.style.width = conf + '%';
+  fill.style.background = conf > 60 ? 'var(--d-error)' : conf > 30 ? 'var(--d-warn)' : 'var(--d-oracle)';
+}
 
-  const stuckMission = state.missions.find(m => m.status === 'locked_rep');
-  state.sideMissionsAvailable = !!stuckMission;
-  if (stuckMission) state.repNeeded = stuckMission.repGate;
-
-  const ml = document.getElementById('mission-list');
-  ml.innerHTML = '';
-  let currentAct = 0;
-
-  state.missions.forEach(m => {
-    if (m.status === 'locked_seq') return;
-    if (m.act !== currentAct) {
-      currentAct = m.act;
-      const al = document.createElement('div');
-      al.className = 'act-label';
-      al.textContent = 'ACT ' + m.act;
-      ml.appendChild(al);
-    }
-    const displayStatus = m.status === 'locked_rep' ? 'locked' : m.status;
+function updateCaseQueue() {
+  const ch = CHAPTERS[G.chapter]; if (!ch) return;
+  const cq = document.getElementById('d-case-queue');
+  cq.innerHTML = '';
+  ch.cases.forEach((c, i) => {
     const d = document.createElement('div');
-    d.className = 'mission-item ' + displayStatus + (state.currentMission?.id === m.id ? ' active' : '');
-    let badge = '';
-    if (m.status === 'completed')  badge = '<span class="m-check">&#10003;</span>';
-    if (m.status === 'locked_rep') badge = '<span class="m-rep">' + m.repGate + ' rep</span>';
-    d.innerHTML = m.id + ' ' + m.name + badge;
-    if (m.status === 'available') d.onclick = () => processCmd('start ' + m.id);
-    ml.appendChild(d);
+    d.className = 'd-case-item ' + (G.caseIdx === i ? 'active' : G.caseIdx > i ? 'closed' : '');
+    d.textContent = c.id + ' — ' + c.title;
+    cq.appendChild(d);
   });
+}
 
-  // Side mission slot — only visible when player is rep-gated
-  if (state.sideMissionsAvailable) {
-    const sl = document.createElement('div');
-    sl.className = 'act-label';
-    sl.textContent = 'SIDE MISSIONS';
-    ml.appendChild(sl);
-    const sd = document.createElement('div');
-    sd.className = 'mission-item';
-    sd.style.cssText = 'color:var(--amber);font-size:11px;padding:4px 6px;cursor:default';
-    sd.textContent = 'Coming in Act 1 update';
-    ml.appendChild(sd);
+function loadCasePanel(caseData) {
+  const ch = CHAPTERS[G.chapter];
+  const total = ch.cases.length;
+  const pc = document.getElementById('d-panel-content');
+  const attrHtml = caseData.type === 'attribution' ? '<div class="d-oracle-attr"><div class="d-oracle-attr-title">◈ Oracle Attribution</div><div id="d-attr-panel"></div></div>' : '';
+  pc.innerHTML =
+    '<div class="d-obj-title">' + caseData.title + '</div>' +
+    '<div class="d-obj-id">Case ' + caseData.id + ' &nbsp;·&nbsp; ' + (G.caseIdx+1) + '/' + total + '</div>' +
+    '<div class="d-progress"><div class="d-progress-fill" style="width:' + (G.caseIdx/total*100) + '%"></div></div>' +
+    attrHtml +
+    '<div class="d-obj-body">' + caseData.body.replace(/\{\{NAME\}\}/g, G.playerName) + '</div>' +
+    '<div class="d-obj-hint">Submit your answer:<br><span>submit &lt;answer&gt;</span></div>' +
+    '<div id="d-case-feedback"></div>';
+  if (caseData.type === 'attribution') updateAttrPanel();
+}
+
+function updateAttrPanel() {
+  const ap = document.getElementById('d-attr-panel'); if (!ap) return;
+  const conf = G.oracleConf;
+  ap.innerHTML =
+    '<div class="d-attr-row">' +
+    '<span class="d-attr-name">' + G.playerName + '</span>' +
+    '<div style="display:flex;align-items:center;gap:8px">' +
+    '<div class="d-attr-bar-wrap"><div class="d-attr-bar ' + (conf>60?'high':'') + '" style="width:' + conf + '%"></div></div>' +
+    '<span class="d-attr-score ' + (conf>60?'high':'') + '">' + conf + '%</span>' +
+    '</div></div>';
+}
+
+// ── CHAPTER FLOW ──────────────────────────────
+function startChapter(idx) {
+  G.chapter = idx; G.caseIdx = 0;
+  const ch = CHAPTERS[idx]; if (!ch) return;
+  if (ch.timeskip) {
+    showChapterCard(ch.act, ch.title, ch.subtitle, () => showTimeskip(ch.timeskipMsg, () => showDelphiLogin(ch)));
+  } else {
+    showChapterCard(ch.act, ch.title, ch.subtitle, () => showDelphiLogin(ch));
+  }
+}
+
+function showTimeskip(msg, cb) {
+  hideAll(); show('chapter-card');
+  document.getElementById('chapter-act-label').textContent = '';
+  document.getElementById('chapter-title-label').textContent = '';
+  document.getElementById('chapter-subtitle-label').textContent = '';
+  const inner = document.querySelector('.chapter-inner');
+  inner.innerHTML = '<div style="font-family:Share Tech Mono,monospace;font-size:13px;color:#555;text-align:center;max-width:400px;line-height:2.8;">' + msg.replace(/\n/g,'<br>') + '</div>';
+  setTimeout(() => {
+    inner.innerHTML = '<div class="chapter-act" id="chapter-act-label"></div><div class="chapter-title" id="chapter-title-label"></div><div class="chapter-subtitle" id="chapter-subtitle-label"></div>';
+    cb();
+  }, 4500);
+}
+
+function showDelphiLogin(ch) {
+  hideAll(); show('delphi-login');
+  document.getElementById('login-id-field').value = G.playerName;
+  document.getElementById('login-pw-field').value = '';
+  document.getElementById('login-date').textContent = ch.date;
+  document.getElementById('login-error').classList.remove('visible');
+  document.getElementById('login-btn').onclick = attemptLogin;
+  document.getElementById('login-pw-field').onkeydown = e => { if(e.key==='Enter') attemptLogin(); };
+  setTimeout(() => document.getElementById('login-pw-field').focus(), 100);
+}
+
+function attemptLogin() {
+  const pw = document.getElementById('login-pw-field').value.trim();
+  if (!pw) return;
+  hideAll();
+  bootDelphiTerminal(CHAPTERS[G.chapter]);
+}
+
+function bootDelphiTerminal(ch) {
+  show('delphi-terminal'); document.body.classList.add('delphi-mode'); G.mode = 'delphi';
+  G.fs = fsReplace(ch.cases[0].fs, G.playerName);
+  G.cwd = '/'; updateDPrompt(); updateCoworkers(true);
+  G.oracleConf = ch.cases[0].oracleConf;
+  updateOracle(ch.cases[0].oracleMsg, G.oracleConf);
+  updateCaseQueue(); loadCasePanel(ch.cases[0]);
+  dClear(); dBlank();
+  dPrint('Delphi Security Operations — Secure Terminal', 'h1');
+  dPrint(ch.date + '  |  Welcome back, ' + G.playerName, 'dim');
+  dBlank();
+  dPrint(ch.loginMsg, 'info');
+  dBlank();
+  dPrint('Type  help  for available commands.', 'dim');
+  dBlank();
+  setTimeout(() => document.getElementById('d-input').focus(), 100);
+}
+
+// ── CASE SUBMISSION ───────────────────────────
+function dSubmit(ans) {
+  const ch = CHAPTERS[G.chapter];
+  const caseData = ch.cases[G.caseIdx];
+  if (ans.toLowerCase() === caseData.answer.toLowerCase()) {
+    const fb = document.getElementById('d-case-feedback');
+    if (fb) fb.innerHTML = '<div class="d-success-banner">✓ Case closed</div>';
+    dBlank(); dPrint('✓ Correct. Case ' + caseData.id + ' closed.', 'success');
+    if (caseData.completionMsg) dPrint(caseData.completionMsg, 'info');
+    dBlank();
+    G.oracleConf = caseData.oracleConf;
+    updateOracle(caseData.oracleMsg, G.oracleConf);
+    if (caseData.isAttributionFinal) { setTimeout(triggerLockout, 2500); return; }
+    G.caseIdx++;
+    if (G.caseIdx < ch.cases.length) {
+      setTimeout(() => {
+        G.fs = fsReplace(ch.cases[G.caseIdx].fs, G.playerName);
+        G.cwd = '/'; updateDPrompt();
+        G.oracleConf = ch.cases[G.caseIdx].oracleConf;
+        updateOracle(ch.cases[G.caseIdx].oracleMsg, G.oracleConf);
+        updateCaseQueue(); loadCasePanel(ch.cases[G.caseIdx]);
+        dBlank(); dPrint('New case: ' + ch.cases[G.caseIdx].id + ' — ' + ch.cases[G.caseIdx].title, 'system'); dBlank();
+      }, 1500);
+    } else { setTimeout(endChapter, 2000); }
+  } else {
+    const fb = document.getElementById('d-case-feedback');
+    if (fb) { fb.innerHTML = '<div class="d-fail-banner">✗ Incorrect. Keep investigating.</div>'; setTimeout(()=>{if(fb)fb.innerHTML='';},2000); }
+    dPrint('✗ Incorrect. ' + caseData.answerHint, 'error');
+  }
+}
+
+// ── END CHAPTER ───────────────────────────────
+function endChapter() {
+  dBlank(); dPrint('Chapter complete. Logging off...', 'dim');
+  dPrint('Goodbye, ' + G.playerName + '.', 'dim');
+  setTimeout(() => {
+    hide('delphi-terminal'); document.body.classList.remove('delphi-mode');
+    const nextIdx = G.chapter + 1;
+    if (nextIdx < CHAPTERS.length) startChapter(nextIdx); else startActII();
+  }, 2500);
+}
+
+// ── LOCKOUT SEQUENCE ──────────────────────────
+function triggerLockout() {
+  const inp = document.getElementById('d-input');
+  inp.disabled = true;
+  dBlank();
+  dPrint('▌ ORACLE SECURITY NOTICE', 'oracle');
+  dPrint('  Your account is under administrative review.', 'oracle');
+  dPrint('  Please stand by.', 'oracle');
+  dBlank();
+  document.getElementById('d-oracle-status').textContent = 'Account review initiated.';
+  document.getElementById('d-sb-status').textContent = 'Under Review';
+  document.getElementById('d-sb-status').style.color = 'var(--d-warn)';
+
+  setTimeout(() => {
+    inp.disabled = false; G.mode = 'lockout_pending';
+    dPrint('Your active sessions are being reviewed.', 'dim');
+    dPrint('Try accessing your files...', 'dim'); dBlank();
+  }, 2000);
+
+  setTimeout(() => {
+    G.mode = 'locked';
+    dBlank();
+    dPrint('▌ NOTICE — CREDENTIAL SUSPENSION', 'error');
+    dPrint('  Employee: ' + G.playerName, 'error');
+    dPrint('  Status:   SUSPENDED', 'error');
+    dPrint('  Issued by: Delphi Security Division', 'error');
+    dBlank();
+    dPrint('  All active sessions will terminate in 10 seconds.', 'warn');
+    dBlank();
+    document.getElementById('d-sb-status').textContent = 'SUSPENDED';
+    document.getElementById('d-sb-status').style.color = 'var(--d-error)';
+    updateCoworkers(false);
+    let count = 10;
+    const iv = setInterval(() => {
+      dPrint('  ' + count + '...', 'warn'); count--;
+      if (count < 0) {
+        clearInterval(iv);
+        setTimeout(() => { dPrint('SESSION TERMINATED', 'error'); setTimeout(corruptScreen, 500); }, 500);
+      }
+    }, 1000);
+  }, 6000);
+}
+
+function corruptScreen() {
+  const out = document.getElementById('d-output');
+  let n = 0;
+  const iv = setInterval(() => {
+    out.style.filter = 'invert(' + (n%2) + ')'; n++;
+    if (n > 6) {
+      clearInterval(iv); out.style.filter = '';
+      hide('delphi-terminal'); document.body.classList.remove('delphi-mode');
+      document.body.style.background = '#000';
+      setTimeout(showRejectedLogin, 800);
+    }
+  }, 120);
+}
+
+function showRejectedLogin() {
+  show('delphi-login');
+  document.getElementById('login-id-field').value = G.playerName;
+  document.getElementById('login-pw-field').value = '';
+  document.getElementById('login-date').textContent = 'October 14, 2032';
+  document.getElementById('login-btn').onclick = attemptRejectedLogin;
+  document.getElementById('login-pw-field').onkeydown = e => { if(e.key==='Enter') attemptRejectedLogin(); };
+  setTimeout(() => document.getElementById('login-pw-field').focus(), 100);
+}
+
+function attemptRejectedLogin() {
+  const err = document.getElementById('login-error');
+  err.textContent = '✗ ACCESS DENIED — This account has been suspended. Contact HR if you believe this is an error.';
+  err.classList.add('visible');
+  G.lockoutAttempts++;
+  if (G.lockoutAttempts >= 2) {
+    setTimeout(() => {
+      err.textContent = '✗ ACCESS DENIED — Repeated attempts logged. Reference: ORACLE-ATT-2032-4471';
+      setTimeout(() => { hide('delphi-login'); showFinalLockout(); }, 3000);
+    }, 1500);
+  }
+}
+
+function showFinalLockout() {
+  show('lockout-screen');
+  document.getElementById('lockout-body').innerHTML =
+    'Employee: ' + G.playerName + '<br>Status: SUSPENDED<br>Effective: Immediately<br><br>' +
+    'You have been placed under investigation for involvement<br>' +
+    'in the security breach of October 14, 2032.<br><br>' +
+    'Oracle has identified you as the highest-probability<br>attribution candidate for this incident.<br><br>' +
+    'You will be contacted by the Security Division.';
+  document.getElementById('lockout-ref').textContent = 'Reference: ORACLE-ATT-2032-4471';
+  setTimeout(() => { hide('lockout-screen'); showActIITransition(); }, 8000);
+}
+
+// ── ACT II TRANSITION ─────────────────────────
+function showActIITransition() {
+  show('chapter-card');
+  document.getElementById('chapter-act-label').textContent = 'ACT II';
+  document.getElementById('chapter-title-label').textContent = 'EXILE';
+  document.getElementById('chapter-subtitle-label').textContent = '';
+  setTimeout(() => {
+    hide('chapter-card'); document.body.style.background = '';
+    document.body.classList.add('ghost-mode');
+    showGhostLogin();
+  }, 4000);
+}
+function startActII() { showActIITransition(); }
+
+// ── GHOST LOGIN ───────────────────────────────
+function showGhostLogin() {
+  show('ghost-login');
+  document.getElementById('ghost-login-user').value = G.playerName.toLowerCase();
+  document.getElementById('ghost-login-pw').value = '';
+  document.getElementById('ghost-login-date').textContent = 'November 3, 2032';
+  setTimeout(() => document.getElementById('ghost-login-pw').focus(), 100);
+}
+
+function ghostLogin() {
+  const pw = document.getElementById('ghost-login-pw').value.trim();
+  if (!pw) return;
+  hide('ghost-login'); bootGhostTerminal();
+}
+
+function bootGhostTerminal() {
+  show('ghost-terminal'); G.mode = 'ghost';
+  document.getElementById('g-hdr-act').textContent = 'II';
+  document.getElementById('g-hdr-date').textContent = 'Nov 3, 2032';
+  document.getElementById('g-sb-name').textContent = G.playerName.toLowerCase();
+  document.getElementById('g-prompt-label').textContent = G.playerName.toLowerCase() + '@localhost:~$';
+  document.getElementById('g-objectives').innerHTML =
+    ['Find out who really did this.','Understand why Oracle named me.','Clear my name.']
+    .map(o => '<div class="g-note-item">' + o + '</div>').join('');
+  gPrint(''); gPrint('// ORACLE', 'big'); gPrint('');
+  gPrint('Delphi Security Operations — ACCESS DENIED', 'error');
+  gPrint('Professional contacts — no response.', 'warn');
+  gPrint('Employment records — flagged.', 'warn'); gPrint('');
+  gPrint('You built this machine two days after they fired you.', 'info');
+  gPrint('No Delphi branding. No Oracle. Just you and the logs.', 'info'); gPrint('');
+  gPrint('Somewhere in Delphi\'s infrastructure is the truth.', 'info');
+  gPrint('You have to find it before they bury it.', 'info'); gPrint('');
+  gPrint('Act II missions coming in the next update.', 'dim'); gPrint('');
+  gPrint('Type  help  for available commands.', 'dim'); gPrint('');
+  setTimeout(() => document.getElementById('g-cmd-input').focus(), 100);
+}
+
+function gPrint(text, cls='prompt') {
+  const out = document.getElementById('g-output');
+  const d = document.createElement('div');
+  d.className = 'g-line ' + cls; d.textContent = text;
+  out.appendChild(d); out.scrollTop = out.scrollHeight;
+}
+
+// ── DELPHI COMMAND PROCESSOR ──────────────────
+function dCmd(raw) {
+  const cmd = raw.trim(); if (!cmd) return;
+  G.history.unshift(cmd); G.histIdx = -1;
+  dPrint(document.getElementById('d-prompt').textContent + ' ' + cmd, 'dim');
+
+  if (G.mode === 'lockout_pending' || G.mode === 'locked') {
+    if (['cat','ls','grep','submit','cd'].some(c => cmd.startsWith(c))) {
+      dPrint('Permission denied.', 'error'); return;
+    }
   }
 
-  document.getElementById('sb-rep').textContent = state.rep;
-  document.getElementById('hdr-rep').textContent = state.rep;
-  const act = state.currentMission ? state.currentMission.act : '—';
-  document.getElementById('sb-act').textContent = act === '—' ? '—' : 'Act ' + act;
+  if (cmd === 'ls') { listDir(G.cwd, false); return; }
+  if (cmd === 'ls -la' || cmd === 'ls -al') { listDir(G.cwd, true); return; }
+  if (cmd.startsWith('ls -la ') || cmd.startsWith('ls -al ')) { listDir(cmd.split(' ')[2], true); return; }
+  if (cmd.startsWith('ls ')) { listDir(cmd.split(' ')[1], false); return; }
+
+  if (cmd.startsWith('cd ')) {
+    const t = cmd.slice(3).trim(), r = resolvePath(t), n = G.fs[r];
+    if (!n) { dPrint('cd: ' + t + ': No such directory', 'error'); return; }
+    if (n.type !== 'dir') { dPrint('cd: ' + t + ': Not a directory', 'error'); return; }
+    G.cwd = r; updateDPrompt(); return;
+  }
+
+  if (cmd.startsWith('cat ')) { catFile(cmd.slice(4).trim()); return; }
+  if (cmd.startsWith('grep ')) {
+    const p = cmd.split(' '); if (p.length < 3) { dPrint('Usage: grep <pattern> <file>', 'error'); return; }
+    grepFile(p[1], p.slice(2).join(' ')); return;
+  }
+  if (cmd.startsWith('submit ')) { dSubmit(cmd.slice(7).trim()); return; }
+  if (cmd === 'pwd') { dPrint(G.cwd, 'info'); return; }
+  if (cmd === 'clear') { dClear(); return; }
+  if (cmd === 'whoami') { dPrint(G.playerName + ' — Delphi SOC Analyst, Level 2', 'info'); return; }
+  if (cmd === 'date') { dPrint(CHAPTERS[G.chapter]?.date || '—', 'info'); return; }
+  if (cmd === 'help') { delphi_help(); return; }
+  if (cmd === 'ps aux') {
+    dPrint('PID    USER        CPU%  MEM%  COMMAND', 'info');
+    dPrint('1      root        0.0   0.1   systemd', 'info');
+    dPrint('412    delphi-svc  0.2   1.4   oracle-agent', 'info');
+    dPrint('891    delphi-svc  1.1   2.8   soc-monitor', 'info'); return;
+  }
+  dPrint('Command not found: ' + cmd + '  — type  help  for available commands.', 'error');
 }
 
+// ── GHOST COMMAND PROCESSOR ───────────────────
+function gCmd(raw) {
+  const cmd = raw.trim(); if (!cmd) return;
+  G.history.unshift(cmd); G.histIdx = -1;
+  gPrint(G.playerName.toLowerCase() + '@localhost:~$ ' + cmd, 'dim');
+  gPrint('Act II missions coming soon.', 'dim');
+}
 
-// ═══════════════════════════════════════════════
-//  BOOT SEQUENCE
-// ═══════════════════════════════════════════════
-function runBoot() {
+// ── HELP ──────────────────────────────────────
+function delphi_help() {
+  dBlank(); dPrint('DELPHI SOC — TERMINAL COMMANDS', 'h1');
+  dPrint('ls / ls -la [path]       List directory contents', 'info');
+  dPrint('cd <directory>           Change directory (cd .. to go up)', 'info');
+  dPrint('cat <file>               Read a file', 'info');
+  dPrint('grep <pattern> <file>    Search inside a file', 'info');
+  dPrint('submit <answer>          Submit your case answer', 'info');
+  dPrint('ps aux                   List running processes', 'info');
+  dPrint('pwd / whoami / date      System information', 'info');
+  dPrint('clear                    Clear terminal output', 'info');
+  dBlank();
+}
+function ghost_help() { gPrint(''); gPrint('Commands will expand in Act II.', 'dim'); gPrint(''); }
+
+// ── OVERLAY HELPERS ───────────────────────────
+function show(id) {
+  const el = document.getElementById(id);
+  el.classList.remove('hidden');
+  el.style.display = (id === 'delphi-terminal' || id === 'ghost-terminal') ? 'flex' : 'flex';
+}
+function hide(id) {
+  const el = document.getElementById(id);
+  el.classList.add('hidden'); el.style.display = 'none';
+}
+function hideAll() {
+  ['boot-screen','chapter-card','name-entry','delphi-login','lockout-screen',
+   'ghost-login','delphi-terminal','ghost-terminal'].forEach(hide);
+}
+
+function showChapterCard(act, title, subtitle, cb) {
+  hideAll(); show('chapter-card');
+  document.getElementById('chapter-act-label').textContent = act;
+  document.getElementById('chapter-title-label').textContent = title;
+  document.getElementById('chapter-subtitle-label').textContent = subtitle;
+  setTimeout(() => { hide('chapter-card'); cb(); }, 3500);
+}
+
+// ── BOOT SEQUENCE ─────────────────────────────
+function runBoot(cb) {
+  show('boot-screen');
   const lines = [
-    'NETBREAKER OS v0.2.0',
-    'Copyright (c) 2024 Unknown',
-    '',
-    'Initializing kernel modules...',
-    'Loading network interfaces...',
-    'Mounting encrypted volumes...',
-    'Checking filesystem integrity...',
-    '',
-    'ERR_0x4F1 — Auth token expired',
-    'ERR_0x2A9 — Firewall rule conflict detected',
-    '',
-    'Starting secure shell daemon...',
-    'Anonymizing network traffic...',
-    'Establishing encrypted tunnel...',
-    '',
-    'All systems nominal.',
-    '',
-    '> Ready.',
+    {t:'DELPHI SYSTEMS — SECURE BOOT v9.4.1', c:'#2471d4'},
+    {t:'Copyright 2032 Delphi Corporation. All rights reserved.', c:'#555'},
+    {t:'', c:''},
+    {t:'Initializing secure enclave...', c:'#555'},
+    {t:'Loading cryptographic modules...', c:'#555'},
+    {t:'Establishing authenticated session...', c:'#555'},
+    {t:'Connecting to Delphi infrastructure...', c:'#555'},
+    {t:'', c:''},
+    {t:'Oracle v4.2 — Connected', c:'#7c3aed'},
+    {t:'Security Operations Center — Online', c:'#1a5fb4'},
+    {t:'', c:''},
+    {t:'> Ready.', c:'#1a7a3c'},
   ];
   const el = document.getElementById('boot-output');
   let i = 0;
-  const interval = setInterval(() => {
-    if (i >= lines.length) {
-      clearInterval(interval);
-      setTimeout(() => {
-        document.getElementById('boot-overlay').style.display = 'none';
-        document.getElementById('intro-overlay').style.display = 'flex';
-      }, 600);
-      return;
-    }
-    const d = document.createElement('div');
-    d.textContent = lines[i];
-    if (lines[i].startsWith('ERR_')) d.style.color = 'var(--amber)';
-    else if (lines[i] === '> Ready.') d.style.color = 'var(--green)';
-    el.appendChild(d);
+  const iv = setInterval(() => {
+    if (i >= lines.length) { clearInterval(iv); setTimeout(() => { hide('boot-screen'); cb(); }, 600); return; }
+    if (lines[i].t) { const d = document.createElement('div'); d.textContent = lines[i].t; d.style.color = lines[i].c; el.appendChild(d); }
+    else el.appendChild(document.createElement('div'));
     i++;
-  }, 80);
+  }, 90);
 }
 
-// ═══════════════════════════════════════════════
-//  PATH SELECTION
-// ═══════════════════════════════════════════════
-function selectPath(path) {
-  state.path = path;
-  document.getElementById('intro-overlay').style.display = 'none';
-  updateMissionList();
-  updateToolList();
-  document.getElementById('hdr-path').textContent = path.toUpperCase();
-  document.getElementById('sb-path').textContent = path.toUpperCase();
-  state.cwd = '/';
-  updatePrompt();
-
-  print('');
-  if (path === 'ghost') {
-    print('◢◢◢  GHOST OPERATIVE TERMINAL  ◣◣◣', 'big');
-    print('');
-    print('Welcome to the shadows.', 'warn');
-    print('Your first assignment is waiting.', 'info');
-  } else {
-    print('◈◈◈  SENTINEL SECURITY TERMINAL  ◈◈◈', 'big');
-    print('');
-    print('Welcome, Operative. An incident has been detected.', 'system');
-    print('Your first case is open.', 'info');
-  }
-  print('');
-  print('─────────────────────────────────────────', 'dim');
-  print('  Type  tutorial    → learn the basics (recommended)', 'info');
-  print('  Type  missions    → skip and go straight in', 'info');
-  print('─────────────────────────────────────────', 'dim');
-  print('');
-  document.getElementById('cmd-input').focus();
-}
-
-// ═══════════════════════════════════════════════
-//  MISSIONS
-// ═══════════════════════════════════════════════
-function showMissions() {
-  print('');
-  print('[ MISSION BOARD ]', 'title');
-  print('');
-  let currentAct = 0;
-  state.missions.forEach(m => {
-    if (m.act !== currentAct) {
-      currentAct = m.act;
-      print('  — ACT ' + m.act + ' —', 'warn');
-    }
-    if (m.status === 'locked_seq') return;
-    const icon = m.status === 'completed' ? '✓' : m.status === 'available' ? '▶' : '!';
-    const cls  = m.status === 'completed' ? 'success' : m.status === 'available' ? 'prompt' : m.status === 'locked_rep' ? 'warn' : 'dim';
-    const gate = m.status === 'locked_rep' ? '  [need ' + m.repGate + ' rep — ' + (m.repGate - state.rep) + ' more]' : '';
-    print(' ' + icon + '  ' + m.id + '  ' + m.name.padEnd(16) + gate, cls);
-  });
-  print('');
-  print('Current reputation: ' + state.rep, 'info');
-  print('Type  start <id>  to begin an available mission.', 'info');
-  print('');
-}
-
-function startMission(id) {
-  const mission = state.missions.find(m => m.id === id);
-  if (!mission) { print('Unknown mission: ' + id, 'error'); return; }
-  if (mission.status === 'locked_seq') {
-    print('Mission not yet available. Complete the previous mission first.', 'error'); return;
-  }
-  if (mission.status === 'locked_rep') {
-    const needed = mission.repGate - state.rep;
-    print('Insufficient reputation. Need ' + mission.repGate + ' rep — you have ' + state.rep + ' (' + needed + ' more needed).', 'error');
-    print('Side missions are available to earn more reputation.', 'warn');
-    return;
-  }
-  if (mission.status === 'locked') {
-    print('Mission locked.', 'error'); return;
-  }
-
-  if (state.timerInterval) { clearInterval(state.timerInterval); state.timerInterval = null; }
-
-  state.currentMission = mission;
-  state.puzzleState = { puzzleIdx: 0, completed: [] };
-  document.getElementById('hdr-mission').textContent = mission.id;
-
-  const fsData = missionFilesystems[id];
-  state.fs = fsData ? (fsData[state.path] || {}) : {};
-  state.cwd = '/';
-  updatePrompt();
-  updateMissionList();
-
-  print('');
-  print('[ MISSION ' + mission.id + ': ' + mission.name.toUpperCase() + ' ]', 'title');
-  print('');
-  print('System loaded. Navigate with ls, cd, cat, grep.', 'info');
-  print('Submit your answer with:  submit <answer>', 'info');
-  print('');
-  loadPuzzle(mission.puzzles[0]);
-}
-
-// ═══════════════════════════════════════════════
-//  PUZZLE ENGINE
-// ═══════════════════════════════════════════════
-function loadPuzzle(pKey) {
-  if (state.timerInterval) { clearInterval(state.timerInterval); state.timerInterval = null; }
-  const p = puzzles[pKey];
-  if (!p) return;
-  state.currentPuzzle = pKey;
-  const v = state.path === 'ghost' ? p.ghost : p.sentinel;
-  const total = state.currentMission.puzzles.length;
-  const idx   = state.puzzleState.puzzleIdx;
-
-  let timerHtml = p.timed ? '<div class="timed-header">TIME: <span id="timer-display">' + p.timeLimit + '</span>s</div>' : '';
-
-  document.getElementById('puzzle-content').innerHTML = `
-    <div class="puzzle-title">${p.title}</div>
-    <div style="font-size:10px;color:var(--text-dim);letter-spacing:2px;margin-bottom:8px">
-      ${state.currentMission.id} · PUZZLE ${idx+1}/${total}
-    </div>
-    <div id="progress-bar"><div id="progress-fill" style="width:${(idx/total)*100}%"></div></div>
-    ${timerHtml}
-    <div class="puzzle-obj-label">Objective</div>
-    <div class="puzzle-desc">${v.objective}</div>
-    <div class="puzzle-submit-hint">
-      When you have the answer:<br>
-      <span>submit &lt;answer&gt;</span>
-    </div>`;
-
-  if (p.timed) startTimer(p.timeLimit);
-
-  print('');
-  print('Puzzle: ' + p.title, 'system');
-  print('Read your objective in the right panel.', 'info');
-  if (p.timed) print('WARNING: Time-limited — act fast!', 'warn');
-  print('');
-}
-
-function startTimer(seconds) {
-  let remaining = seconds;
-  state.timerInterval = setInterval(() => {
-    remaining--;
-    const el = document.getElementById('timer-display');
-    if (el) { el.textContent = remaining; el.parentElement.style.color = remaining <= 10 ? '#ff6666' : 'var(--red)'; }
-    if (remaining <= 0) {
-      clearInterval(state.timerInterval); state.timerInterval = null;
-      const pc = document.getElementById('puzzle-content');
-      if (pc) pc.insertAdjacentHTML('beforeend','<div class="fail-banner">✗ TIME EXPIRED</div>');
-      gainRep(-10);
-      print('✗ Time expired. -10 reputation.', 'error');
-      setTimeout(advancePuzzle, 2000);
-    }
-  }, 1000);
-}
-
-function submitAnswer(ans) {
-  if (!state.currentPuzzle) { print('No active puzzle.', 'error'); return; }
-  const p = puzzles[state.currentPuzzle];
-  const v = state.path === 'ghost' ? p.ghost : p.sentinel;
-
-  if (ans.toLowerCase() === v.answer.toLowerCase()) {
-    if (state.timerInterval) { clearInterval(state.timerInterval); state.timerInterval = null; }
-    const pc = document.getElementById('puzzle-content');
-    if (pc) pc.insertAdjacentHTML('beforeend','<div class="success-banner">◢ ACCESS GRANTED ◣</div>');
-    gainRep(15);
-    print('');
-    print('✓ CORRECT — ' + p.title + ' solved.', 'success');
-    print('+15 reputation.', 'success');
-    state.puzzleState.completed.push(state.currentPuzzle);
-    setTimeout(advancePuzzle, 1800);
-  } else {
-    const pc = document.getElementById('puzzle-content');
-    if (pc) pc.insertAdjacentHTML('beforeend','<div class="fail-banner">✗ INCORRECT</div>');
-    setTimeout(()=>{ const f=document.querySelector('.fail-banner'); if(f) f.remove(); },1500);
-    gainRep(-5);
-    print('✗ Incorrect. -5 reputation.', 'error');
-  }
-}
-
-function advancePuzzle() {
-  state.puzzleState.puzzleIdx++;
-  const mission = state.currentMission;
-  if (state.puzzleState.puzzleIdx >= mission.puzzles.length) completeMission();
-  else loadPuzzle(mission.puzzles[state.puzzleState.puzzleIdx]);
-}
-
-function completeMission() {
-  if (state.timerInterval) { clearInterval(state.timerInterval); state.timerInterval = null; }
-  const mission = state.currentMission;
-  mission.status = 'completed';
-  gainRep(25);
-
-  // unlock tool tied to this mission
-  if (mission.toolUnlock) unlockTool(mission.toolUnlock);
-
-  updateMissionList();
-  showStoryScreen(mission.id);
-}
-
-// ═══════════════════════════════════════════════
-//  STORY SCREEN
-// ═══════════════════════════════════════════════
-function showStoryScreen(missionId) {
-  const story = storyData[missionId]?.[state.path];
-  if (!story) { afterStory(missionId); return; }
-
-  const missionConfig = MISSIONS.find(m => m.id === missionId);
-
-  // tool unlock from story data (for Act 2+ tool drops)
-  const storyTool = story.toolUnlock ? TOOLS[story.toolUnlock] : null;
-  if (story.toolUnlock) unlockTool(story.toolUnlock);
-
-  let toolHtml = '';
-  if (storyTool) {
-    toolHtml = `<div class="story-tool-unlock">
-      <div class="story-tool-label">◈ NEW TOOL UNLOCKED</div>
-      <div class="story-tool-name">${storyTool.name}</div>
-      <div class="story-tool-desc">${storyTool.desc}</div>
-    </div>`;
-  }
-
-  document.getElementById('story-inner').innerHTML = `
-    <div class="story-label">◢ MISSION ${missionId} COMPLETE — +25 REP ◣</div>
-    <div class="story-briefing">${story.briefing.replace(/\n/g,'<br>')}</div>
-    ${story.news ? `<div class="story-news">
-      <div class="story-news-label">◈ INTERCEPTED NEWS FEED</div>
-      <div class="story-news-headline">${story.news.headline}</div>
-      <div class="story-news-body">${story.news.body}</div>
-    </div>` : ''}
-    ${toolHtml}
-    <button class="story-continue" onclick="closeStoryScreen('${missionId}')">[ CONTINUE ]</button>
-  `;
-
-  document.getElementById('story-overlay').classList.add('active');
-}
-
-function closeStoryScreen(missionId) {
-  document.getElementById('story-overlay').classList.remove('active');
-  afterStory(missionId);
-}
-
-function afterStory(missionId) {
-  updateMissionList();
-  updateToolList();
-
-  const nextMission = state.missions.find(m => m.status === 'available' || m.status === 'locked');
-  document.getElementById('puzzle-content').innerHTML = `
-    <div style="text-align:center;padding:20px 0">
-      <div style="font-family:var(--font-vt);font-size:30px;color:var(--green);margin-bottom:10px">MISSION COMPLETE</div>
-      <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px">Reputation: ${state.rep}</div>
-      <button class="btn" onclick="showMissions()">[ MISSION BOARD ]</button>
-    </div>`;
-
-  print('');
-  print('◢◢◢  MISSION ' + missionId + ' COMPLETE  ◣◣◣', 'big');
-  print('Total reputation: ' + state.rep, 'success');
-  print('Type  missions  to see what\'s available next.', 'info');
-  print('');
-  document.getElementById('cmd-input').focus();
-}
-
-// ═══════════════════════════════════════════════
-//  TOOLS COMMAND
-// ═══════════════════════════════════════════════
-function showTools() {
-  print('');
-  print('[ TOOL INVENTORY ]', 'title');
-  print('');
-  Object.entries(TOOLS).forEach(([id, t]) => {
-    if (state.ownedTools.has(id)) {
-      print('  ◈  ' + t.name.padEnd(22) + t.desc, 'success');
-    } else {
-      print('  ✗  ' + t.name.padEnd(22) + '[locked]', 'dim');
-    }
-  });
-  print('');
-}
-
-// ═══════════════════════════════════════════════
-//  TUTORIAL ENGINE
-// ═══════════════════════════════════════════════
-
-const tutorialFS = {
-  '/': { type:'dir', children:['home','intel'] },
-  '/home': { type:'dir', children:['welcome.txt','emails'] },
-  '/home/welcome.txt': { type:'file', perms:'-rw-r--r--', content:'Welcome to the system.\nYour first lead is in the intel directory.\nCheck /intel for more information.' },
-  '/home/emails': { type:'dir', children:['.secret_msg.txt'] },
-  '/home/emails/.secret_msg.txt': { type:'file', perms:'-rw-------', hidden:true, content:'Hidden message found.\nEncoded payload: dHV0b3JpYWw=' },
-  '/intel': { type:'dir', children:['readme.txt','encoded.txt'] },
-  '/intel/readme.txt': { type:'file', perms:'-rw-r--r--', content:'Two files in this directory.\nOne is visible. One is encoded.\nDecode the encoded file to find the final answer.' },
-  '/intel/encoded.txt': { type:'file', perms:'-rw-r--r--', content:'Encoded payload:\ndHV0b3JpYWw=\nEncoding: Base64' },
-};
-
-// Tutorial steps: each has a prompt, the expected command(s), and a response
-const tutorialGhost = [
-  {
-    prompt: [
-      '[ GHOST OPERATIVE TUTORIAL ]',
-      '',
-      'You operate in the shadows. Your goal is to breach target systems,',
-      'extract data, and vanish without a trace.',
-      'Every mission gives you access to a target\'s filesystem.',
-      'You navigate it using terminal commands to find the answers.',
-      '',
-      'Let\'s start with the basics.',
-      '',
-      '━━━ STEP 1: LIST FILES ━━━',
-      'The  ls  command lists files and folders in your current location.',
-      '',
-      '▶  Type:  ls',
-    ],
-    accept: ['ls'],
-    response: ['Good. You can see the directories available at root.','Directories are shown in blue. Files in green.',''],
-  },
-  {
-    prompt: [
-      '━━━ STEP 2: NAVIGATE DIRECTORIES ━━━',
-      'Use  cd <folder>  to move into a directory.',
-      'Use  cd ..  to go back up one level.',
-      'Your current location always shows in the prompt.',
-      '',
-      '▶  Type:  cd intel',
-    ],
-    accept: ['cd intel'],
-    response: ['You\'re now inside /intel.','Notice the prompt updated to show your location.',''],
-  },
-  {
-    prompt: [
-      '━━━ STEP 3: READ FILES ━━━',
-      'Use  cat <filename>  to read the contents of a file.',
-      '',
-      '▶  Type:  cat readme.txt',
-    ],
-    accept: ['cat readme.txt', 'cat /intel/readme.txt'],
-    response: [''],
-  },
-  {
-    prompt: [
-      '━━━ STEP 4: HIDDEN FILES ━━━',
-      'Some files are hidden — they start with a dot (.).',
-      'Regular  ls  won\'t show them.',
-      'Use  ls -la  to reveal everything including hidden files.',
-      '',
-      '▶  Type:  ls -la  (try it in /home/emails — navigate there first)',
-      '▶  Or just type:  ls -la /home/emails',
-    ],
-    accept: ['ls -la', 'ls -la /home/emails', 'ls -al', 'ls -al /home/emails'],
-    response: ['Hidden files revealed. Anything starting with a dot is hidden by default.','In real missions, critical clues are often in hidden files.',''],
-  },
-  {
-    prompt: [
-      '━━━ STEP 5: SEARCH INSIDE FILES ━━━',
-      'Use  grep <pattern> <file>  to search for specific text inside a file.',
-      'It returns only the lines that match your search.',
-      '',
-      '▶  Type:  grep encoded /intel/readme.txt',
-    ],
-    accept: ['grep encoded /intel/readme.txt', 'grep encoded readme.txt'],
-    response: ['Grep found the matching line instantly.','In log analysis missions, grep is essential for finding attacker IPs and timestamps.',''],
-  },
-  {
-    prompt: [
-      '━━━ STEP 6: DECODING ━━━',
-      'Encoded data appears throughout missions.',
-      'Use  decode --base64 <string>  to decode Base64.',
-      'Use  decode --hex <string>  to decode hex.',
-      '',
-      'First, read the encoded file:',
-      '▶  Type:  cat /intel/encoded.txt',
-    ],
-    accept: ['cat /intel/encoded.txt', 'cat encoded.txt'],
-    response: ['You can see the encoded payload. Now decode it.',''],
-  },
-  {
-    prompt: [
-      '▶  Type:  decode --base64 dHV0b3JpYWw=',
-    ],
-    accept: ['decode --base64 dHV0b3JpYWw='],
-    response: ['The decoded result is the answer to a puzzle.','In real missions you find the encoded string in the filesystem, decode it, then submit the result.',''],
-  },
-  {
-    prompt: [
-      '━━━ STEP 7: SUBMITTING ANSWERS ━━━',
-      'When you have the answer to a puzzle, use:',
-      '  submit <answer>',
-      '',
-      'The answer to the tutorial puzzle is what you just decoded.',
-      '',
-      '▶  Type:  submit tutorial',
-    ],
-    accept: ['submit tutorial'],
-    response: [''],
-    isPractice: true,
-  },
-  {
-    prompt: [
-      '━━━ STEP 8: OTHER USEFUL COMMANDS ━━━',
-      '',
-      '  pwd              → print current directory',
-      '  ps aux           → list running processes',
-      '  ping <ip>        → ping an IP address',
-      '  whoami           → show current user',
-      '  clear            → clear the terminal',
-      '  tools            → list your unlocked tools',
-      '  missions         → view mission board',
-      '  help             → open the full Operator\'s Manual',
-      '',
-      '━━━ STEP 9: REPUTATION ━━━',
-      '',
-      'Every correct answer earns +15 reputation.',
-      'Wrong answers cost -5 reputation.',
-      'Higher missions require minimum reputation to unlock.',
-      'Completing missions earns +25 bonus reputation.',
-      '',
-      '━━━ TUTORIAL COMPLETE ━━━',
-      '',
-      'You\'re ready, operative.',
-      '',
-      '▶  Type:  missions  to see your first assignment.',
-    ],
-    accept: ['missions', 'start m01', 'start M01'],
-    isLast: true,
-    response: [''],
-  },
-];
-
-const tutorialSentinel = [
-  {
-    prompt: [
-      '[ SENTINEL OPERATIVE TUTORIAL ]',
-      '',
-      'You are a cybersecurity analyst. Your goal is to investigate breaches,',
-      'identify attackers, patch vulnerabilities, and protect critical systems.',
-      'Every mission loads a target filesystem for you to investigate.',
-      'You use terminal commands to uncover evidence and submit your findings.',
-      '',
-      '━━━ STEP 1: LIST FILES ━━━',
-      'The  ls  command lists files and folders in your current location.',
-      '',
-      '▶  Type:  ls',
-    ],
-    accept: ['ls'],
-    response: ['Good. You can see the directories available at root.','Directories are shown in blue. Files in green.',''],
-  },
-  {
-    prompt: [
-      '━━━ STEP 2: NAVIGATE DIRECTORIES ━━━',
-      'Use  cd <folder>  to move into a directory.',
-      'Use  cd ..  to go back up. Your location shows in the prompt.',
-      '',
-      '▶  Type:  cd intel',
-    ],
-    accept: ['cd intel'],
-    response: ['You\'re now inside /intel.','Notice the prompt shows your current path.',''],
-  },
-  {
-    prompt: [
-      '━━━ STEP 3: READ FILES ━━━',
-      'Use  cat <filename>  to read the contents of a file.',
-      '',
-      '▶  Type:  cat readme.txt',
-    ],
-    accept: ['cat readme.txt', 'cat /intel/readme.txt'],
-    response: [''],
-  },
-  {
-    prompt: [
-      '━━━ STEP 4: HIDDEN FILES ━━━',
-      'Attackers often hide evidence in dot files (files starting with .).',
-      'Use  ls -la  to reveal hidden files.',
-      '',
-      '▶  Type:  ls -la /home/emails',
-    ],
-    accept: ['ls -la', 'ls -la /home/emails', 'ls -al', 'ls -al /home/emails'],
-    response: ['Hidden file found. In real investigations, deleted or hidden files often contain key evidence.',''],
-  },
-  {
-    prompt: [
-      '━━━ STEP 5: SEARCH INSIDE FILES ━━━',
-      'Use  grep <pattern> <file>  to search for text inside a file.',
-      'Essential for scanning long log files for attacker activity.',
-      '',
-      '▶  Type:  grep encoded /intel/readme.txt',
-    ],
-    accept: ['grep encoded /intel/readme.txt', 'grep encoded readme.txt'],
-    response: ['Grep isolates matching lines instantly — critical for log analysis.',''],
-  },
-  {
-    prompt: [
-      '━━━ STEP 6: DECODING ━━━',
-      'Attackers encode stolen data to obscure it.',
-      'Use  decode --base64 <string>  to decode intercepted payloads.',
-      '',
-      '▶  Type:  cat /intel/encoded.txt',
-    ],
-    accept: ['cat /intel/encoded.txt', 'cat encoded.txt'],
-    response: ['You can see the encoded payload. Now decode it.',''],
-  },
-  {
-    prompt: [
-      '▶  Type:  decode --base64 dHV0b3JpYWw=',
-    ],
-    accept: ['decode --base64 dHV0b3JpYWw='],
-    response: ['Decoded. In real missions you\'ll find encoded payloads in intercepted files and need to identify what was transmitted.',''],
-  },
-  {
-    prompt: [
-      '━━━ STEP 7: SUBMITTING FINDINGS ━━━',
-      'When you\'ve identified the answer to a case, use:',
-      '  submit <answer>',
-      '',
-      '▶  Type:  submit tutorial',
-    ],
-    accept: ['submit tutorial'],
-    response: [''],
-    isPractice: true,
-  },
-  {
-    prompt: [
-      '━━━ STEP 8: OTHER USEFUL COMMANDS ━━━',
-      '',
-      '  pwd              → print current directory',
-      '  ps aux           → list running processes (find rogue ones)',
-      '  ping <ip>        → check if a host is online',
-      '  whoami           → show current user',
-      '  clear            → clear the terminal',
-      '  tools            → list your unlocked tools',
-      '  missions         → view mission board',
-      '  help             → open the full Operator\'s Manual',
-      '',
-      '━━━ STEP 9: REPUTATION ━━━',
-      '',
-      'Correct answers earn +15 reputation.',
-      'Wrong answers cost -5 reputation.',
-      'Reputation gates higher missions — earn it to unlock them.',
-      '',
-      '━━━ TUTORIAL COMPLETE ━━━',
-      '',
-      'You\'re ready, Operative. Your first case is open.',
-      '',
-      '▶  Type:  missions  to view the mission board.',
-    ],
-    accept: ['missions', 'start m01', 'start M01'],
-    isLast: true,
-    response: [''],
-  },
-];
-
-const tState = {
-  active: false,
-  step: 0,
-  steps: [],
-  waitingForCmd: false,
-};
-
-function startTutorial() {
-  tState.active = true;
-  tState.step = 0;
-  tState.steps = state.path === 'ghost' ? tutorialGhost : tutorialSentinel;
-
-  // load tutorial filesystem
-  state.fs = tutorialFS;
-  state.cwd = '/';
-  updatePrompt();
-
-  clearTerminal();
-  print('');
-  showTutorialStep(0);
-}
-
-function showTutorialStep(idx) {
-  if (idx >= tState.steps.length) { endTutorial(); return; }
-  const step = tState.steps[idx];
-  tState.step = idx;
-  tState.waitingForCmd = true;
-
-  print('');
-  step.prompt.forEach(line => {
-    if (line.startsWith('━━━')) print(line, 'warn');
-    else if (line.startsWith('▶')) print(line, 'system');
-    else if (line === '') print('', 'dim');
-    else print(line, 'info');
-  });
-  print('');
-
-  // update right panel
-  document.getElementById('puzzle-content').innerHTML = `
-    <div style="font-family:var(--font-vt);font-size:18px;color:var(--green-mid);margin-bottom:10px">TUTORIAL</div>
-    <div style="font-size:10px;color:var(--text-dim);letter-spacing:2px;margin-bottom:12px">STEP ${idx+1} / ${tState.steps.length}</div>
-    <div id="progress-bar"><div id="progress-fill" style="width:${((idx)/tState.steps.length)*100}%"></div></div>
-    <div style="font-size:12px;color:var(--green-dim);line-height:1.8;margin-bottom:14px">
-      ${step.prompt.filter(l=>!l.startsWith('▶')&&!l.startsWith('━━━')&&l!=='').slice(0,3).join('<br>')}
-    </div>
-    <div style="font-size:11px;color:var(--text-dim);border:1px solid var(--border);padding:8px 10px;line-height:1.8">
-      ${step.isLast ? 'Tutorial complete! Type <span style="color:var(--amber)">missions</span> to begin.' : 'Type the command shown in the terminal with the <span style="color:var(--blue)">▶</span> arrow.'}
-    </div>`;
-}
-
-function handleTutorialCmd(cmd) {
-  if (!tState.active) return false;
-
-  const step = tState.steps[tState.step];
-  const accepted = step.accept.some(a => cmd.toLowerCase() === a.toLowerCase());
-
-  // For step 6 (cat encoded.txt) and step 3 (cat readme.txt) — run the real command then advance
-  const isFileCmd = cmd.startsWith('ls') || cmd.startsWith('cd') || cmd.startsWith('cat') || cmd.startsWith('grep') || cmd.startsWith('decode') || cmd === 'pwd';
-
-  if (isFileCmd) {
-    // actually execute filesystem commands during tutorial
-    return false; // let processCmd handle it, then check acceptance
-  }
-
-  if (accepted) {
-    if (step.isPractice) {
-      print('');
-      print('◢ CORRECT — puzzle solved ◣', 'success');
-      print('That\'s how submit works in real missions.', 'info');
-      print('');
-    }
-    step.response.forEach(r => { if (r) print(r, 'info'); });
-    setTimeout(() => showTutorialStep(tState.step + 1), 400);
-    if (step.isLast) { tState.active = false; endTutorial(); }
-    return true;
-  }
-
-  return false;
-}
-
-function checkTutorialAdvance(cmd) {
-  if (!tState.active) return;
-  const step = tState.steps[tState.step];
-  const accepted = step.accept.some(a => cmd.toLowerCase() === a.toLowerCase());
-  if (accepted) {
-    step.response.forEach(r => { if (r) print(r, 'info'); });
-    setTimeout(() => showTutorialStep(tState.step + 1), 500);
-  }
-}
-
-function endTutorial() {
-  tState.active = false;
-  state.fs = {};
-  state.cwd = '/';
-  updatePrompt();
-  document.getElementById('puzzle-content').innerHTML = `
-    <div style="color:var(--text-dim);font-size:12px;margin-top:20px;text-align:center">
-      Tutorial complete.<br><br>
-      Type <span style="color:var(--green)">missions</span> to begin.
-    </div>`;
-}
-
-// ═══════════════════════════════════════════════
-//  HELP
-// ═══════════════════════════════════════════════
-function toggleHelp() {
-  const h = document.getElementById('help-overlay');
-  h.style.display = h.style.display === 'block' ? 'none' : 'block';
-  if (h.style.display === 'block') h.scrollTop = 0;
-}
-
-// ═══════════════════════════════════════════════
-//  COMMAND PROCESSOR
-// ═══════════════════════════════════════════════
-function processCmd(raw) {
-  const cmd = raw.trim();
-  if (!cmd) return;
-  state.history.unshift(cmd);
-  state.histIdx = -1;
-  print(document.getElementById('prompt-label').textContent + ' ' + cmd, 'dim');
-
-  if (!state.path) { print('Choose Ghost or Sentinel first.', 'error'); return; }
-
-  // Tutorial command
-  if (cmd === 'tutorial') { startTutorial(); return; }
-
-  // During tutorial — intercept submit and navigation then check for step advance
-  if (tState.active) {
-    const step = tState.steps[tState.step];
-    const accepted = step.accept.some(a => cmd.toLowerCase() === a.toLowerCase());
-    // run filesystem commands normally, then check if they match the expected command
-    const isNavCmd = cmd.startsWith('ls') || cmd.startsWith('cd') || cmd.startsWith('cat') || cmd.startsWith('grep') || cmd.startsWith('decode') || cmd === 'pwd';
-    if (cmd.startsWith('submit ')) {
-      const ans = cmd.slice(7).trim();
-      if (step.isPractice && ans.toLowerCase() === 'tutorial') {
-        print('');
-        print('◢ CORRECT — puzzle solved ◣', 'success');
-        print('That\'s how submit works in real missions.', 'info');
-        step.response.forEach(r => { if (r) print(r, 'info'); });
-        setTimeout(() => showTutorialStep(tState.step + 1), 500);
-      } else if (step.isPractice) {
-        print('✗ Not quite. The answer is what you decoded. Try: submit tutorial', 'error');
-      }
+// ── NAME ENTRY ────────────────────────────────
+function runNameEntry(cb) {
+  show('name-entry');
+  const out = document.getElementById('name-output');
+  const inp = document.getElementById('name-input');
+  const lines = [
+    {t:'DELPHI PEOPLE OPERATIONS — ONBOARDING TERMINAL', c:'#2471d4'},
+    {t:'New employee credential setup', c:'#555'},
+    {t:'', c:''},
+    {t:'Please enter your name to create your employee profile.', c:'#555'},
+    {t:'This will be your identity within Delphi systems.', c:'#555'},
+    {t:'', c:''},
+  ];
+  let i = 0;
+  const iv = setInterval(() => {
+    if (i >= lines.length) {
+      clearInterval(iv);
+      inp.focus();
+      inp.onkeydown = e => {
+        if (e.key === 'Enter' && inp.value.trim()) {
+          G.playerName = inp.value.trim();
+          hide('name-entry'); cb();
+        }
+      };
       return;
     }
-    if (cmd === 'missions' && step.isLast) { tState.active = false; endTutorial(); showMissions(); return; }
-    if ((cmd === 'start M01' || cmd === 'start m01') && step.isLast) { tState.active = false; endTutorial(); startMission('M01'); return; }
-    if (isNavCmd) {
-      // run the command, then check advancement
-    } else if (!accepted && !step.isLast) {
-      print('Follow the tutorial prompt. Expected: ' + step.accept[0], 'warn');
-      return;
-    }
-  }
-
-  if (cmd === 'ls')              { listDir(state.cwd, false); if (tState.active) checkTutorialAdvance(cmd); return; }
-  if (cmd === 'ls -la' || cmd === 'ls -al') { listDir(state.cwd, true); if (tState.active) checkTutorialAdvance(cmd); return; }
-  if (cmd.startsWith('ls -la ') || cmd.startsWith('ls -al ')) { listDir(cmd.split(' ')[2], true); if (tState.active) checkTutorialAdvance(cmd); return; }
-  if (cmd.startsWith('ls '))     { listDir(cmd.split(' ')[1], false); if (tState.active) checkTutorialAdvance(cmd); return; }
-
-  if (cmd.startsWith('cd ')) {
-    const target = cmd.slice(3).trim();
-    const resolved = resolvePath(target);
-    const node = state.fs[resolved];
-    if (!node) { print('cd: ' + target + ': No such directory', 'error'); return; }
-    if (node.type !== 'dir') { print('cd: ' + target + ': Not a directory', 'error'); return; }
-    state.cwd = resolved; updatePrompt(); if (tState.active) checkTutorialAdvance(cmd); return;
-  }
-
-  if (cmd.startsWith('cat '))  { catFile(cmd.slice(4).trim()); if (tState.active) checkTutorialAdvance(cmd); return; }
-
-  if (cmd.startsWith('grep ')) {
-    const parts = cmd.split(' ');
-    if (parts.length < 3) { print('Usage: grep <pattern> <file>', 'error'); return; }
-    grepFile(parts[1], parts.slice(2).join(' ')); if (tState.active) checkTutorialAdvance(cmd); return;
-  }
-
-  if (cmd.startsWith('decode --base64 ')) {
-    const enc = cmd.slice(16).trim();
-    try { print('Decoded: ' + atob(enc), 'success'); } catch { print('Invalid Base64.', 'error'); }
-    if (tState.active) checkTutorialAdvance(cmd); return;
-  }
-  if (cmd.startsWith('decode --hex ')) {
-    const hex = cmd.slice(13).trim().replace(/\s/g,'');
-    try { print('Decoded: ' + hex.match(/.{1,2}/g).map(b=>String.fromCharCode(parseInt(b,16))).join(''), 'success'); }
-    catch { print('Invalid hex.', 'error'); }
-    return;
-  }
-  if (cmd.startsWith('decode --caesar ')) {
-    if (!state.ownedTools.has('decode_caesar')) { print('Tool not unlocked: decode --caesar', 'error'); return; }
-    const parts = cmd.split(' ');
-    const shift = parseInt(parts[2]) || 13;
-    const text  = parts.slice(3).join(' ');
-    const decoded = text.replace(/[a-zA-Z]/g, c => {
-      const base = c <= 'Z' ? 65 : 97;
-      return String.fromCharCode(((c.charCodeAt(0) - base - shift + 26) % 26) + base);
-    });
-    print('Decoded (shift ' + shift + '): ' + decoded, 'success'); return;
-  }
-
-  if (cmd.startsWith('submit ')) { submitAnswer(cmd.slice(7).trim()); return; }
-
-  if (cmd.startsWith('ping ')) {
-    const ip = cmd.split(' ')[1];
-    print('PING ' + ip + ' ...', 'info');
-    setTimeout(() => print('Reply from ' + ip + ': bytes=32 time=14ms TTL=64', 'success'), 400); return;
-  }
-
-  if (cmd === 'ps aux') {
-    const mid = state.currentMission?.id;
-    const snap = (mid && psSnapshots[mid]) ? psSnapshots[mid][state.path] : defaultPs;
-    snap.forEach(l => print(l, 'info')); return;
-  }
-
-  if (cmd === 'tools')   { showTools(); return; }
-  if (cmd === 'missions'){ showMissions(); return; }
-  if (cmd === 'help' || cmd === 'man') { toggleHelp(); return; }
-  if (cmd.startsWith('man ') || cmd.startsWith('help ')) { toggleHelp(); return; }
-  if (cmd.startsWith('start ')) { startMission(cmd.split(' ')[1]); return; }
-  if (cmd === 'clear')   { clearTerminal(); return; }
-  if (cmd === 'pwd')     { print(state.cwd, 'info'); return; }
-  if (cmd === 'whoami')  { print(state.path === 'ghost' ? 'ghost [uid=0 root]' : 'sentinel [uid=1000]', 'info'); return; }
-  if (cmd === 'uptime')  { print('up 47 days, 3:22,  load average: 0.12, 0.08, 0.05', 'info'); return; }
-  if (cmd === 'uname -a'){ print('Linux netbreaker-target 5.15.0-78-generic #85 SMP x86_64', 'info'); return; }
-  if (cmd === 'ifconfig'){ print('eth0: inet 192.168.1.5  netmask 255.255.255.0', 'info'); return; }
-
-  print('Command not found: ' + cmd + '  — type  help  for the manual.', 'error');
+    if (lines[i].t) { const d = document.createElement('div'); d.textContent = lines[i].t; d.style.color = lines[i].c; out.appendChild(d); }
+    else out.appendChild(document.createElement('div'));
+    i++;
+  }, 100);
 }
 
-// ═══════════════════════════════════════════════
-//  INPUT
-// ═══════════════════════════════════════════════
-const input = document.getElementById('cmd-input');
-input.addEventListener('keydown', e => {
-  if (e.key === 'Enter') { const v = input.value; processCmd(v); input.value = ''; }
-  if (e.key === 'ArrowUp') { state.histIdx = Math.min(state.histIdx+1,state.history.length-1); input.value = state.history[state.histIdx]||''; e.preventDefault(); }
-  if (e.key === 'ArrowDown') { state.histIdx = Math.max(state.histIdx-1,-1); input.value = state.histIdx===-1?'':state.history[state.histIdx]; e.preventDefault(); }
+// ── INPUT HANDLERS ────────────────────────────
+document.getElementById('d-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { const v = e.target.value; e.target.value = ''; dCmd(v); }
+  if (e.key === 'ArrowUp') { G.histIdx = Math.min(G.histIdx+1, G.history.length-1); e.target.value = G.history[G.histIdx]||''; e.preventDefault(); }
+  if (e.key === 'ArrowDown') { G.histIdx = Math.max(G.histIdx-1,-1); e.target.value = G.histIdx===-1?'':G.history[G.histIdx]; e.preventDefault(); }
+});
+document.getElementById('g-cmd-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { const v = e.target.value; e.target.value = ''; gCmd(v); }
+  if (e.key === 'ArrowUp') { G.histIdx = Math.min(G.histIdx+1, G.history.length-1); e.target.value = G.history[G.histIdx]||''; e.preventDefault(); }
+  if (e.key === 'ArrowDown') { G.histIdx = Math.max(G.histIdx-1,-1); e.target.value = G.histIdx===-1?'':G.history[G.histIdx]; e.preventDefault(); }
 });
 document.addEventListener('click', e => {
-  if (!e.target.closest('#help-overlay') && !e.target.closest('#intro-overlay') && !e.target.closest('#puzzle-panel') && !e.target.closest('#story-overlay') && !e.target.closest('#boot-overlay')) {
-    input.focus();
-  }
+  if (G.mode === 'delphi' && !e.target.closest('.d-panel') && !e.target.closest('.fs-overlay'))
+    document.getElementById('d-input').focus();
+  if (G.mode === 'ghost' && !e.target.closest('.fs-overlay'))
+    document.getElementById('g-cmd-input').focus();
 });
 
-// ═══════════════════════════════════════════════
-//  INIT
-// ═══════════════════════════════════════════════
-updateToolList();
-runBoot();
+// ── INIT ──────────────────────────────────────
+hideAll();
+runBoot(() => runNameEntry(() => startChapter(0)));
 </script>
 </body>
-</html>
+</html> 
