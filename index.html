@@ -1,4 +1,4 @@
-html = r"""<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -577,20 +577,12 @@ function handleCred(val){
     G.fullName=G.first+' '+G.last;
     credPrint('  › '+G.last,'c');
     credStep=3;
+    // Hide cred screen input and show pw screen
     setTimeout(()=>{
-      credPrint('');
-      credPrint('  ──────────────────────────────────────────────────','sep');
-      credPrint('  STEP 2 OF 2 — CREATE YOUR PASSWORD','h');
-      credPrint('');
-      credPrint('  Your password will be used to access all Delphi systems.','d');
-      credPrint('');
-      // Hide cred screen input and show pw screen
-      setTimeout(()=>{
-        hide('cred-screen');
-        show('pw-screen');
-        document.getElementById('pw1').focus();
-      },600);
-    },300);
+      hide('cred-screen');
+      show('pw-screen');
+      document.getElementById('pw1').focus();     
+    },600);
     return;
   }
 }
@@ -1302,4 +1294,4 @@ show('boot-screen');
 runBoot();
 </script>
 </body>
-</html>"""
+</html>
