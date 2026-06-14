@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -9,106 +9,102 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  --bg:#0b0f18; --bg2:#111620; --bg3:#161d2a; --bg4:#1c2438;
-  --border:#1a2540; --border2:#243050;
-  --blue:#1e90ff; --blue2:#4dabff; --blue3:#0a3060; --blue-glow:rgba(30,144,255,0.12);
-  --cyan:#00d4ff; --cyan-dim:#004455;
-  --text:#dde4f0; --text-dim:#5a6a88; --text-mid:#8a9ab8;
-  --success:#00c87a; --warn:#f5a623; --error:#ff4444; --oracle:#9b7fe8;
-  --mono:'Share Tech Mono',monospace; --sans:'Inter',sans-serif;
+  --bg:#0b0f18;--bg2:#111620;--bg3:#161d2a;--bg4:#1c2438;
+  --border:#1a2540;--border2:#243050;
+  --blue:#1e90ff;--blue2:#4dabff;--blue3:#0a3060;
+  --cyan:#00d4ff;--text:#e8edf8;--text-dim:#5a6a88;--text-mid:#9aadc8;
+  --success:#00c87a;--warn:#f5a623;--error:#ff4444;--oracle:#9b7fe8;
+  --mono:'Share Tech Mono',monospace;--sans:'Inter',sans-serif;
 }
 html,body{height:100%;overflow:hidden;}
 body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:13px;line-height:1.5;display:flex;flex-direction:column;}
-::-webkit-scrollbar{width:4px;} ::-webkit-scrollbar-track{background:transparent;} ::-webkit-scrollbar-thumb{background:var(--border2);}
+::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border2);}
 .hidden{display:none!important;}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes fadeOut{from{opacity:1}to{opacity:0}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
-@keyframes scanbeam{0%{top:-2px}100%{top:100%}}
-.fade-in{animation:fadeIn 0.5s ease;}
+#scanline{position:fixed;inset:0;pointer-events:none;z-index:9999;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.012) 2px,rgba(0,0,0,0.012) 4px);}
 
-/* SCAN LINES */
-#scanline{position:fixed;inset:0;pointer-events:none;z-index:9999;
-  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.012) 2px,rgba(0,0,0,0.012) 4px);}
-
-/* ── BOOT SCREEN ── */
-#boot-screen{position:fixed;inset:0;background:#000;z-index:700;display:flex;flex-direction:column;justify-content:flex-end;padding:48px 60px;}
-#boot-lines{font-family:var(--mono);font-size:13px;line-height:2;max-width:700px;}
-.bl{display:block;} .bl.d{color:#1e2a3a;} .bl.b{color:var(--blue);} .bl.c{color:var(--cyan);}
-.bl.w{color:var(--text);} .bl.s{color:var(--success);} .bl.r{color:var(--error);} .bl.o{color:var(--warn);}
+/* ── BOOT ── */
+#boot-screen{position:fixed;inset:0;background:#000;z-index:800;display:flex;flex-direction:column;justify-content:flex-end;padding:48px 60px;}
+#boot-lines{font-family:var(--mono);font-size:13px;line-height:2.1;max-width:700px;}
+.bl{display:block;}.bl.d{color:#1e2a3a;}.bl.b{color:var(--blue);}.bl.c{color:var(--cyan);}.bl.w{color:var(--text);}.bl.s{color:var(--success);}.bl.o{color:var(--warn);}
 
 /* ── CREDENTIAL SCREEN ── */
-#cred-screen{position:fixed;inset:0;background:var(--bg);z-index:600;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:40px;}
-.cred-box{width:100%;max-width:620px;}
-#cred-out{font-family:var(--mono);font-size:13px;line-height:1.9;overflow-y:auto;max-height:calc(100vh - 120px);padding-bottom:8px;}
-.cl{display:block;} .cl.d{color:var(--text-dim);} .cl.b{color:var(--blue2);} .cl.c{color:var(--cyan);}
-.cl.w{color:var(--text);} .cl.s{color:var(--success);} .cl.e{color:var(--error);} .cl.o{color:var(--warn);}
-.cl.sep{color:#1a2540;} .cl.h{color:var(--blue);font-size:11px;letter-spacing:2px;}
-.cred-inp-row{display:flex;align-items:center;gap:8px;margin-top:8px;flex-shrink:0;}
-.cred-pmt{color:var(--blue2);font-size:13px;white-space:nowrap;}
+#cred-screen{position:fixed;inset:0;background:var(--bg);z-index:700;flex-direction:column;align-items:center;justify-content:center;padding:40px;}
+.cred-box{width:100%;max-width:640px;display:flex;flex-direction:column;max-height:100vh;}
+#cred-out{font-family:var(--mono);font-size:13px;line-height:1.9;overflow-y:auto;flex:1;padding-bottom:6px;}
+.cl{display:block;}.cl.d{color:var(--text-dim);}.cl.b{color:var(--blue2);}.cl.c{color:var(--cyan);}
+.cl.w{color:var(--text);}.cl.s{color:var(--success);}.cl.e{color:var(--error);}.cl.sep{color:#1e2a3a;}.cl.h{color:var(--blue);font-size:11px;letter-spacing:2px;}
+.cred-inp-row{display:flex;align-items:center;gap:8px;margin-top:10px;flex-shrink:0;padding-top:4px;border-top:1px solid var(--border);}
+.cred-pmt{color:var(--blue2);font-size:13px;white-space:nowrap;flex-shrink:0;}
 #cred-inp{background:transparent;border:none;outline:none;color:var(--cyan);font-family:var(--mono);font-size:13px;flex:1;min-width:0;}
 
 /* ── PASSWORD SCREEN ── */
-#pw-screen{position:fixed;inset:0;background:var(--bg);z-index:600;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:40px;}
-.pw-box{width:100%;max-width:500px;}
-.pw-title{font-family:var(--mono);font-size:12px;color:var(--blue2);letter-spacing:3px;text-transform:uppercase;margin-bottom:24px;}
-.pw-label{font-family:var(--sans);font-size:11px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
-.pw-field{width:100%;background:var(--bg3);border:1px solid var(--border2);padding:11px 14px;font-family:var(--mono);font-size:13px;color:var(--cyan);outline:none;margin-bottom:16px;caret-color:var(--blue2);}
+#pw-screen{position:fixed;inset:0;background:var(--bg);z-index:700;flex-direction:column;align-items:center;justify-content:center;padding:40px;}
+.pw-box{width:100%;max-width:480px;}
+.pw-head{font-family:var(--mono);font-size:11px;color:var(--blue2);letter-spacing:3px;text-transform:uppercase;margin-bottom:6px;}
+.pw-subhead{font-family:var(--mono);font-size:12px;color:var(--text-dim);margin-bottom:24px;}
+.pw-sep{border:none;border-top:1px solid var(--border);margin-bottom:24px;}
+.pw-label{font-family:var(--sans);font-size:10px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;}
+.pw-field{width:100%;background:var(--bg3);border:1px solid var(--border2);padding:11px 13px;font-family:var(--mono);font-size:13px;color:var(--cyan);outline:none;margin-bottom:14px;caret-color:var(--blue2);}
 .pw-field:focus{border-color:var(--blue);}
+.pw-req{font-family:var(--mono);font-size:10px;color:var(--text-dim);margin-bottom:20px;line-height:1.9;}
 .pw-btn{width:100%;background:var(--blue3);border:1px solid var(--blue);color:var(--blue2);font-family:var(--mono);font-size:12px;padding:11px;cursor:pointer;letter-spacing:2px;text-transform:uppercase;transition:all 0.2s;margin-top:4px;}
 .pw-btn:hover{background:var(--blue);color:#fff;}
-.pw-err{font-family:var(--mono);font-size:11px;color:var(--error);margin-top:8px;min-height:18px;}
-.pw-req{font-family:var(--mono);font-size:10px;color:var(--text-dim);margin-bottom:20px;line-height:1.8;}
+.pw-err{font-family:var(--mono);font-size:11px;color:var(--error);margin-top:8px;min-height:16px;}
 
-/* ── ACCOUNT CREATION ANIMATION ── */
-#acct-screen{position:fixed;inset:0;background:var(--bg);z-index:600;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:40px;}
+/* ── ACCOUNT CREATION ── */
+#acct-screen{position:fixed;inset:0;background:var(--bg);z-index:700;flex-direction:column;align-items:center;justify-content:center;padding:40px;}
 .acct-box{width:100%;max-width:600px;}
-#acct-out{font-family:var(--mono);font-size:13px;line-height:2;}
-.acl{display:block;} .acl.d{color:var(--text-dim);} .acl.b{color:var(--blue2);}
-.acl.c{color:var(--cyan);} .acl.s{color:var(--success);} .acl.sep{color:#1a2540;}
-.acct-card{background:var(--bg3);border:1px solid var(--border2);padding:20px;margin-top:16px;display:none;}
-.acct-card-row{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;padding:5px 0;border-bottom:1px solid var(--border);color:var(--text-dim);}
-.acct-card-row:last-child{border-bottom:none;}
-.acct-card-row span{color:var(--cyan);}
+#acct-out{font-family:var(--mono);font-size:13px;line-height:2;margin-bottom:0;}
+.acl{display:block;}.acl.d{color:var(--text-dim);}.acl.b{color:var(--blue2);}.acl.c{color:var(--cyan);}.acl.s{color:var(--success);}.acl.sep{color:#1e2a3a;}
+.acct-card{background:var(--bg3);border:1px solid var(--border2);padding:18px;margin-top:14px;display:none;}
+.acct-row{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;padding:5px 0;border-bottom:1px solid var(--border);color:var(--text-dim);}
+.acct-row:last-child{border-bottom:none;}
+.acct-row span{color:var(--cyan);}
 .acct-cont{display:none;width:100%;background:transparent;border:1px solid var(--blue);color:var(--blue2);font-family:var(--mono);font-size:12px;padding:11px;cursor:pointer;letter-spacing:2px;text-transform:uppercase;margin-top:16px;transition:all 0.2s;}
 .acct-cont:hover{background:var(--blue3);}
 
 /* ── CHAPTER CARD ── */
-#chapter-card{position:fixed;inset:0;background:#000;z-index:700;display:flex;align-items:center;justify-content:center;}
-.cc-inner{text-align:center;}
-.cc-act{font-family:var(--mono);font-size:10px;color:#1e2a3a;letter-spacing:6px;margin-bottom:14px;}
-.cc-title{font-family:var(--mono);font-size:24px;color:var(--text);letter-spacing:8px;text-transform:uppercase;margin-bottom:8px;}
-.cc-sub{font-family:var(--mono);font-size:11px;color:#1e2a3a;letter-spacing:3px;}
+#chapter-card{position:fixed;inset:0;background:#000;z-index:750;flex-direction:column;align-items:center;justify-content:center;}
+.cc-act{font-family:var(--mono);font-size:11px;color:#556;letter-spacing:6px;margin-bottom:14px;}
+.cc-title{font-family:var(--mono);font-size:26px;color:#dde4f8;letter-spacing:8px;text-transform:uppercase;margin-bottom:10px;}
+.cc-sub{font-family:var(--mono);font-size:12px;color:#445;letter-spacing:3px;}
 
-/* ── LOGIN SCREEN ── */
-#login-screen{position:fixed;inset:0;background:var(--bg);z-index:600;display:flex;flex-direction:column;align-items:center;justify-content:center;}
-.login-bg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0.03;pointer-events:none;}
-.login-bg-logo{width:400px;height:400px;}
-.login-card{background:var(--bg2);border:1px solid var(--border2);width:400px;padding:40px;position:relative;z-index:1;}
-.login-logo-row{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
-.login-logo-svg{width:28px;height:28px;}
-.login-logo-name{font-family:var(--sans);font-size:16px;font-weight:600;color:var(--text);letter-spacing:4px;}
-.login-tagline{font-family:var(--sans);font-size:10px;color:var(--text-dim);margin-bottom:28px;letter-spacing:1px;}
-.login-sys-label{font-family:var(--mono);font-size:10px;color:var(--blue2);letter-spacing:2px;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:12px;}
-.login-field-label{font-family:var(--sans);font-size:10px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;}
-.login-field{width:100%;background:var(--bg3);border:1px solid var(--border2);padding:10px 12px;font-family:var(--mono);font-size:13px;color:var(--text);outline:none;margin-bottom:16px;}
-.login-field:focus{border-color:var(--blue);}
-.login-field[readonly]{color:var(--text-dim);cursor:default;}
-.login-btn{width:100%;background:var(--blue3);border:1px solid var(--blue);color:var(--blue2);font-family:var(--mono);font-size:12px;padding:11px;cursor:pointer;letter-spacing:2px;text-transform:uppercase;transition:all 0.2s;}
-.login-btn:hover{background:var(--blue);color:#fff;}
-.login-err{font-family:var(--mono);font-size:11px;color:var(--error);margin-top:8px;min-height:16px;}
-.login-date{font-family:var(--mono);font-size:10px;color:var(--text-dim);text-align:center;margin-top:20px;}
-.login-footer{font-family:var(--mono);font-size:9px;color:#1e2a3a;text-align:center;margin-top:12px;line-height:1.8;}
+/* ── LOGIN ── */
+#login-screen{position:fixed;inset:0;background:var(--bg);z-index:700;flex-direction:column;align-items:center;justify-content:center;}
+.login-bg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0.025;pointer-events:none;}
+.login-card{background:var(--bg2);border:1px solid var(--border2);width:400px;padding:40px;position:relative;z-index:1;animation:fadeIn 0.5s ease;}
+.li-logo-row{display:flex;align-items:center;gap:10px;margin-bottom:5px;}
+.li-logo-name{font-family:var(--sans);font-size:16px;font-weight:600;color:var(--text);letter-spacing:4px;}
+.li-tagline{font-family:var(--sans);font-size:10px;color:var(--text-dim);margin-bottom:26px;letter-spacing:1px;}
+.li-sys{font-family:var(--mono);font-size:10px;color:var(--blue2);letter-spacing:2px;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:12px;}
+.li-label{font-family:var(--sans);font-size:10px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;}
+.li-field{width:100%;background:var(--bg3);border:1px solid var(--border2);padding:10px 12px;font-family:var(--mono);font-size:13px;color:var(--text);outline:none;margin-bottom:14px;}
+.li-field:focus{border-color:var(--blue);}
+.li-field[readonly]{color:var(--text-dim);cursor:default;}
+.li-btn{width:100%;background:var(--blue3);border:1px solid var(--blue);color:var(--blue2);font-family:var(--mono);font-size:12px;padding:11px;cursor:pointer;letter-spacing:2px;text-transform:uppercase;transition:all 0.2s;}
+.li-btn:hover{background:var(--blue);color:#fff;}
+.li-err{font-family:var(--mono);font-size:11px;color:var(--error);margin-top:8px;min-height:16px;}
+.li-date{font-family:var(--mono);font-size:10px;color:var(--text-dim);text-align:center;margin-top:18px;}
+.li-footer{font-family:var(--mono);font-size:9px;color:#1e2a3a;text-align:center;margin-top:10px;line-height:1.8;}
 
-/* ── JARVIS GREETING ── */
-#jarvis-screen{position:fixed;inset:0;background:var(--bg);z-index:600;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;}
-.jarvis-inner{text-align:center;max-width:500px;}
-.jarvis-line{font-family:var(--mono);font-size:13px;line-height:2.4;display:block;opacity:0;}
-.jarvis-line.b{color:var(--blue2);}
-.jarvis-line.c{color:var(--cyan);}
-.jarvis-line.w{color:var(--text);}
-.jarvis-line.d{color:var(--text-dim);}
-.jarvis-line.s{color:var(--success);}
-.jarvis-line.big{font-size:22px;letter-spacing:3px;color:var(--text);}
+/* ── FULL SCREEN POPUP (Welcome, Date) ── */
+.fs-popup{position:fixed;inset:0;z-index:750;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(11,15,24,0.97);}
+#popup-delphi{border:none;}
+.popup-logo-wrap{display:flex;flex-direction:column;align-items:center;gap:20px;animation:fadeIn 0.6s ease;}
+.popup-logo-name{font-family:var(--sans);font-size:32px;font-weight:600;color:var(--text);letter-spacing:8px;text-transform:uppercase;}
+.popup-logo-tag{font-family:var(--sans);font-size:13px;color:var(--text-dim);letter-spacing:3px;}
+#popup-welcome .popup-inner{text-align:center;animation:fadeIn 0.6s ease;}
+#popup-date .popup-inner{text-align:center;animation:fadeIn 0.6s ease;}
+.popup-greeting{font-family:var(--mono);font-size:11px;color:var(--text-dim);letter-spacing:4px;text-transform:uppercase;margin-bottom:16px;}
+.popup-name{font-family:var(--sans);font-size:36px;font-weight:600;color:var(--text);letter-spacing:2px;margin-bottom:10px;}
+.popup-role{font-family:var(--mono);font-size:13px;color:var(--blue2);letter-spacing:3px;margin-bottom:8px;}
+.popup-id{font-family:var(--mono);font-size:11px;color:var(--text-dim);letter-spacing:1px;}
+.popup-date-big{font-family:var(--mono);font-size:28px;color:var(--text);letter-spacing:4px;margin-bottom:10px;}
+.popup-time-big{font-family:var(--mono);font-size:48px;color:var(--blue2);letter-spacing:6px;margin-bottom:12px;}
+.popup-day{font-family:var(--mono);font-size:12px;color:var(--text-dim);letter-spacing:3px;}
 
 /* ── MAIN TERMINAL ── */
 #main-terminal{display:none;flex-direction:column;height:100%;}
@@ -116,16 +112,15 @@ body.t-active #main-terminal{display:flex;}
 
 /* TOP BAR */
 .topbar{height:44px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 16px;flex-shrink:0;}
-.topbar-l{display:flex;align-items:center;gap:12px;}
+.tb-l{display:flex;align-items:center;gap:12px;}
 .tb-logo{display:flex;align-items:center;gap:8px;}
-.tb-logo-svg{width:20px;height:20px;}
 .tb-logo-name{font-family:var(--sans);font-size:13px;font-weight:600;color:var(--text);letter-spacing:3px;}
 .tb-div{width:1px;height:16px;background:var(--border2);}
 .tb-mod{font-family:var(--sans);font-size:11px;color:var(--text-dim);letter-spacing:1px;}
-.topbar-r{display:flex;align-items:center;gap:18px;font-family:var(--mono);font-size:11px;color:var(--text-dim);}
+.tb-r{display:flex;align-items:center;gap:18px;font-family:var(--mono);font-size:11px;color:var(--text-dim);}
 .tb-dot{width:6px;height:6px;border-radius:50%;background:var(--success);display:inline-block;margin-right:5px;animation:pulse 2.5s ease infinite;}
-.tb-tag{border:1px solid var(--border2);padding:2px 8px;font-size:10px;letter-spacing:1px;color:var(--text-dim);}
-#tb-clock{color:var(--text-mid);}
+.tb-tag{border:1px solid var(--border2);padding:2px 8px;font-size:10px;letter-spacing:1px;}
+#tb-clock{color:var(--blue2);font-family:var(--mono);font-size:12px;letter-spacing:2px;}
 
 /* NAV TABS */
 .navtabs{height:32px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:flex-end;padding:0 14px;gap:2px;flex-shrink:0;}
@@ -139,25 +134,25 @@ body.t-active #main-terminal{display:flex;}
 
 /* SIDEBAR */
 .sidebar{width:214px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;}
-.sb-analyst{padding:12px;border-bottom:1px solid var(--border);}
-.sb-analyst-card{background:var(--bg3);border:1px solid var(--border2);padding:10px 12px;}
-.sb-aname{font-family:var(--sans);font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px;}
-.sb-aid{font-family:var(--mono);font-size:9px;color:var(--text-dim);margin-bottom:8px;}
+.sb-top{padding:12px;border-bottom:1px solid var(--border);}
+.sb-card{background:var(--bg3);border:1px solid var(--border2);padding:10px 12px;}
+.sb-name{font-family:var(--sans);font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px;}
+.sb-id{font-family:var(--mono);font-size:9px;color:var(--text-dim);margin-bottom:8px;}
 .sb-tags{display:flex;gap:4px;flex-wrap:wrap;}
 .sb-tag{font-family:var(--mono);font-size:9px;padding:2px 6px;border:1px solid;letter-spacing:1px;}
 .sb-tag.b{border-color:var(--blue3);color:var(--blue2);}
 .sb-tag.g{border-color:#0a3020;color:var(--success);}
-.sb-tag.o{border-color:#3a2800;color:var(--oracle);}
+.sb-tag.o{border-color:#2a1e50;color:var(--oracle);}
 .sb-sec{padding:10px 12px;border-bottom:1px solid var(--border);}
 .sb-sec-label{font-family:var(--sans);font-size:9px;font-weight:600;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;}
 .sb-stat{display:flex;justify-content:space-between;font-family:var(--sans);font-size:11px;color:var(--text-dim);margin-bottom:5px;}
 .sb-stat span{color:var(--text-mid);font-family:var(--mono);}
 .oracle-widget{background:var(--bg3);border:1px solid #2a1e50;padding:9px;}
-.oracle-w-title{font-family:var(--sans);font-size:9px;font-weight:600;color:var(--oracle);letter-spacing:2px;text-transform:uppercase;margin-bottom:5px;display:flex;align-items:center;gap:5px;}
-.oracle-w-dot{width:5px;height:5px;border-radius:50%;background:var(--oracle);animation:pulse 2s ease infinite;flex-shrink:0;}
-.oracle-w-text{font-family:var(--mono);font-size:10px;color:var(--text-dim);line-height:1.7;margin-bottom:5px;}
-.oracle-w-bar{height:2px;background:#1e1040;border-radius:1px;}
-.oracle-w-fill{height:100%;background:var(--oracle);border-radius:1px;transition:width 1.5s;}
+.ow-title{font-family:var(--sans);font-size:9px;font-weight:600;color:var(--oracle);letter-spacing:2px;text-transform:uppercase;margin-bottom:5px;display:flex;align-items:center;gap:5px;}
+.ow-dot{width:5px;height:5px;border-radius:50%;background:var(--oracle);animation:pulse 2s ease infinite;flex-shrink:0;}
+.ow-text{font-family:var(--mono);font-size:10px;color:var(--text-dim);line-height:1.7;margin-bottom:5px;}
+.ow-bar{height:2px;background:#1e1040;border-radius:1px;}
+.ow-fill{height:100%;background:var(--oracle);border-radius:1px;transition:width 1.5s;}
 .sb-scroll{flex:1;overflow-y:auto;padding:10px 12px;}
 .cw-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);}
 .cw-name{font-family:var(--sans);font-size:11px;color:var(--text-mid);}
@@ -166,20 +161,20 @@ body.t-active #main-terminal{display:flex;}
 
 /* TERMINAL PANE */
 .term-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;}
-.term-hdr{padding:7px 16px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.term-hdr{padding:7px 16px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;flex-shrink:0;}
 .term-hdr-l{font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:1px;}
 .term-hdr-r{font-family:var(--mono);font-size:10px;color:var(--blue2);}
-.term-out{flex:1;overflow-y:auto;padding:13px 16px;}
+.t-out{flex:1;overflow-y:auto;padding:13px 16px;}
 .dl{margin-bottom:3px;white-space:pre-wrap;word-break:break-all;font-family:var(--mono);font-size:13px;line-height:1.6;}
-.dl.cmd{color:var(--text);} .dl.info{color:var(--text-dim);} .dl.success{color:var(--success);}
-.dl.error{color:var(--error);} .dl.warn{color:var(--warn);} .dl.system{color:var(--blue2);}
-.dl.cyan{color:var(--cyan);} .dl.oracle{color:var(--oracle);} .dl.dim{color:#1e2a3a;}
+.dl.cmd{color:var(--text);}.dl.info{color:var(--text-mid);}.dl.success{color:var(--success);}
+.dl.error{color:var(--error);}.dl.warn{color:var(--warn);}.dl.system{color:var(--blue2);}
+.dl.cyan{color:var(--cyan);}.dl.oracle{color:var(--oracle);}.dl.dim{color:#1e2a3a;}
 .dl.blank{margin-bottom:10px;}
 .dl.h{font-family:var(--sans);font-size:13px;font-weight:600;color:var(--text);margin:10px 0 4px;letter-spacing:0.5px;}
-.dl.sh{font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;}
-.term-inp-row{border-top:1px solid var(--border);padding:9px 16px;display:flex;align-items:center;gap:10px;background:var(--bg2);flex-shrink:0;}
-.term-pmt{font-family:var(--mono);font-size:13px;color:var(--blue);white-space:nowrap;flex-shrink:0;}
-.term-inp{flex:1;background:transparent;border:none;outline:none;font-family:var(--mono);font-size:13px;color:var(--cyan);caret-color:var(--blue);}
+.dl.sh{font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:5px;}
+.t-inp-row{border-top:1px solid var(--border);padding:9px 16px;display:flex;align-items:center;gap:10px;background:var(--bg2);flex-shrink:0;}
+.t-pmt{font-family:var(--mono);font-size:13px;color:var(--blue);white-space:nowrap;flex-shrink:0;}
+.t-inp{flex:1;background:transparent;border:none;outline:none;font-family:var(--mono);font-size:13px;color:var(--cyan);caret-color:var(--blue);}
 
 /* INBOX */
 #inbox-pane{display:none;flex:1;overflow:hidden;}
@@ -226,8 +221,6 @@ body.t-active #main-terminal{display:flex;}
 .rp-card-b{font-family:var(--sans);font-size:11px;color:var(--text-mid);line-height:1.7;}
 .rp-hint{font-family:var(--mono);font-size:10px;color:var(--blue2);border:1px solid var(--blue3);padding:7px 9px;margin-top:9px;line-height:1.8;background:var(--bg4);}
 .rp-hint span{color:var(--cyan);}
-.rp-prog{height:2px;background:var(--bg4);margin:10px 0 0;}
-.rp-prog-fill{height:100%;background:var(--blue);transition:width 0.5s;}
 </style>
 </head>
 <body>
@@ -236,8 +229,8 @@ body.t-active #main-terminal{display:flex;}
 <!-- BOOT -->
 <div id="boot-screen" class="hidden"><div id="boot-lines"></div></div>
 
-<!-- CREDENTIAL ENTRY -->
-<div id="cred-screen" class="hidden">
+<!-- CREDENTIAL ENTRY (first + last name) -->
+<div id="cred-screen" class="hidden" style="display:none;">
   <div class="cred-box">
     <div id="cred-out"></div>
     <div class="cred-inp-row" id="cred-row">
@@ -248,89 +241,120 @@ body.t-active #main-terminal{display:flex;}
 </div>
 
 <!-- PASSWORD SCREEN -->
-<div id="pw-screen" class="hidden">
+<div id="pw-screen" class="hidden" style="display:none;">
   <div class="pw-box">
-    <div class="pw-title">DELPHI — CREATE YOUR PASSWORD</div>
-    <div class="pw-req">Requirements: 8 or more characters &nbsp;·&nbsp; at least one number</div>
+    <div class="pw-head">DELPHI PEOPLE OPERATIONS</div>
+    <div class="pw-subhead" id="pw-subhead">Step 2 of 2 — Create your password</div>
+    <hr class="pw-sep">
     <div class="pw-label">Password</div>
     <input class="pw-field" id="pw1" type="password" autocomplete="new-password" placeholder="Enter password" />
+    <div class="pw-req">Requirements: 8 or more characters &nbsp;·&nbsp; at least one number</div>
     <div class="pw-label">Confirm Password</div>
     <input class="pw-field" id="pw2" type="password" autocomplete="new-password" placeholder="Confirm password" />
     <div class="pw-err" id="pw-err"></div>
-    <button class="pw-btn" onclick="submitPassword()">Confirm &amp; Create Account</button>
+    <button class="pw-btn" onclick="submitPassword()">Create Account &rsaquo;</button>
   </div>
 </div>
 
 <!-- ACCOUNT CREATION -->
-<div id="acct-screen" class="hidden">
+<div id="acct-screen" class="hidden" style="display:none;">
   <div class="acct-box">
     <div id="acct-out"></div>
     <div class="acct-card" id="acct-card">
-      <div class="acct-card-row">Full Name <span id="ac-name"></span></div>
-      <div class="acct-card-row">Employee ID <span id="ac-id"></span></div>
-      <div class="acct-card-row">Email <span id="ac-email"></span></div>
-      <div class="acct-card-row">Department <span>Security Operations Center</span></div>
-      <div class="acct-card-row">Role <span>Analyst II</span></div>
-      <div class="acct-card-row">Clearance <span>Level 2</span></div>
-      <div class="acct-card-row">Oracle Access <span style="color:var(--oracle)">Granted</span></div>
+      <div class="acct-row">Full Name <span id="ac-name"></span></div>
+      <div class="acct-row">Employee ID <span id="ac-id"></span></div>
+      <div class="acct-row">Email <span id="ac-email"></span></div>
+      <div class="acct-row">Department <span>Security Operations Center</span></div>
+      <div class="acct-row">Role <span>Analyst II</span></div>
+      <div class="acct-row">Clearance <span>Level 2</span></div>
+      <div class="acct-row">Oracle Access <span style="color:var(--oracle)">Granted</span></div>
     </div>
-    <button class="acct-cont" id="acct-cont-btn" onclick="goToChapterCard()">Continue to Terminal ›</button>
+    <button class="acct-cont" id="acct-cont" onclick="goToChapterCard()">Continue &rsaquo;</button>
   </div>
 </div>
 
 <!-- CHAPTER CARD -->
-<div id="chapter-card" class="hidden">
-  <div class="cc-inner">
+<div id="chapter-card" class="hidden" style="display:none;">
+  <div style="text-align:center;">
     <div class="cc-act" id="cc-act"></div>
     <div class="cc-title" id="cc-title"></div>
     <div class="cc-sub" id="cc-sub"></div>
   </div>
 </div>
 
-<!-- LOGIN -->
-<div id="login-screen" class="hidden">
+<!-- LOGIN (only for chapter 2+) -->
+<div id="login-screen" class="hidden" style="display:none;">
   <div class="login-bg">
-    <svg class="login-bg-logo" viewBox="0 0 100 100" fill="none">
-      <line x1="50" y1="10" x2="50" y2="90" stroke="white" stroke-width="4"/>
-      <line x1="15" y1="50" x2="85" y2="50" stroke="white" stroke-width="4"/>
-      <path d="M25 22 Q50 40 75 22" stroke="white" stroke-width="4" fill="none" stroke-linecap="round"/>
-      <path d="M25 78 Q50 60 75 78" stroke="white" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <svg width="400" height="400" viewBox="0 0 100 100" fill="none">
+      <line x1="50" y1="10" x2="50" y2="90" stroke="white" stroke-width="3"/>
+      <line x1="10" y1="50" x2="90" y2="50" stroke="white" stroke-width="3"/>
+      <path d="M22 18 Q50 36 78 18" stroke="white" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <path d="M22 82 Q50 64 78 82" stroke="white" stroke-width="3" fill="none" stroke-linecap="round"/>
     </svg>
   </div>
-  <div class="login-card fade-in">
-    <div class="login-logo-row">
-      <svg class="login-logo-svg" viewBox="0 0 32 32" fill="none">
+  <div class="login-card">
+    <div class="li-logo-row">
+      <svg width="24" height="24" viewBox="0 0 32 32" fill="none">
         <line x1="16" y1="3" x2="16" y2="29" stroke="#1e90ff" stroke-width="2.5"/>
         <line x1="4" y1="16" x2="28" y2="16" stroke="#1e90ff" stroke-width="2.5"/>
         <path d="M8 7 Q16 13 24 7" stroke="#1e90ff" stroke-width="2.5" fill="none" stroke-linecap="round"/>
         <path d="M8 25 Q16 19 24 25" stroke="#1e90ff" stroke-width="2.5" fill="none" stroke-linecap="round"/>
       </svg>
-      <span class="login-logo-name">DELPHI</span>
+      <span class="li-logo-name">DELPHI</span>
     </div>
-    <div class="login-tagline">The World, Understood.</div>
-    <div class="login-sys-label">SECURITY OPERATIONS CENTER — SECURE ACCESS</div>
-    <div class="login-field-label">Employee ID</div>
-    <input class="login-field" id="li-id" type="text" readonly />
-    <div class="login-field-label">Password</div>
-    <input class="login-field" id="li-pw" type="password" placeholder="Enter your password" />
-    <div class="login-err" id="li-err"></div>
-    <button class="login-btn" onclick="doLogin()">Sign In</button>
-    <div class="login-date" id="li-date"></div>
-    <div class="login-footer">This system is for authorized Delphi personnel only.<br>All access is monitored and logged.</div>
+    <div class="li-tagline">The World, Understood.</div>
+    <div class="li-sys">SECURITY OPERATIONS CENTER — SECURE ACCESS</div>
+    <div class="li-label">Employee ID</div>
+    <input class="li-field" id="li-id" type="text" readonly />
+    <div class="li-label">Password</div>
+    <input class="li-field" id="li-pw" type="password" placeholder="Enter your password" />
+    <div class="li-err" id="li-err"></div>
+    <button class="li-btn" onclick="doLogin()">Sign In</button>
+    <div class="li-date" id="li-date"></div>
+    <div class="li-footer">All access is monitored and logged by Delphi Security Systems.</div>
   </div>
 </div>
 
-<!-- JARVIS GREETING -->
-<div id="jarvis-screen" class="hidden">
-  <div class="jarvis-inner" id="jarvis-inner"></div>
+<!-- POPUP: DELPHI SPLASH -->
+<div id="popup-delphi" class="fs-popup hidden" style="display:none;">
+  <div class="popup-logo-wrap">
+    <svg width="80" height="80" viewBox="0 0 100 100" fill="none">
+      <line x1="50" y1="8" x2="50" y2="92" stroke="#1e90ff" stroke-width="4" stroke-linecap="round"/>
+      <line x1="8" y1="50" x2="92" y2="50" stroke="#1e90ff" stroke-width="4" stroke-linecap="round"/>
+      <path d="M20 16 Q50 38 80 16" stroke="#1e90ff" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <path d="M20 84 Q50 62 80 84" stroke="#1e90ff" stroke-width="4" fill="none" stroke-linecap="round"/>
+    </svg>
+    <div class="popup-logo-name">DELPHI</div>
+    <div class="popup-logo-tag">The World, Understood.</div>
+  </div>
+</div>
+
+<!-- POPUP: WELCOME -->
+<div id="popup-welcome" class="fs-popup hidden" style="display:none;">
+  <div class="popup-inner">
+    <div class="popup-greeting">Security Operations Center</div>
+    <div class="popup-name" id="pw-name">—</div>
+    <div class="popup-role" id="pw-role">Level 2 Analyst &nbsp;·&nbsp; SOC</div>
+    <div class="popup-id" id="pw-id">—</div>
+  </div>
+</div>
+
+<!-- POPUP: DATE/TIME -->
+<div id="popup-date" class="fs-popup hidden" style="display:none;">
+  <div class="popup-inner">
+    <div class="popup-greeting">Today is</div>
+    <div class="popup-date-big">October 1, 2032</div>
+    <div class="popup-time-big" id="popup-time-display">08:00</div>
+    <div class="popup-day">Monday &nbsp;·&nbsp; Day 1</div>
+  </div>
 </div>
 
 <!-- MAIN TERMINAL -->
 <div id="main-terminal">
   <div class="topbar">
-    <div class="topbar-l">
+    <div class="tb-l">
       <div class="tb-logo">
-        <svg class="tb-logo-svg" viewBox="0 0 32 32" fill="none">
+        <svg width="20" height="20" viewBox="0 0 32 32" fill="none">
           <line x1="16" y1="3" x2="16" y2="29" stroke="#1e90ff" stroke-width="2.5"/>
           <line x1="4" y1="16" x2="28" y2="16" stroke="#1e90ff" stroke-width="2.5"/>
           <path d="M8 7 Q16 13 24 7" stroke="#1e90ff" stroke-width="2.5" fill="none" stroke-linecap="round"/>
@@ -341,10 +365,10 @@ body.t-active #main-terminal{display:flex;}
       <div class="tb-div"></div>
       <span class="tb-mod">Security Operations Center</span>
     </div>
-    <div class="topbar-r">
+    <div class="tb-r">
       <span><span class="tb-dot"></span>Systems Online</span>
       <span class="tb-tag" id="tb-clearance">L2 — ANALYST</span>
-      <span id="tb-clock">08:00 — October 1, 2032</span>
+      <span id="tb-clock">08:00:00</span>
     </div>
   </div>
   <div class="navtabs">
@@ -353,15 +377,14 @@ body.t-active #main-terminal{display:flex;}
     <div class="ntab" id="tab-oracle" onclick="switchTab('oracle')">Oracle</div>
   </div>
   <div class="t-body">
-    <!-- SIDEBAR -->
     <div class="sidebar">
-      <div class="sb-analyst">
-        <div class="sb-analyst-card">
-          <div class="sb-aname" id="sb-name">—</div>
-          <div class="sb-aid" id="sb-id">ID: —</div>
+      <div class="sb-top">
+        <div class="sb-card">
+          <div class="sb-name" id="sb-name">—</div>
+          <div class="sb-id" id="sb-id">ID: —</div>
           <div class="sb-tags">
             <div class="sb-tag b">SOC</div>
-            <div class="sb-tag g" id="sb-status-tag">ACTIVE</div>
+            <div class="sb-tag g">ACTIVE</div>
             <div class="sb-tag o">ORACLE</div>
           </div>
         </div>
@@ -375,31 +398,29 @@ body.t-active #main-terminal{display:flex;}
       <div class="sb-sec">
         <div class="sb-sec-label">Oracle</div>
         <div class="oracle-widget">
-          <div class="oracle-w-title"><div class="oracle-w-dot"></div>Oracle v4.2</div>
-          <div class="oracle-w-text" id="sb-oracle">Monitoring baseline...</div>
-          <div class="oracle-w-bar"><div class="oracle-w-fill" id="sb-oracle-bar" style="width:0%"></div></div>
+          <div class="ow-title"><div class="ow-dot"></div>Oracle v4.2</div>
+          <div class="ow-text" id="sb-oracle">Monitoring baseline...</div>
+          <div class="ow-bar"><div class="ow-fill" id="sb-oracle-bar" style="width:0%"></div></div>
         </div>
       </div>
       <div class="sb-scroll">
-        <div class="sb-sec-label">Coworkers</div>
+        <div class="sb-sec-label" style="margin-bottom:8px;">Coworkers</div>
         <div id="cw-list"></div>
       </div>
     </div>
 
-    <!-- TERMINAL -->
     <div id="terminal-pane" class="term-wrap">
       <div class="term-hdr">
         <span class="term-hdr-l">SOC TERMINAL — SECURE SESSION</span>
         <span class="term-hdr-r" id="t-path">~</span>
       </div>
-      <div class="term-out" id="t-out"></div>
-      <div class="term-inp-row">
-        <span class="term-pmt" id="t-pmt">analyst@delphi-soc:~$</span>
-        <input class="term-inp" id="t-inp" type="text" autocomplete="off" spellcheck="false" placeholder="type a command..." />
+      <div class="t-out" id="t-out"></div>
+      <div class="t-inp-row">
+        <span class="t-pmt" id="t-pmt">analyst@delphi-soc:~$</span>
+        <input class="t-inp" id="t-inp" type="text" autocomplete="off" spellcheck="false" placeholder="type a command..." />
       </div>
     </div>
 
-    <!-- INBOX -->
     <div id="inbox-pane">
       <div class="inbox-wrap">
         <div class="inbox-list" id="inbox-list"></div>
@@ -407,13 +428,12 @@ body.t-active #main-terminal{display:flex;}
       </div>
     </div>
 
-    <!-- ORACLE TAB -->
     <div id="oracle-pane">
       <div class="dl h" style="margin-bottom:12px;">Oracle v4.2 — Analyst Interface</div>
       <div class="o-card">
         <div class="o-card-t">Attribution Engine</div>
         <div class="o-card-s">REAL-TIME THREAT ANALYSIS</div>
-        <div class="o-card-b" id="oracle-attr-body">No active attribution cases. Oracle is monitoring baseline activity.</div>
+        <div class="o-card-b">No active attribution cases. Oracle is monitoring baseline activity.</div>
       </div>
       <div class="o-card">
         <div class="o-card-t">System Status</div>
@@ -423,16 +443,15 @@ body.t-active #main-terminal{display:flex;}
       <div class="o-card" style="border-color:#2a1e50;">
         <div class="o-card-t" style="color:var(--oracle);">About Oracle</div>
         <div class="o-card-s">ORACLE v4.2 — INTERNAL</div>
-        <div class="o-card-b">Oracle is Delphi's internal analytics and security platform. It monitors authentication, network activity, and behavioral patterns across Delphi infrastructure. Confidence scores are probabilistic and require analyst review before any action is taken.</div>
+        <div class="o-card-b">Oracle is Delphi's internal analytics and security platform. It monitors authentication, network activity, and behavioral patterns across Delphi infrastructure in real time. Confidence scores are probabilistic. All Oracle outputs require analyst review.</div>
       </div>
     </div>
 
-    <!-- RIGHT PANEL -->
     <div class="r-panel">
-      <div class="rp-hdr"><span class="rp-title" id="rp-title">Active Case</span></div>
+      <div class="rp-hdr"><span class="rp-title">Active Case</span></div>
       <div class="rp-body" id="rp-body">
         <div style="color:var(--text-dim);font-family:var(--sans);font-size:12px;line-height:1.8;margin-top:6px;">
-          No active case.<br><br>Complete onboarding to receive your first assignment.
+          No active case.<br><br>Formal case assignments begin in Chapter 2.<br><br>Use today to explore the terminal and read your mail.
         </div>
       </div>
     </div>
@@ -441,30 +460,49 @@ body.t-active #main-terminal{display:flex;}
 
 <script>
 'use strict';
+
+/* ── STATE ── */
 const G={
-  first:'',last:'',pw:'',fullName:'',employeeId:'',email:'',
+  firstName:'',lastName:'',pw:'',fullName:'',employeeId:'',email:'',
   cwd:'/',fs:{},history:[],histIdx:-1,
   inbox:[],selEmail:null,
+  clockH:8,clockM:0,clockS:0,clockInterval:null,
   coworkers:[
-    {name:'James Okafor',role:'SOC Lead',email:'j.okafor',status:'online'},
-    {name:'Maya Chen',role:'Senior Analyst',email:'m.chen',status:'online'},
-    {name:'Sofia Reyes',role:'Threat Intel',email:'s.reyes',status:'online'},
-    {name:'Toshi Nakamura',role:'Analyst II',email:'t.nakamura',status:'online'},
+    {name:'James Okafor',role:'SOC Lead',email:'j.okafor'},
+    {name:'Maya Chen',role:'Senior Analyst',email:'m.chen'},
+    {name:'Sofia Reyes',role:'Threat Intel',email:'s.reyes'},
+    {name:'Toshi Nakamura',role:'Analyst II',email:'t.nakamura'},
   ],
 };
 
-/* ─── SHOW/HIDE ─────────────────────────── */
+/* ── SHOW/HIDE ── */
 function show(id){const e=document.getElementById(id);e.classList.remove('hidden');e.style.display='flex';}
 function hide(id){const e=document.getElementById(id);e.classList.add('hidden');e.style.display='none';}
-function hideAll(){['boot-screen','cred-screen','pw-screen','acct-screen','chapter-card','login-screen','jarvis-screen'].forEach(hide);}
+function hideAll(){['boot-screen','cred-screen','pw-screen','acct-screen','chapter-card','login-screen','popup-delphi','popup-welcome','popup-date'].forEach(hide);}
 
-/* ─── BOOT ──────────────────────────────── */
+/* ── CLOCK ── */
+function clockTick(){
+  G.clockS++;
+  if(G.clockS>=60){G.clockS=0;G.clockM++;}
+  if(G.clockM>=60){G.clockM=0;G.clockH++;}
+  if(G.clockH>=24){G.clockH=0;}
+  const pad=n=>String(n).padStart(2,'0');
+  const s=pad(G.clockH)+':'+pad(G.clockM)+':'+pad(G.clockS);
+  const el=document.getElementById('tb-clock');
+  if(el)el.textContent=s;
+  // update popup time if visible
+  const pd=document.getElementById('popup-time-display');
+  if(pd)pd.textContent=pad(G.clockH)+':'+pad(G.clockM);
+}
+function startClock(){if(G.clockInterval)clearInterval(G.clockInterval);G.clockInterval=setInterval(clockTick,1000);}
+
+/* ── BOOT ── */
 function runBoot(){
   show('boot-screen');
   const lines=[
     {t:'',c:''},
-    {t:'DELPHI SYSTEMS — SECURE BOOT SEQUENCE v9.4.1',c:'b'},
-    {t:'Copyright 2032 Delphi Corporation. All rights reserved.',c:'d'},
+    {t:'DELPHI SYSTEMS CORPORATION',c:'b'},
+    {t:'Secure Boot Sequence — v9.4.1',c:'d'},
     {t:'',c:''},
     {t:'[  OK  ]  Hardware security module initialized',c:'d'},
     {t:'[  OK  ]  Encrypted storage verified',c:'d'},
@@ -474,147 +512,145 @@ function runBoot(){
     {t:'[  OK  ]  Oracle v4.2 online',c:'c'},
     {t:'[  OK  ]  Security Operations Center active',c:'w'},
     {t:'',c:''},
-    {t:'  WARNING: All activity on this terminal is monitored',c:'o'},
-    {t:'           and logged by Delphi Security Systems.',c:'o'},
+    {t:'  WARNING: All activity is monitored and logged.',c:'o'},
     {t:'',c:''},
     {t:'  > New employee onboarding detected.',c:'b'},
-    {t:'  > Initializing account creation terminal...',c:'b'},
+    {t:'  > Launching account creation terminal...',c:'b'},
     {t:'',c:''},
   ];
   const el=document.getElementById('boot-lines');
   let i=0;
   function next(){
-    if(i>=lines.length){setTimeout(()=>{hide('boot-screen');runCredSetup();},600);return;}
-    const d=document.createElement('span');
-    d.className='bl '+lines[i].c;
-    d.textContent=lines[i].t;
-    el.appendChild(d);
-    i++;
-    setTimeout(next,lines[i-1].t?75:30);
+    if(i>=lines.length){setTimeout(()=>{hide('boot-screen');runCredSetup();},500);return;}
+    const d=document.createElement('span');d.className='bl '+lines[i].c;d.textContent=lines[i].t;
+    el.appendChild(d);i++;
+    setTimeout(next,lines[i-1].t?70:30);
   }
   next();
 }
 
-/* ─── CREDENTIAL SETUP ──────────────────── */
+/* ── CREDENTIAL SETUP ── */
 let credStep=0;
 function credPrint(text,cls='d'){
   const el=document.getElementById('cred-out');
-  const d=document.createElement('span');
-  d.className='cl '+cls;
-  d.textContent=text;
-  el.appendChild(d);
-  el.scrollTop=el.scrollHeight;
+  const d=document.createElement('span');d.className='cl '+cls;d.textContent=text;
+  el.appendChild(d);el.scrollTop=el.scrollHeight;
 }
-function credDelay(arr,cls,delay,cb){
-  let i=0;
-  function nxt(){if(i>=arr.length){if(cb)cb();return;}credPrint(arr[i],cls);i++;setTimeout(nxt,delay||60);}
-  nxt();
-}
-
 function runCredSetup(){
   show('cred-screen');
   const inp=document.getElementById('cred-inp');
-  inp.focus();
+  // Print intro line by line
   const intro=[
-    '','',
-    '  ╔══════════════════════════════════════════════════╗',
-    '  ║          DELPHI PEOPLE OPERATIONS                ║',
-    '  ║       NEW EMPLOYEE ONBOARDING TERMINAL           ║',
-    '  ╚══════════════════════════════════════════════════╝',
-    '',
-    '  Welcome.',
-    '',
-    '  You have been selected to join Delphi Security Operations.',
-    '  Before you can access your workstation, we need to create',
-    '  your employee account and secure credentials.',
-    '',
-    '  This process will take approximately two minutes.',
-    '  Please follow the prompts carefully.',
-    '',
-    '  All information is encrypted and stored securely.',
-    '',
-    '  ──────────────────────────────────────────────────',
-    '',
+    ['',''],['',''],
+    ['  ╔═══════════════════════════════════════════════╗','sep'],
+    ['  ║       DELPHI PEOPLE OPERATIONS               ║','sep'],
+    ['  ║    NEW EMPLOYEE ONBOARDING TERMINAL          ║','sep'],
+    ['  ╚═══════════════════════════════════════════════╝','sep'],
+    ['',''],
+    ['  Welcome to Delphi.','w'],
+    ['',''],
+    ['  Before you can access your workstation, we need','d'],
+    ['  to create your employee account.','d'],
+    ['',''],
+    ['  Step 1 of 2 — Personal Information','h'],
+    ['',''],
+    ['  Enter your first name:','w'],
+    ['',''],
   ];
-  credDelay(intro,'d',40,()=>{
-    credStep=1;
-    credPrint('  STEP 1 OF 2 — PERSONAL INFORMATION','h');
-    credPrint('');
-    credPrint('  Enter your first name:','w');
-    credPrint('');
-    document.getElementById('cred-pmt').textContent='first_name ›';
-    inp.placeholder='First name...';
-    inp.type='text';
-    inp.focus();
-  });
-  inp.onkeydown=(e)=>{
-    if(e.key!=='Enter')return;
-    const val=inp.value.trim();
-    inp.value='';
-    handleCred(val);
-  };
+  let i=0;
+  function printNext(){
+    if(i>=intro.length){
+      credStep=1;
+      document.getElementById('cred-pmt').textContent='first_name ›';
+      inp.placeholder='First name...';
+      inp.type='text';
+      inp.focus();
+      return;
+    }
+    credPrint(intro[i][0],intro[i][1]);i++;
+    setTimeout(printNext,intro[i-1][0]?45:18);
+  }
+  printNext();
+  inp.addEventListener('keydown',handleCredKey);
+}
+
+function handleCredKey(e){
+  if(e.key!=='Enter')return;
+  const inp=document.getElementById('cred-inp');
+  const val=inp.value.trim();
+  inp.value='';
+  handleCred(val);
 }
 
 function handleCred(val){
   const inp=document.getElementById('cred-inp');
   if(credStep===1){
-    if(!val||val.length<2){credPrint('  Please enter a valid first name.','e');return;}
-    G.first=val.charAt(0).toUpperCase()+val.slice(1).toLowerCase();
-    credPrint('  › '+G.first,'c');
+    if(!val||val.length<2){credPrint('  Please enter a valid first name (2+ characters).','e');return;}
+    G.firstName=val.charAt(0).toUpperCase()+val.slice(1).toLowerCase();
+    credPrint('  › '+G.firstName,'c');
     credStep=2;
     setTimeout(()=>{
-      credPrint('');
+      credPrint('','');
       credPrint('  Enter your last name:','w');
-      credPrint('');
+      credPrint('','');
       document.getElementById('cred-pmt').textContent='last_name ›';
       inp.placeholder='Last name...';
+      inp.focus();
     },200);
     return;
   }
   if(credStep===2){
-    if(!val||val.length<2){credPrint('  Please enter a valid last name.','e');return;}
-    G.last=val.charAt(0).toUpperCase()+val.slice(1).toLowerCase();
-    G.fullName=G.first+' '+G.last;
-    credPrint('  › '+G.last,'c');
+    if(!val||val.length<2){credPrint('  Please enter a valid last name (2+ characters).','e');return;}
+    G.lastName=val.charAt(0).toUpperCase()+val.slice(1).toLowerCase();
+    G.fullName=G.firstName+' '+G.lastName;
+    credPrint('  › '+G.lastName,'c');
     credStep=3;
-    // Hide cred screen input and show pw screen
     setTimeout(()=>{
-      hide('cred-screen');
-      show('pw-screen');
-      document.getElementById('pw1').focus();     
-    },600);
+      credPrint('','');
+      credPrint('  Step 2 of 2 — Create your password.','h');
+      credPrint('  Switching to secure password entry...','d');
+      // Wait briefly, then switch screens cleanly
+      setTimeout(()=>{
+        hide('cred-screen');
+        document.getElementById('pw-subhead').textContent=
+          'Step 2 of 2 — Create a password for '+G.firstName+' '+G.lastName;
+        show('pw-screen');
+        document.getElementById('pw1').focus();
+      },700);
+    },200);
     return;
   }
 }
 
-/* ─── PASSWORD SCREEN ───────────────────── */
+/* ── PASSWORD SCREEN ── */
 function submitPassword(){
   const p1=document.getElementById('pw1').value;
   const p2=document.getElementById('pw2').value;
   const err=document.getElementById('pw-err');
   err.textContent='';
-  if(p1.length<8||!/\d/.test(p1)){err.textContent='Password must be at least 8 characters and contain a number.';return;}
-  if(p1!==p2){err.textContent='Passwords do not match. Please try again.';document.getElementById('pw2').value='';document.getElementById('pw2').focus();return;}
+  if(p1.length<8||!/\d/.test(p1)){
+    err.textContent='Password must be 8+ characters and contain at least one number.';return;
+  }
+  if(p1!==p2){
+    err.textContent='Passwords do not match.';
+    document.getElementById('pw2').value='';
+    document.getElementById('pw2').focus();return;
+  }
   G.pw=p1;
-  // Generate account
-  const fi=G.first.charAt(0).toLowerCase();
-  const ls=G.last.toLowerCase().replace(/[^a-z]/g,'');
+  const fi=G.firstName.charAt(0).toLowerCase();
+  const ls=G.lastName.toLowerCase().replace(/[^a-z]/g,'');
   G.email=fi+'.'+ls+'@delphi-soc.com';
-  const num=Math.floor(10000+Math.random()*89999);
-  G.employeeId='DSC-'+num;
+  G.employeeId='DSC-'+Math.floor(10000+Math.random()*89999);
   hide('pw-screen');
   runAccountCreation();
 }
-document.getElementById('pw2').addEventListener('keydown',e=>{if(e.key==='Enter')submitPassword();});
 document.getElementById('pw1').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('pw2').focus();});
+document.getElementById('pw2').addEventListener('keydown',e=>{if(e.key==='Enter')submitPassword();});
 
-/* ─── ACCOUNT CREATION ANIMATION ─────────── */
+/* ── ACCOUNT CREATION ── */
 function acctPrint(text,cls='d'){
   const el=document.getElementById('acct-out');
-  const d=document.createElement('span');
-  d.className='acl '+cls;
-  d.textContent=text;
-  el.appendChild(d);
+  const d=document.createElement('span');d.className='acl '+cls;d.textContent=text;el.appendChild(d);
 }
 function runAccountCreation(){
   show('acct-screen');
@@ -626,91 +662,120 @@ function runAccountCreation(){
     {t:'  Granting Oracle v4.2 access...',d:700},
     {t:'  Encrypting credentials...',d:500},
     {t:'  Provisioning SOC workstation...',d:600},
-    {t:'  Notifying Security Operations...',d:400},
     {t:'  Sending welcome communications...',d:500},
   ];
   acctPrint('');
-  acctPrint('  Processing account creation...','b');
-  acctPrint('  ──────────────────────────────────────────────────','sep');
+  acctPrint('  DELPHI PEOPLE OPERATIONS — ACCOUNT CREATION','b');
+  acctPrint('  ─────────────────────────────────────────────','sep');
   acctPrint('');
-  let delay=400;
-  steps.forEach(s=>{
-    setTimeout(()=>acctPrint(s.t,'d'),delay);
-    delay+=s.d;
-  });
+  acctPrint('  Processing...','d');
+  acctPrint('');
+  let delay=300;
+  steps.forEach(s=>{setTimeout(()=>acctPrint(s.t,'d'),delay);delay+=s.d;});
   setTimeout(()=>{
     acctPrint('');
-    acctPrint('  ──────────────────────────────────────────────────','sep');
+    acctPrint('  ─────────────────────────────────────────────','sep');
     acctPrint('  ACCOUNT CREATED SUCCESSFULLY','s');
     acctPrint('');
     document.getElementById('ac-name').textContent=G.fullName;
     document.getElementById('ac-id').textContent=G.employeeId;
     document.getElementById('ac-email').textContent=G.email;
     document.getElementById('acct-card').style.display='block';
-    document.getElementById('acct-cont-btn').style.display='block';
-    setTimeout(()=>document.getElementById('acct-cont-btn').focus(),100);
+    const btn=document.getElementById('acct-cont');
+    btn.style.display='block';
+    btn.focus();
   },delay+300);
 }
 
-/* ─── CHAPTER CARD → LOGIN ─────────────── */
+/* ── CHAPTER CARD → POPUPS ── */
 function goToChapterCard(){
   hide('acct-screen');
+  // Pre-load terminal in background (invisible)
+  G.fs=buildFS();
+  G.inbox=buildInbox();
+  initTerminalUI();
+  document.body.classList.add('t-active');
+  // But terminal stays behind popups
   show('chapter-card');
   document.getElementById('cc-act').textContent='ACT I — THE INCIDENT';
   document.getElementById('cc-title').textContent='CHAPTER 1';
   document.getElementById('cc-sub').textContent='Onboarding';
-  setTimeout(()=>{hide('chapter-card');showLoginScreen();},3500);
+  setTimeout(()=>{
+    hide('chapter-card');
+    showPopupDelphi();
+  },3500);
 }
 
-function showLoginScreen(wrongPw){
-  show('login-screen');
-  document.getElementById('li-id').value=G.employeeId;
-  document.getElementById('li-pw').value='';
-  document.getElementById('li-date').textContent='October 1, 2032';
-  document.getElementById('li-err').textContent=wrongPw?'Incorrect password. Please try again.':'';
-  setTimeout(()=>document.getElementById('li-pw').focus(),100);
+/* ── 3 POPUPS ── */
+function showPopupDelphi(){
+  show('popup-delphi');
+  startClock();
+  setTimeout(()=>{
+    hide('popup-delphi');
+    showPopupWelcome();
+  },2800);
+}
+function showPopupWelcome(){
+  document.getElementById('pw-name').textContent='Welcome, '+G.firstName+'.';
+  document.getElementById('pw-role').textContent='Level 2 Analyst  ·  Security Operations Center';
+  document.getElementById('pw-id').textContent=G.employeeId+'  ·  '+G.email;
+  show('popup-welcome');
+  setTimeout(()=>{
+    hide('popup-welcome');
+    showPopupDate();
+  },2800);
+}
+function showPopupDate(){
+  show('popup-date');
+  setTimeout(()=>{
+    hide('popup-date');
+    // Terminal is already loaded — just print welcome messages now
+    printTerminalWelcome();
+  },2800);
 }
 
-function doLogin(){
-  const pw=document.getElementById('li-pw').value;
-  if(pw!==G.pw){showLoginScreen(true);return;}
-  hide('login-screen');
-  showJarvis();
-}
-document.getElementById('li-pw').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
-
-/* ─── JARVIS GREETING ───────────────────── */
-function showJarvis(){
-  show('jarvis-screen');
-  const el=document.getElementById('jarvis-inner');
-  el.innerHTML='';
-  const now='08:00 — October 1, 2032';
-  const lines=[
-    {t:'',c:''},
-    {t:'DELPHI SECURITY OPERATIONS CENTER',c:'d'},
-    {t:'',c:''},
-    {t:'Welcome, '+G.firstName+'.',c:'big'},
-    {t:'',c:''},
-    {t:'Level 2 Analyst  ·  '+G.employeeId,c:'b'},
-    {t:now,c:'d'},
-    {t:'',c:''},
-    {t:'Session authenticated.',c:'s'},
-    {t:'Loading your workstation...',c:'d'},
-    {t:'',c:''},
-  ];
-  lines.forEach((l,i)=>{
-    const d=document.createElement('span');
-    d.className='jarvis-line '+l.c;
-    d.textContent=l.t;
-    el.appendChild(d);
-    setTimeout(()=>{d.style.transition='opacity 0.4s';d.style.opacity='1';},300+i*220);
+/* ── INIT TERMINAL UI (called before popups) ── */
+function initTerminalUI(){
+  G.cwd='/home/'+G.firstName.toLowerCase()+'.'+G.lastName.toLowerCase();
+  document.getElementById('sb-name').textContent=G.fullName;
+  document.getElementById('sb-id').textContent='ID: '+G.employeeId;
+  document.getElementById('sb-date').textContent='October 1, 2032';
+  document.getElementById('tb-clock').textContent='08:00:00';
+  // coworkers
+  const cl=document.getElementById('cw-list');cl.innerHTML='';
+  G.coworkers.forEach(c=>{
+    const d=document.createElement('div');d.className='cw-row';
+    d.innerHTML='<span class="cw-name">'+c.name+'</span><span class="cw-status"><div class="cw-dot"></div>online</span>';
+    cl.appendChild(d);
   });
-  setTimeout(()=>{hide('jarvis-screen');launchTerminal();},300+lines.length*220+800);
+  updateInboxBadge();
+  updatePrompt();
 }
 
-/* ─── BUILD FILESYSTEM ──────────────────── */
+/* ── PRINT TERMINAL WELCOME MESSAGES CONSECUTIVELY ── */
+function printTerminalWelcome(){
+  const lines=[
+    {t:'Delphi Security Operations Center — Secure Terminal',c:'h',d:0},
+    {t:'October 1, 2032  ·  Session: '+G.employeeId,c:'info',d:120},
+    {t:'',c:'blank',d:240},
+    {t:'Workstation ready. Welcome to Delphi, '+G.firstName+'.',c:'success',d:380},
+    {t:'',c:'blank',d:500},
+    {t:'You have 6 new messages in your inbox.',c:'system',d:640},
+    {t:'Documentation is available in /docs/',c:'info',d:780},
+    {t:'Your home directory: '+G.cwd,c:'info',d:920},
+    {t:'',c:'blank',d:1060},
+    {t:'Type  help  for available commands.',c:'info',d:1200},
+    {t:'',c:'blank',d:1340},
+  ];
+  lines.forEach(l=>{
+    setTimeout(()=>tPrint(l.t,l.c),l.d);
+  });
+  setTimeout(()=>document.getElementById('t-inp').focus(),1400);
+}
+
+/* ── BUILD FILESYSTEM ── */
 function buildFS(){
-  const slug=G.first.toLowerCase()+'.'+G.last.toLowerCase();
+  const slug=G.firstName.toLowerCase()+'.'+G.lastName.toLowerCase();
   return {
     '/':{type:'dir',children:['home','mail','docs','oracle','cases']},
     '/home':{type:'dir',children:[slug]},
@@ -725,13 +790,13 @@ function buildFS(){
 'Role:        Analyst II\n'+
 'Clearance:   Level 2\n'+
 'Start Date:  October 1, 2032\n'+
-'Status:      ACTIVE\n'+
-'\nOracle Access: GRANTED\nBaseline calibration: In progress (14-day window)'},
+'Status:      ACTIVE\n\n'+
+'Oracle Access: GRANTED\nBaseline calibration: In progress (14-day window)'},
     ['/home/'+slug+'/.session_log']:{type:'file',perms:'-rw-------',hidden:true,content:
 'Session log — '+G.employeeId+'\n\n'+
 'First login: October 1, 2032  08:00\n'+
 'Terminal: SOC-WORKSTATION-'+Math.floor(100+Math.random()*900)+'\n'+
-'IP: 10.14.'+Math.floor(1+Math.random()*254)+'.'+Math.floor(1+Math.random()*254)},
+'IP: 10.14.'+Math.floor(1+Math.random()*250)+'.'+Math.floor(1+Math.random()*250)},
     '/mail':{type:'dir',children:['welcome.txt','from_hr.txt','from_okafor.txt','from_chen.txt','from_reyes.txt','from_nakamura.txt']},
     '/mail/welcome.txt':{type:'file',perms:'-rw-r--r--',content:
 'FROM:    noreply@delphi.com\n'+
@@ -744,7 +809,7 @@ G.firstName+',\n\n'+
 'You are joining the largest technology company in human history.\n'+
 'Billions of people rely on our infrastructure every day — to\n'+
 'communicate, navigate, access information, conduct business,\n'+
-'and interact with the world.\n\n'+
+'and interact with the world around them.\n\n'+
 'Delphi was founded in 2008 by Dr. Apollo Thorne with a mission\n'+
 'that remains at the heart of everything we do:\n\n'+
 '   "Make the world\'s information understandable."\n\n'+
@@ -753,7 +818,7 @@ G.firstName+',\n\n'+
 'That belief shaped Delphi into what it is today.\n\n'+
 'You are now part of that mission.\n\n'+
 'Your account is active. Your workstation is ready.\n'+
-'Three messages from your team are waiting in your inbox.\n\n'+
+'Your team has sent you welcome messages — check your inbox.\n\n'+
 '— Delphi People Operations'},
     '/mail/from_hr.txt':{type:'file',perms:'-rw-r--r--',content:
 'FROM:    hr@delphi.com\n'+
@@ -766,22 +831,21 @@ G.firstName+',\n\n'+
 '1. CREDENTIALS\n'+
 '   Your employee ID is '+G.employeeId+'.\n'+
 '   Your password is the one you created during onboarding.\n'+
-'   Keep it secure.\n\n'+
+'   Keep it secure. Do not share it.\n\n'+
 '2. CLEARANCE\n'+
 '   You have Level 2 clearance. This grants access to the\n'+
 '   SOC terminal, case management, internal mail, and Oracle.\n\n'+
 '3. YOUR FIRST WEEK\n'+
-'   Your first week consists of onboarding and orientation.\n'+
-'   Your SOC Lead, James Okafor, will guide you through the\n'+
-'   tools and systems you will use every day.\n'+
+'   Today is orientation. Explore the terminal, read your\n'+
+'   messages, and review the documentation in /docs/\n'+
 '   Formal case assignments begin in Chapter 2.\n\n'+
 '4. THE HANDBOOK\n'+
-'   The SOC analyst handbook is in /docs/soc_handbook.txt\n'+
-'   Read it when you have time. It covers everything.\n\n'+
+'   The SOC analyst handbook is at /docs/soc_handbook.txt\n'+
+'   It covers everything you need to know.\n\n'+
 '5. ORACLE\n'+
 '   Oracle is our internal analytics platform. You will learn\n'+
-'   more about it during your first week. For now, know that\n'+
-'   it runs quietly in the background on every system.\n\n'+
+'   more about it as you settle in. For now, know that it\n'+
+'   runs quietly in the background across all systems.\n\n'+
 'Questions? Reply to this message anytime.\n\n'+
 '— Delphi Human Resources'},
     '/mail/from_okafor.txt':{type:'file',perms:'-rw-r--r--',content:
@@ -792,15 +856,13 @@ G.firstName+',\n\n'+
 '─────────────────────────────────────\n\n'+
 G.firstName+',\n\n'+
 'James Okafor. I run the Security Operations Center.\n\n'+
-'I will keep this short because you will hear a lot from me.\n\n'+
 'This team protects infrastructure that billions of people\n'+
 'depend on without knowing it. That is not a small thing.\n\n'+
-'This week is orientation. Take your time with the terminal.\n'+
-'Read your docs. Get familiar with the environment.\n\n'+
-'When you are ready, type  help  in the terminal to see what\n'+
-'commands are available. The handbook in /docs/ is worth\n'+
-'reading before anything else.\n\n'+
-'We will get you into live cases soon enough.\n\n'+
+'Today is orientation. No pressure. Take your time with\n'+
+'the terminal. Read the docs. Get comfortable.\n\n'+
+'Type  help  to see available commands.\n'+
+'The handbook at /docs/soc_handbook.txt is worth your time.\n\n'+
+'Formal assignments begin next week. For now, just settle in.\n\n'+
 '— Okafor\n'+
 'SOC Lead, Delphi Security Operations'},
     '/mail/from_chen.txt':{type:'file',perms:'-rw-r--r--',content:
@@ -810,16 +872,15 @@ G.firstName+',\n\n'+
 'DATE:    October 1, 2032\n'+
 '─────────────────────────────────────\n\n'+
 G.firstName+',\n\n'+
-'Maya Chen. Senior Analyst. I have been on this team for\n'+
-'three years and I am probably the person you will work\n'+
-'closest with day to day.\n\n'+
-'A few things nobody tells you on your first day:\n\n'+
-'— The terminal is faster than it looks. Take time to learn\n'+
-'  the commands properly. It pays off.\n\n'+
-'— Oracle surfaces a lot of noise. Low confidence scores\n'+
-'  are usually nothing. But read the logs yourself anyway.\n\n'+
-'— Okafor seems intimidating. He is not. He just cares a\n'+
-'  lot and does not waste words.\n\n'+
+'Maya Chen. Senior Analyst. Three years on this team.\n'+
+'You will probably work closest with me day to day.\n\n'+
+'A few things nobody tells you on day one:\n\n'+
+'— The terminal is faster than it looks. Learn the commands\n'+
+'  properly. It pays off quickly.\n\n'+
+'— Oracle flags a lot of noise. Low confidence scores are\n'+
+'  usually nothing. But read the logs yourself anyway.\n\n'+
+'— Okafor seems intense. He is not. He just cares and\n'+
+'  does not waste words.\n\n'+
 'If you have questions, just ask. No judgment here.\n\n'+
 '— Maya'},
     '/mail/from_reyes.txt':{type:'file',perms:'-rw-r--r--',content:
@@ -830,13 +891,12 @@ G.firstName+',\n\n'+
 '─────────────────────────────────────\n\n'+
 G.firstName+',\n\n'+
 'Sofia Reyes — Threat Intelligence. Good to have you here.\n\n'+
-'My work sits a little outside the main SOC workflow. I focus\n'+
-'on tracking external threat actors, monitoring dark web\n'+
-'activity, and building intelligence profiles on groups\n'+
-'targeting Delphi infrastructure.\n\n'+
-'You probably will not cross paths with my work often in\n'+
-'your first few weeks — but when you do, reach out.\n'+
-'Context matters a lot in this job.\n\n'+
+'My work sits a bit outside the main SOC workflow. I track\n'+
+'external threat actors and build intelligence profiles on\n'+
+'groups targeting Delphi infrastructure.\n\n'+
+'You probably will not cross paths with my work much in your\n'+
+'first few weeks — but when you do, reach out. Context\n'+
+'matters a lot in this job.\n\n'+
 'Looking forward to working with you.\n\n'+
 '— Sofia'},
     '/mail/from_nakamura.txt':{type:'file',perms:'-rw-r--r--',content:
@@ -846,15 +906,14 @@ G.firstName+',\n\n'+
 'DATE:    October 1, 2032\n'+
 '─────────────────────────────────────\n\n'+
 G.firstName+',\n\n'+
-'Toshi Nakamura — Analyst II, same level as you.\n\n'+
-'I started about eight months ago so I remember exactly\n'+
-'what your first day feels like.\n\n'+
-'Honest advice: do not try to do everything at once.\n'+
+'Toshi Nakamura — Analyst II, same level as you.\n'+
+'Started about eight months ago. I remember day one.\n\n'+
+'Honest advice: do not try to absorb everything at once.\n'+
 'The terminal, the tools, Oracle — it is a lot at first.\n'+
 'It clicks pretty quickly though.\n\n'+
-'Also the break room on floor 2 has the good coffee.\n'+
-'Floor 4 has the better view. You decide what matters more.\n\n'+
-'Welcome to the team. You are going to be great at this.\n\n'+
+'Also — the break room on floor 2 has the good coffee.\n'+
+'Floor 4 has a better view. You decide what matters more.\n\n'+
+'Welcome. You are going to be great at this.\n\n'+
 '— Toshi'},
     '/docs':{type:'dir',children:['soc_handbook.txt','oracle_reference.txt','delphi_overview.txt','security_policy.txt']},
     '/docs/soc_handbook.txt':{type:'file',perms:'-rw-r--r--',content:
@@ -869,76 +928,64 @@ G.firstName+',\n\n'+
 'SECTION 2: TERMINAL COMMANDS\n'+
 '─────────────────────────────\n'+
 '  ls / ls -la [path]    List directory contents\n'+
-'  cd <directory>        Navigate directories\n'+
+'  cd <directory>        Navigate directories (cd .. to go up)\n'+
 '  cat <file>            Read a file\n'+
 '  grep <pat> <file>     Search inside a file\n'+
 '  ps aux                List running processes\n'+
 '  ping <host/ip>        Test network connectivity\n'+
-'  pwd                   Current directory\n'+
+'  pwd                   Print current directory\n'+
 '  whoami                Current user info\n'+
 '  inbox                 Open your inbox\n'+
 '  oracle                Open Oracle interface\n'+
-'  clear                 Clear terminal\n'+
+'  clear                 Clear terminal output\n'+
 '  help                  Show this reference\n\n'+
 'SECTION 3: CASE WORKFLOW\n'+
 '─────────────────────────\n'+
 'Cases appear in your right panel when assigned.\n'+
-'Read the objective carefully before starting.\n'+
-'Navigate the filesystem to find relevant information.\n'+
-'When you have an answer, follow the case instructions.\n\n'+
+'Read the objective carefully. Navigate the filesystem to\n'+
+'find relevant information. Follow case instructions to close.\n\n'+
 'SECTION 4: ORACLE\n'+
 '──────────────────\n'+
-'Oracle runs on all Delphi systems continuously.\n'+
-'Confidence scores: 0-20% low / 21-70% moderate / 70%+ high.\n'+
-'Always read the underlying data. Oracle surfaces signals.\n'+
+'Oracle monitors all systems continuously.\n'+
+'Confidence: 0-20% low / 21-70% moderate / 70%+ high.\n'+
+'Always read underlying data. Oracle surfaces signals.\n'+
 'You draw the conclusions.\n\n'+
 'SECTION 5: ESCALATION\n'+
 '──────────────────────\n'+
-'Severity 1 incidents escalate automatically to SOC Lead.\n'+
+'Severity 1 incidents escalate to SOC Lead automatically.\n'+
 'When in doubt, escalate. Document everything.'},
     '/docs/delphi_overview.txt':{type:'file',perms:'-rw-r--r--',content:
-'DELPHI CORPORATION — COMPANY OVERVIEW\n'+
-'══════════════════════════════════════\n'+
+'DELPHI CORPORATION — OVERVIEW\n'+
+'══════════════════════════════\n'+
 'Classification: Internal — All Employees\n\n'+
 'ABOUT DELPHI\n'+
 '────────────\n'+
-'Delphi is the largest technology and information company in\n'+
-'the world. Founded on March 14, 2008, by Dr. Apollo Thorne,\n'+
-'Delphi began as a search engine with a single mission:\n\n'+
+'Delphi is the largest technology and information company\n'+
+'in the world. Founded March 14, 2008, by Dr. Apollo Thorne,\n'+
+'it began as a search engine with a single mission:\n\n'+
 '   "Make the world\'s information understandable."\n\n'+
 'By 2032, Delphi\'s infrastructure underpins much of modern\n'+
 'digital life. Search, communications, navigation, cloud\n'+
-'computing, media, enterprise services, and elements of\n'+
-'government systems all operate on Delphi technology.\n'+
-'Billions of people interact with Delphi products every day,\n'+
-'often without knowing it.\n\n'+
-'FOUNDING AND GROWTH\n'+
-'───────────────────\n'+
-'Apollo Thorne believed humanity\'s defining challenge was not\n'+
+'computing, media, and enterprise services all run on\n'+
+'Delphi technology. Billions of people interact with Delphi\n'+
+'products every day, often without knowing it.\n\n'+
+'DR. APOLLO THORNE (1982 — 2027)\n'+
+'────────────────────────────────\n'+
+'Thorne believed humanity\'s defining challenge was not\n'+
 'producing information — it was understanding it.\n\n'+
-'Where other companies indexed websites, Delphi was designed\n'+
-'to understand relationships between ideas. The results were\n'+
-'remarkable. Within years, Delphi had become one of the most\n'+
-'important gateways to information on Earth.\n\n'+
-'The company expanded rapidly: mapping, communications, cloud\n'+
-'infrastructure, artificial intelligence, cybersecurity.\n'+
-'By the early 2020s, Delphi had become one of the most\n'+
-'powerful institutions in human history.\n\n'+
-'DR. APOLLO THORNE\n'+
-'──────────────────\n'+
-'Thorne is remembered as one of the defining figures of the\n'+
-'digital age. His philosophy shaped Delphi\'s culture deeply.\n\n'+
+'Where other companies indexed websites, Delphi was built\n'+
+'to understand relationships between ideas.\n\n'+
+'His philosophy became Delphi\'s culture:\n\n'+
 '   "Information has value. Understanding creates power."\n\n'+
-'In 2027, Thorne died unexpectedly at forty-five. His passing\n'+
-'marked the end of an era. His speeches are still quoted in\n'+
-'every major Delphi presentation. New employees are encouraged\n'+
-'to read his archived addresses in /docs/thorne_speeches.txt\n\n'+
+'Thorne died unexpectedly in November 2027 at forty-five.\n'+
+'His speeches are preserved in company archives and quoted\n'+
+'in nearly every major Delphi presentation to this day.\n\n'+
 'SECURITY OPERATIONS\n'+
 '────────────────────\n'+
-'The Security Operations Center exists because at Delphi\'s\n'+
-'scale, even a minor incident can affect millions of users.\n\n'+
-'The SOC monitors threats, investigates anomalies, and\n'+
-'responds to security events across all Delphi systems.\n'+
+'At Delphi\'s scale, even a minor incident can affect\n'+
+'millions of users. The SOC monitors threats, investigates\n'+
+'anomalies, and responds to security events across all\n'+
+'Delphi systems around the clock.\n\n'+
 'You are now part of that team.'},
     '/docs/oracle_reference.txt':{type:'file',perms:'-rw-r--r--',content:
 'ORACLE v4.2 — ANALYST QUICK REFERENCE\n'+
@@ -950,163 +997,99 @@ G.firstName+',\n\n'+
 '  21–70%   Moderate — investigate further\n'+
 '  71–90%   High — act promptly\n'+
 '  91–100%  Critical — immediate response required\n\n'+
-'Important: Oracle outputs are probabilistic, not definitive.\n'+
-'Always verify with underlying data before taking action.\n\n'+
-'Access the Oracle tab in the navigation bar for the\n'+
-'analyst interface.'},
+'Note: Oracle outputs are probabilistic, not definitive.\n'+
+'Always verify with underlying data before acting.\n\n'+
+'Access the Oracle tab in the navigation bar above.'},
     '/docs/security_policy.txt':{type:'file',perms:'-rw-r--r--',content:
 'DELPHI INFORMATION SECURITY POLICY\n'+
-'════════════════════════════════════\n'+
-'Classification: Internal — All Employees\n\n'+
+'════════════════════════════════════\n\n'+
 '1. CREDENTIALS — Never share your password.\n'+
-'   Report any suspected compromise immediately.\n\n'+
+'   Report suspected compromise immediately.\n\n'+
 '2. ACCESS — Use only systems within your clearance level.\n'+
 '   All access is logged and reviewed.\n\n'+
 '3. INCIDENTS — Report all security events through the SOC.\n'+
-'   Do not attempt to resolve Severity 1 incidents alone.\n\n'+
-'4. DATA — Do not transmit sensitive data externally.\n'+
-'   Employee data is subject to strict access controls.\n\n'+
-'Violations may result in disciplinary action or termination.'},
+'   Do not resolve Severity 1 incidents alone.\n\n'+
+'4. DATA — Do not transmit sensitive data externally.\n\n'+
+'Violations may result in termination or legal action.'},
     '/oracle':{type:'dir',children:['status.txt']},
     '/oracle/status.txt':{type:'file',perms:'-rw-r--r--',content:
 'ORACLE STATUS — October 1, 2032\n\n'+
-'System:           Online\n'+
-'Version:          4.2.1\n'+
-'Active cases:     0\n'+
-'Anomalies:        0\n'+
-'Attribution:      No active analysis\n\n'+
-'Infrastructure:   ALL SYSTEMS NOMINAL\n'+
+'System:            Online\n'+
+'Version:           4.2.1\n'+
+'Active cases:      0\n'+
+'Anomalies:         0\n'+
+'Attribution:       No active analysis\n'+
+'Infrastructure:    ALL SYSTEMS NOMINAL\n'+
 'Monitored systems: 847\n\n'+
-'Baseline calibration in progress for new analyst '+G.employeeId+'.'},
+'Baseline calibration in progress for new analyst.'},
     '/cases':{type:'dir',children:['README.txt']},
     '/cases/README.txt':{type:'file',perms:'-rw-r--r--',content:
 'CASE MANAGEMENT SYSTEM\n\n'+
 'Your case queue is empty.\n\n'+
 'This is your first day. Formal case assignments begin\n'+
-'in your second week after onboarding is complete.\n\n'+
-'Use this time to explore the terminal, read your mail,\n'+
-'and review the documentation in /docs/'},
+'in Chapter 2 after onboarding is complete.\n\n'+
+'Use today to explore the terminal and read your mail.'},
   };
 }
 
-/* ─── BUILD INBOX ───────────────────────── */
+/* ── BUILD INBOX ── */
 function buildInbox(){
+  const fs=G.fs;
+  function fc(p){return(fs[p]||{}).content||'';}
   return [
-    {id:'m1',from:'Delphi People Operations',fe:'noreply@delphi.com',subj:'Welcome to Delphi',time:'08:00',unread:true,replied:false,
-      body:readFile('/mail/welcome.txt'),replies:null},
-    {id:'m2',from:'HR — Delphi',fe:'hr@delphi.com',subj:'Your access and onboarding information',time:'08:01',unread:true,replied:false,
-      body:readFile('/mail/from_hr.txt'),
-      replies:[
-        {label:'Understood. Thank you.',resp:'Understood, thank you for the information. I will review the handbook and get settled in.\n\n— '+G.fullName},
-        {label:'Where can I find the SOC handbook?',resp:'Quick question — where exactly is the handbook located in the terminal?\n\n— '+G.fullName},
-        {label:'Any specific priorities for my first week?',resp:'Is there anything specific I should focus on during my first week, or just take it one step at a time?\n\n— '+G.fullName},
-      ]},
-    {id:'m3',from:'James Okafor',fe:'j.okafor@delphi-soc.com',subj:'Welcome to the SOC',time:'08:14',unread:true,replied:false,
-      body:readFile('/mail/from_okafor.txt'),
-      replies:[
-        {label:'Thank you. I will get started now.',resp:'Thank you. I have been reading through the docs and exploring the terminal. Ready to get to work.\n\n— '+G.fullName},
-        {label:'Quick question about Oracle.',resp:'I read the Oracle reference doc — should I be flagging every anomaly I see, even low-confidence ones?\n\n— '+G.fullName},
-        {label:'Understood. Looking forward to it.',resp:'Understood. Looking forward to working with the team.\n\n— '+G.fullName},
-      ]},
-    {id:'m4',from:'Maya Chen',fe:'m.chen@delphi-soc.com',subj:'Hey — welcome',time:'08:22',unread:true,replied:false,
-      body:readFile('/mail/from_chen.txt'),
-      replies:[
-        {label:'Thanks Maya. Appreciate the tips.',resp:'Thanks Maya — that is genuinely helpful. Good to know about Oracle noise levels.\n\n— '+G.fullName},
-        {label:'Question about the day-to-day.',resp:'Thanks for the welcome. Quick question — what does a typical day look like once the training cases start?\n\n— '+G.fullName},
-      ]},
-    {id:'m5',from:'Sofia Reyes',fe:'s.reyes@delphi-soc.com',subj:'Welcome to the team',time:'08:31',unread:true,replied:false,
-      body:readFile('/mail/from_reyes.txt'),
-      replies:[
-        {label:'Thanks Sofia. Looking forward to working together.',resp:'Thanks Sofia. I appreciate the context on your role — good to know who to reach out to.\n\n— '+G.fullName},
-      ]},
-    {id:'m6',from:'Toshi Nakamura',fe:'t.nakamura@delphi-soc.com',subj:'Hi!',time:'08:38',unread:true,replied:false,
-      body:readFile('/mail/from_nakamura.txt'),
-      replies:[
-        {label:'Thanks Toshi. Floor 2 coffee it is.',resp:'Thanks Toshi — exactly the kind of intel I needed on day one.\n\n— '+G.fullName},
-        {label:'Any advice for the training cases?',resp:'Thanks for the welcome. Any advice for when the training cases kick in?\n\n— '+G.fullName},
-        {label:'Good to know. Thanks for the welcome.',resp:'Really appreciate it. Looking forward to working with you.\n\n— '+G.fullName},
-      ]},
+    {id:'m1',from:'Delphi People Operations',fe:'noreply@delphi.com',subj:'Welcome to Delphi',time:'08:00',unread:true,replied:false,body:fc('/mail/welcome.txt'),replies:null},
+    {id:'m2',from:'HR — Delphi',fe:'hr@delphi.com',subj:'Your access and onboarding information',time:'08:01',unread:true,replied:false,body:fc('/mail/from_hr.txt'),replies:[
+      {idx:0,label:'Understood, thank you.'},
+      {idx:1,label:'Where exactly is the handbook?'},
+      {idx:2,label:'Any priorities for my first week?'},
+    ]},
+    {id:'m3',from:'James Okafor',fe:'j.okafor@delphi-soc.com',subj:'Welcome to the SOC',time:'08:14',unread:true,replied:false,body:fc('/mail/from_okafor.txt'),replies:[
+      {idx:0,label:'Thank you. Getting started now.'},
+      {idx:1,label:'Question about Oracle confidence scores.'},
+      {idx:2,label:'Looking forward to it.'},
+    ]},
+    {id:'m4',from:'Maya Chen',fe:'m.chen@delphi-soc.com',subj:'Hey — welcome',time:'08:22',unread:true,replied:false,body:fc('/mail/from_chen.txt'),replies:[
+      {idx:0,label:'Thanks Maya. Appreciate the tips.'},
+      {idx:1,label:'What does a typical day look like?'},
+    ]},
+    {id:'m5',from:'Sofia Reyes',fe:'s.reyes@delphi-soc.com',subj:'Welcome to the team',time:'08:31',unread:true,replied:false,body:fc('/mail/from_reyes.txt'),replies:[
+      {idx:0,label:'Thanks Sofia. Looking forward to working together.'},
+    ]},
+    {id:'m6',from:'Toshi Nakamura',fe:'t.nakamura@delphi-soc.com',subj:'Hi!',time:'08:38',unread:true,replied:false,body:fc('/mail/from_nakamura.txt'),replies:[
+      {idx:0,label:'Floor 2 coffee, noted.'},
+      {idx:1,label:'Any advice for when cases start?'},
+      {idx:2,label:'Thanks Toshi. Good to meet you.'},
+    ]},
   ];
 }
 
-function readFile(path){return (G.fs[path]||{}).content||'';}
-
-/* ─── REPLY RESPONSES ───────────────────── */
-const REPLY_RESPONSES={
+/* ── REPLY RESPONSES ── */
+const REPLIES={
   m2:{
-    0:{from:'HR — Delphi',fe:'hr@delphi.com',subj:'Re: Your access and onboarding information',time:'08:45',
-      body:'Great. Take your time today — there is no rush on your first day.\n\n— Delphi HR'},
-    1:{from:'HR — Delphi',fe:'hr@delphi.com',subj:'Re: Your access and onboarding information',time:'08:45',
-      body:'The handbook is at /docs/soc_handbook.txt\n\nType  cat /docs/soc_handbook.txt  in the terminal to read it.\n\n— Delphi HR'},
-    2:{from:'HR — Delphi',fe:'hr@delphi.com',subj:'Re: Your access and onboarding information',time:'08:45',
-      body:'Your first week is orientation — no pressure. Get comfortable with the tools and the team. Case assignments begin in your second week.\n\n— Delphi HR'},
+    0:{from:'HR — Delphi',fe:'hr@delphi.com',subj:'Re: Your access and onboarding information',time:'08:45',body:'Great. No rush today. Explore at your own pace.\n\n— Delphi HR'},
+    1:{from:'HR — Delphi',fe:'hr@delphi.com',subj:'Re: Your access and onboarding information',time:'08:45',body:'The handbook is at /docs/soc_handbook.txt\n\nType  cat /docs/soc_handbook.txt  in the terminal.\n\n— Delphi HR'},
+    2:{from:'HR — Delphi',fe:'hr@delphi.com',subj:'Re: Your access and onboarding information',time:'08:45',body:'Today is purely orientation. No pressure. Get comfortable with the tools and the team. Formal assignments begin in Chapter 2.\n\n— Delphi HR'},
   },
   m3:{
-    0:{from:'James Okafor',fe:'j.okafor@delphi-soc.com',subj:'Re: Welcome to the SOC',time:'08:55',
-      body:'Good. The handbook is worth your time.\n\nOne thing: when you explore the filesystem, pay attention to what you find. Curiosity is a core skill in this job.\n\n— Okafor'},
-    1:{from:'James Okafor',fe:'j.okafor@delphi-soc.com',subj:'Re: Welcome to the SOC',time:'08:55',
-      body:'Low confidence is usually noise. But "usually" is not "always." Log it, take a quick look at the underlying data, then move on if nothing sticks. That is the discipline.\n\n— Okafor'},
-    2:{from:'James Okafor',fe:'j.okafor@delphi-soc.com',subj:'Re: Welcome to the SOC',time:'08:55',
-      body:'Good. We are glad to have you.\n\n— Okafor'},
+    0:{from:'James Okafor',fe:'j.okafor@delphi-soc.com',subj:'Re: Welcome to the SOC',time:'08:55',body:'Good. The handbook is worth your time.\n\nPay attention to what you find when you explore the filesystem. Curiosity is a core skill here.\n\n— Okafor'},
+    1:{from:'James Okafor',fe:'j.okafor@delphi-soc.com',subj:'Re: Welcome to the SOC',time:'08:55',body:'Low confidence is usually noise. But look at the underlying data yourself before moving on. That discipline is what separates good analysts from average ones.\n\n— Okafor'},
+    2:{from:'James Okafor',fe:'j.okafor@delphi-soc.com',subj:'Re: Welcome to the SOC',time:'08:55',body:'Good. Welcome to the team.\n\n— Okafor'},
   },
   m4:{
-    0:{from:'Maya Chen',fe:'m.chen@delphi-soc.com',subj:'Re: Hey — welcome',time:'09:05',
-      body:'Anytime. Feel free to message if anything comes up. The first week is mostly getting your bearings — it gets more interesting fast.\n\n— Maya'},
-    1:{from:'Maya Chen',fe:'m.chen@delphi-soc.com',subj:'Re: Hey — welcome',time:'09:05',
-      body:'Once cases start: you get an alert, pull the relevant logs, look for what does not fit, close it out or escalate. The rhythm is steady once you find it.\n\n— Maya'},
+    0:{from:'Maya Chen',fe:'m.chen@delphi-soc.com',subj:'Re: Hey — welcome',time:'09:05',body:'Anytime. Message me if anything comes up.\n\n— Maya'},
+    1:{from:'Maya Chen',fe:'m.chen@delphi-soc.com',subj:'Re: Hey — welcome',time:'09:05',body:'You get an alert, pull the relevant logs, look for what does not fit, close it or escalate. Once you find the rhythm it is actually satisfying work.\n\n— Maya'},
   },
   m5:{
-    0:{from:'Sofia Reyes',fe:'s.reyes@delphi-soc.com',subj:'Re: Welcome to the team',time:'09:18',
-      body:'Likewise. Do not hesitate to reach out if something in a case looks like it might have an external angle.\n\n— Sofia'},
+    0:{from:'Sofia Reyes',fe:'s.reyes@delphi-soc.com',subj:'Re: Welcome to the team',time:'09:18',body:'Likewise. Do not hesitate to reach out if a case looks like it might have an external angle.\n\n— Sofia'},
   },
   m6:{
-    0:{from:'Toshi Nakamura',fe:'t.nakamura@delphi-soc.com',subj:'Re: Hi!',time:'09:25',
-      body:'Excellent choice. The floor 4 view is genuinely not worth the walk.\n\n— Toshi'},
-    1:{from:'Toshi Nakamura',fe:'t.nakamura@delphi-soc.com',subj:'Re: Hi!',time:'09:25',
-      body:'Honestly? Read everything. The logs, the policy docs, the Oracle reference. The cases make a lot more sense once you understand the context.\n\nAlso do not be afraid to run ls -la. Hidden files are a thing.\n\n— Toshi'},
-    2:{from:'Toshi Nakamura',fe:'t.nakamura@delphi-soc.com',subj:'Re: Hi!',time:'09:25',
-      body:'You are going to fit right in.\n\n— Toshi'},
+    0:{from:'Toshi Nakamura',fe:'t.nakamura@delphi-soc.com',subj:'Re: Hi!',time:'09:25',body:'Excellent choice. The floor 4 view is genuinely not worth the walk.\n\n— Toshi'},
+    1:{from:'Toshi Nakamura',fe:'t.nakamura@delphi-soc.com',subj:'Re: Hi!',time:'09:25',body:'Read everything first. The docs, the policy, the Oracle reference. Cases make a lot more sense when you understand the context.\n\nAlso: ls -la. Hidden files are a thing.\n\n— Toshi'},
+    2:{from:'Toshi Nakamura',fe:'t.nakamura@delphi-soc.com',subj:'Re: Hi!',time:'09:25',body:'You are going to fit right in.\n\n— Toshi'},
   },
 };
 
-/* ─── LAUNCH TERMINAL ───────────────────── */
-function launchTerminal(){
-  G.fs=buildFS();
-  G.cwd='/home/'+G.first.toLowerCase()+'.'+G.last.toLowerCase();
-  G.inbox=buildInbox();
-  document.body.classList.add('t-active');
-  // Sidebar
-  document.getElementById('sb-name').textContent=G.fullName;
-  document.getElementById('sb-id').textContent='ID: '+G.employeeId;
-  document.getElementById('sb-date').textContent='October 1, 2032';
-  document.getElementById('tb-clock').textContent='08:00 — October 1, 2032';
-  // Coworkers
-  const cl=document.getElementById('cw-list');
-  cl.innerHTML='';
-  G.coworkers.forEach(c=>{
-    const d=document.createElement('div');d.className='cw-row';
-    d.innerHTML='<span class="cw-name">'+c.name+'</span><span class="cw-status"><div class="cw-dot"></div>online</span>';
-    cl.appendChild(d);
-  });
-  updateInboxBadge();
-  updatePrompt();
-  // Terminal welcome
-  tClear();tBlank();
-  tPrint('Delphi Security Operations Center — Secure Terminal','h');
-  tPrint('October 1, 2032  ·  Session: '+G.employeeId,'info');
-  tBlank();
-  tPrint('Workstation provisioned. Welcome to your first day, '+G.firstName+'.','success');
-  tBlank();
-  tPrint('6 new messages in your inbox.','system');
-  tPrint('Documentation available in /docs/','info');
-  tPrint('Your home directory: '+G.cwd,'info');
-  tBlank();
-  tPrint('Type  help  for available commands.','info');
-  tBlank();
-  setTimeout(()=>document.getElementById('t-inp').focus(),100);
-}
-
-/* ─── TERMINAL OUTPUT ───────────────────── */
+/* ── TERMINAL OUTPUT ── */
 function tPrint(text,cls='cmd'){
   const o=document.getElementById('t-out');
   const d=document.createElement('div');d.className='dl '+cls;d.textContent=text;
@@ -1115,11 +1098,11 @@ function tPrint(text,cls='cmd'){
 function tClear(){document.getElementById('t-out').innerHTML='';}
 function tBlank(){tPrint('','blank');}
 function updatePrompt(){
-  document.getElementById('t-pmt').textContent=G.first.toLowerCase()+'@delphi-soc:'+G.cwd+'$';
+  document.getElementById('t-pmt').textContent=G.firstName.toLowerCase()+'@delphi-soc:'+G.cwd+'$';
   document.getElementById('t-path').textContent=G.cwd;
 }
 
-/* ─── FILESYSTEM ────────────────────────── */
+/* ── FILESYSTEM ── */
 function resolvePath(input){
   if(!input)return G.cwd;if(input==='/')return '/';
   let base=input.startsWith('/')?'':G.cwd;
@@ -1127,15 +1110,15 @@ function resolvePath(input){
   let r=[];for(let p of parts){if(p==='..')r.pop();else if(p!=='.')r.push(p);}
   return '/'+r.join('/');
 }
-function getNode(path){return G.fs[resolvePath(path)]||null;}
+function getNode(p){return G.fs[resolvePath(p)]||null;}
 function listDir(path,la){
-  let p=resolvePath(path);let node=G.fs[p];
+  let p=resolvePath(path),node=G.fs[p];
   if(!node){tPrint('ls: cannot access \''+( path||'.')+ '\': No such file or directory','error');return;}
   if(node.type!=='dir'){tPrint('ls: '+path+': Not a directory','error');return;}
   let ch=(node.children||[]).filter(c=>la||!c.startsWith('.'));
   if(!ch.length){tPrint('(empty)','info');return;}
   ch.forEach(name=>{
-    let cp=p==='/'?'/'+name:p+'/'+name;let child=G.fs[cp];if(!child)return;
+    let cp=p==='/'?'/'+name:p+'/'+name,child=G.fs[cp];if(!child)return;
     let perms=child.perms||(child.type==='dir'?'drwxr-xr-x':'-rw-r--r--');
     let flag=(name.startsWith('.')&&la)?'  [hidden]':'';
     tPrint(perms+'  '+name+(child.type==='dir'?'/':'')+flag,child.type==='dir'?'system':'info');
@@ -1156,17 +1139,18 @@ function grepFile(pat,fp){
   m.forEach(l=>tPrint(l,'success'));
 }
 
-/* ─── TAB SWITCHING ─────────────────────── */
+/* ── TAB SWITCHING ── */
 function switchTab(tab){
   ['terminal','inbox','oracle'].forEach(t=>{
     document.getElementById('tab-'+t).classList.toggle('active',t===tab);
-    document.getElementById(t===('terminal')?'terminal-pane':t+'-pane').style.display=t===tab?'flex':'none';
+    const pane=t==='terminal'?'terminal-pane':t+'-pane';
+    document.getElementById(pane).style.display=t===tab?'flex':'none';
   });
   if(tab==='terminal')setTimeout(()=>document.getElementById('t-inp').focus(),50);
   if(tab==='inbox')renderInboxList();
 }
 
-/* ─── INBOX ─────────────────────────────── */
+/* ── INBOX ── */
 function updateInboxBadge(){
   const n=G.inbox.filter(m=>m.unread).length;
   const b=document.getElementById('inbox-badge');
@@ -1190,7 +1174,7 @@ function openEmail(id){
   let replyHtml='';
   if(m.replies&&!m.replied){
     replyHtml='<div class="iv-reply"><div class="iv-reply-lbl">Reply</div>'+
-      m.replies.map((r,i)=>'<div class="reply-opt" onclick="sendReply(\''+id+'\','+i+')">'+r.label+'</div>').join('')+'</div>';
+      m.replies.map(r=>'<div class="reply-opt" onclick="sendReply(\''+m.id+'\','+r.idx+')">'+r.label+'</div>').join('')+'</div>';
   }else if(m.replied){
     replyHtml='<div class="iv-reply"><div class="reply-sent">✓ Replied — '+m.repliedLabel+'</div></div>';
   }
@@ -1200,10 +1184,9 @@ function openEmail(id){
 }
 function sendReply(id,idx){
   const m=G.inbox.find(x=>x.id===id);if(!m||!m.replies)return;
-  const r=m.replies[idx];
+  const r=m.replies.find(x=>x.idx===idx);if(!r)return;
   m.replied=true;m.repliedLabel=r.label;
-  // Add response
-  const resp=REPLY_RESPONSES[id]&&REPLY_RESPONSES[id][idx];
+  const resp=REPLIES[id]&&REPLIES[id][idx];
   if(resp){
     setTimeout(()=>{
       G.inbox.push({id:id+'r'+idx,from:resp.from,fe:resp.fe,subj:resp.subj,time:resp.time,unread:true,replied:false,body:resp.body,replies:null});
@@ -1213,12 +1196,11 @@ function sendReply(id,idx){
   openEmail(id);
 }
 
-/* ─── COMMAND PROCESSOR ─────────────────── */
+/* ── COMMAND PROCESSOR ── */
 function processCmd(raw){
   const cmd=raw.trim();if(!cmd)return;
   G.history.unshift(cmd);G.histIdx=-1;
   tPrint(document.getElementById('t-pmt').textContent+' '+cmd,'dim');
-
   if(cmd==='ls'){listDir(G.cwd,false);return;}
   if(cmd==='ls -la'||cmd==='ls -al'){listDir(G.cwd,true);return;}
   if(cmd.startsWith('ls -la ')||cmd.startsWith('ls -al ')){listDir(cmd.split(' ')[2],true);return;}
@@ -1236,15 +1218,14 @@ function processCmd(raw){
   }
   if(cmd==='pwd'){tPrint(G.cwd,'info');return;}
   if(cmd==='clear'){tClear();return;}
-  if(cmd==='whoami'){tPrint(G.first.toLowerCase()+'@delphi-soc  ·  '+G.fullName+'  ·  '+G.employeeId,'info');return;}
+  if(cmd==='whoami'){tPrint(G.firstName.toLowerCase()+'@delphi-soc  ·  '+G.fullName+'  ·  '+G.employeeId,'info');return;}
   if(cmd==='date'){tPrint('October 1, 2032  ·  Delphi Systems Time','info');return;}
   if(cmd==='ps aux'){
-    tPrint('PID    USER            CPU%  MEM%  COMMAND','info');
-    tPrint('1      root            0.0   0.1   systemd','info');
-    tPrint('414    delphi-core     0.2   1.4   oracle-agent v4.2','info');
-    tPrint('891    delphi-core     1.1   2.8   soc-monitor','info');
-    tPrint('1024   '+G.first.toLowerCase().padEnd(15)+'0.0   0.2   bash','info');
-    return;
+    ['PID    USER            CPU%  MEM%  COMMAND',
+     '1      root            0.0   0.1   systemd',
+     '414    delphi-core     0.2   1.4   oracle-agent v4.2',
+     '891    delphi-core     1.1   2.8   soc-monitor',
+     '1024   '+G.firstName.toLowerCase().padEnd(15)+'0.0   0.2   bash'].forEach(l=>tPrint(l,'info'));return;
   }
   if(cmd.startsWith('ping ')){
     const t=cmd.split(' ')[1]||'delphi-gateway';
@@ -1256,10 +1237,10 @@ function processCmd(raw){
   if(cmd==='help'){
     tBlank();
     tPrint('DELPHI SOC TERMINAL — COMMANDS','h');
-    tPrint('──────────────────────────────────','dim');
+    tPrint('────────────────────────────────────','dim');
     tPrint('FILESYSTEM','sh');
     tPrint('  ls / ls -la [path]         List directory contents','info');
-    tPrint('  cd <directory>             Change directory (cd .. to go up)','info');
+    tPrint('  cd <directory>             Change directory  (cd .. to go up)','info');
     tPrint('  cat <file>                 Read a file','info');
     tPrint('  grep <pattern> <file>      Search a file','info');
     tPrint('  pwd                        Print current directory','info');
@@ -1267,14 +1248,13 @@ function processCmd(raw){
     tPrint('  inbox                      Open your inbox','info');
     tPrint('  oracle                     Open Oracle interface','info');
     tPrint('SYSTEM','sh');
-    tPrint('  ps aux / ping / whoami / date / clear','info');
-    tBlank();
-    return;
+    tPrint('  ps aux  ·  ping <host>  ·  whoami  ·  date  ·  clear','info');
+    tBlank();return;
   }
   tPrint(cmd+': command not found  —  type  help  for commands','error');
 }
 
-/* ─── INPUT ─────────────────────────────── */
+/* ── INPUT ── */
 const tInp=document.getElementById('t-inp');
 tInp.addEventListener('keydown',e=>{
   if(e.key==='Enter'){const v=tInp.value;tInp.value='';processCmd(v);}
@@ -1288,7 +1268,7 @@ document.addEventListener('click',e=>{
     tInp.focus();
 });
 
-/* ─── INIT ──────────────────────────────── */
+/* ── INIT ── */
 hideAll();
 show('boot-screen');
 runBoot();
