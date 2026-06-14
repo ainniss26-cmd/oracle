@@ -1,4 +1,4 @@
-<DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -30,7 +30,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:13
 #boot-lines{font-family:var(--mono);font-size:13px;line-height:2.1;max-width:700px;}
 .bl{display:block;}.bl.d{color:#1e2a3a;}.bl.b{color:var(--blue);}.bl.c{color:var(--cyan);}.bl.w{color:var(--text);}.bl.s{color:var(--success);}.bl.o{color:var(--warn);}
 
-/* ── CREDENTIAL SCREEN ── */
+/* ── CREDENTIAL SCREEN (combined name + password) ── */
 #cred-screen{position:fixed;inset:0;background:var(--bg);z-index:700;flex-direction:column;align-items:center;justify-content:center;padding:40px;}
 .cred-box{width:100%;max-width:640px;display:flex;flex-direction:column;max-height:100vh;}
 #cred-out{font-family:var(--mono);font-size:13px;line-height:1.9;overflow-y:auto;flex:1;padding-bottom:6px;}
@@ -39,20 +39,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:13
 .cred-inp-row{display:flex;align-items:center;gap:8px;margin-top:10px;flex-shrink:0;padding-top:4px;border-top:1px solid var(--border);}
 .cred-pmt{color:var(--blue2);font-size:13px;white-space:nowrap;flex-shrink:0;}
 #cred-inp{background:transparent;border:none;outline:none;color:var(--cyan);font-family:var(--mono);font-size:13px;flex:1;min-width:0;}
-
-/* ── PASSWORD SCREEN ── */
-#pw-screen{position:fixed;inset:0;background:var(--bg);z-index:700;flex-direction:column;align-items:center;justify-content:center;padding:40px;}
-.pw-box{width:100%;max-width:480px;}
-.pw-head{font-family:var(--mono);font-size:11px;color:var(--blue2);letter-spacing:3px;text-transform:uppercase;margin-bottom:6px;}
-.pw-subhead{font-family:var(--mono);font-size:12px;color:var(--text-dim);margin-bottom:24px;}
-.pw-sep{border:none;border-top:1px solid var(--border);margin-bottom:24px;}
-.pw-label{font-family:var(--sans);font-size:10px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;}
-.pw-field{width:100%;background:var(--bg3);border:1px solid var(--border2);padding:11px 13px;font-family:var(--mono);font-size:13px;color:var(--cyan);outline:none;margin-bottom:14px;caret-color:var(--blue2);}
-.pw-field:focus{border-color:var(--blue);}
-.pw-req{font-family:var(--mono);font-size:10px;color:var(--text-dim);margin-bottom:20px;line-height:1.9;}
-.pw-btn{width:100%;background:var(--blue3);border:1px solid var(--blue);color:var(--blue2);font-family:var(--mono);font-size:12px;padding:11px;cursor:pointer;letter-spacing:2px;text-transform:uppercase;transition:all 0.2s;margin-top:4px;}
-.pw-btn:hover{background:var(--blue);color:#fff;}
-.pw-err{font-family:var(--mono);font-size:11px;color:var(--error);margin-top:8px;min-height:16px;}
 
 /* ── ACCOUNT CREATION ── */
 #acct-screen{position:fixed;inset:0;background:var(--bg);z-index:700;flex-direction:column;align-items:center;justify-content:center;padding:40px;}
@@ -90,21 +76,45 @@ body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:13
 .li-date{font-family:var(--mono);font-size:10px;color:var(--text-dim);text-align:center;margin-top:18px;}
 .li-footer{font-family:var(--mono);font-size:9px;color:#1e2a3a;text-align:center;margin-top:10px;line-height:1.8;}
 
-/* ── FULL SCREEN POPUP (Welcome, Date) ── */
-.fs-popup{position:fixed;inset:0;z-index:750;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(11,15,24,0.97);}
-#popup-delphi{border:none;}
+/* ── POPUP: DELPHI SPLASH — TRUE FULL SCREEN ── */
+#popup-delphi{
+  position:fixed;inset:0;z-index:900;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:#000;
+}
 .popup-logo-wrap{display:flex;flex-direction:column;align-items:center;gap:20px;animation:fadeIn 0.6s ease;}
-.popup-logo-name{font-family:var(--sans);font-size:32px;font-weight:600;color:var(--text);letter-spacing:8px;text-transform:uppercase;}
-.popup-logo-tag{font-family:var(--sans);font-size:13px;color:var(--text-dim);letter-spacing:3px;}
-#popup-welcome .popup-inner{text-align:center;animation:fadeIn 0.6s ease;}
-#popup-date .popup-inner{text-align:center;animation:fadeIn 0.6s ease;}
-.popup-greeting{font-family:var(--mono);font-size:11px;color:var(--text-dim);letter-spacing:4px;text-transform:uppercase;margin-bottom:16px;}
-.popup-name{font-family:var(--sans);font-size:36px;font-weight:600;color:var(--text);letter-spacing:2px;margin-bottom:10px;}
-.popup-role{font-family:var(--mono);font-size:13px;color:var(--blue2);letter-spacing:3px;margin-bottom:8px;}
-.popup-id{font-family:var(--mono);font-size:11px;color:var(--text-dim);letter-spacing:1px;}
-.popup-date-big{font-family:var(--mono);font-size:28px;color:var(--text);letter-spacing:4px;margin-bottom:10px;}
-.popup-time-big{font-family:var(--mono);font-size:48px;color:var(--blue2);letter-spacing:6px;margin-bottom:12px;}
-.popup-day{font-family:var(--mono);font-size:12px;color:var(--text-dim);letter-spacing:3px;}
+.popup-logo-name{font-family:var(--sans);font-size:40px;font-weight:600;color:var(--text);letter-spacing:12px;text-transform:uppercase;}
+.popup-logo-tag{font-family:var(--sans);font-size:14px;color:var(--text-dim);letter-spacing:4px;}
+
+/* ── POPUP: WELCOME + DATE — semi-transparent overlay, terminal visible behind ── */
+.overlay-popup{
+  position:fixed;
+  inset:0;
+  z-index:800;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  /* Very low opacity background so terminal shows clearly */
+  background:rgba(11,15,24,0.45);
+  backdrop-filter:blur(1px);
+}
+.overlay-popup-inner{
+  /* Large card but not full screen */
+  width:min(680px, 88vw);
+  padding:56px 64px;
+  background:rgba(17,22,32,0.72);
+  border:1px solid rgba(30,48,80,0.8);
+  text-align:center;
+  animation:fadeIn 0.5s ease;
+}
+#popup-welcome .popup-greeting{font-family:var(--mono);font-size:11px;color:var(--text-dim);letter-spacing:4px;text-transform:uppercase;margin-bottom:20px;}
+#popup-welcome .popup-name{font-family:var(--sans);font-size:36px;font-weight:600;color:var(--text);letter-spacing:2px;margin-bottom:12px;}
+#popup-welcome .popup-role{font-family:var(--mono);font-size:13px;color:var(--blue2);letter-spacing:3px;margin-bottom:10px;}
+#popup-welcome .popup-id{font-family:var(--mono);font-size:11px;color:var(--text-dim);letter-spacing:1px;}
+#popup-date .popup-greeting{font-family:var(--mono);font-size:11px;color:var(--text-dim);letter-spacing:4px;text-transform:uppercase;margin-bottom:16px;}
+#popup-date .popup-date-big{font-family:var(--mono);font-size:28px;color:var(--text);letter-spacing:4px;margin-bottom:12px;}
+#popup-date .popup-time-big{font-family:var(--mono);font-size:52px;color:var(--blue2);letter-spacing:8px;margin-bottom:14px;}
+#popup-date .popup-day{font-family:var(--mono);font-size:12px;color:var(--text-dim);letter-spacing:3px;}
 
 /* ── MAIN TERMINAL ── */
 #main-terminal{display:none;flex-direction:column;height:100%;}
@@ -229,7 +239,7 @@ body.t-active #main-terminal{display:flex;}
 <!-- BOOT -->
 <div id="boot-screen" class="hidden"><div id="boot-lines"></div></div>
 
-<!-- CREDENTIAL ENTRY (first + last name) -->
+<!-- CREDENTIAL ENTRY (first name, last name, AND password — all in one terminal) -->
 <div id="cred-screen" class="hidden" style="display:none;">
   <div class="cred-box">
     <div id="cred-out"></div>
@@ -237,22 +247,6 @@ body.t-active #main-terminal{display:flex;}
       <span class="cred-pmt" id="cred-pmt">›</span>
       <input id="cred-inp" type="text" autocomplete="off" spellcheck="false" />
     </div>
-  </div>
-</div>
-
-<!-- PASSWORD SCREEN -->
-<div id="pw-screen" class="hidden" style="display:none;">
-  <div class="pw-box">
-    <div class="pw-head">DELPHI PEOPLE OPERATIONS</div>
-    <div class="pw-subhead" id="pw-subhead">Step 2 of 2 — Create your password</div>
-    <hr class="pw-sep">
-    <div class="pw-label">Password</div>
-    <input class="pw-field" id="pw1" type="password" autocomplete="new-password" placeholder="Enter password" />
-    <div class="pw-req">Requirements: 8 or more characters &nbsp;·&nbsp; at least one number</div>
-    <div class="pw-label">Confirm Password</div>
-    <input class="pw-field" id="pw2" type="password" autocomplete="new-password" placeholder="Confirm password" />
-    <div class="pw-err" id="pw-err"></div>
-    <button class="pw-btn" onclick="submitPassword()">Create Account &rsaquo;</button>
   </div>
 </div>
 
@@ -315,10 +309,10 @@ body.t-active #main-terminal{display:flex;}
   </div>
 </div>
 
-<!-- POPUP: DELPHI SPLASH -->
-<div id="popup-delphi" class="fs-popup hidden" style="display:none;">
+<!-- POPUP: DELPHI SPLASH — full screen, solid black -->
+<div id="popup-delphi" class="hidden" style="display:none;">
   <div class="popup-logo-wrap">
-    <svg width="80" height="80" viewBox="0 0 100 100" fill="none">
+    <svg width="100" height="100" viewBox="0 0 100 100" fill="none">
       <line x1="50" y1="8" x2="50" y2="92" stroke="#1e90ff" stroke-width="4" stroke-linecap="round"/>
       <line x1="8" y1="50" x2="92" y2="50" stroke="#1e90ff" stroke-width="4" stroke-linecap="round"/>
       <path d="M20 16 Q50 38 80 16" stroke="#1e90ff" stroke-width="4" fill="none" stroke-linecap="round"/>
@@ -329,9 +323,9 @@ body.t-active #main-terminal{display:flex;}
   </div>
 </div>
 
-<!-- POPUP: WELCOME -->
-<div id="popup-welcome" class="fs-popup hidden" style="display:none;">
-  <div class="popup-inner">
+<!-- POPUP: WELCOME — semi-transparent overlay -->
+<div id="popup-welcome" class="overlay-popup hidden" style="display:none;">
+  <div class="overlay-popup-inner">
     <div class="popup-greeting">Security Operations Center</div>
     <div class="popup-name" id="pw-name">—</div>
     <div class="popup-role" id="pw-role">Level 2 Analyst &nbsp;·&nbsp; SOC</div>
@@ -339,9 +333,9 @@ body.t-active #main-terminal{display:flex;}
   </div>
 </div>
 
-<!-- POPUP: DATE/TIME -->
-<div id="popup-date" class="fs-popup hidden" style="display:none;">
-  <div class="popup-inner">
+<!-- POPUP: DATE/TIME — semi-transparent overlay -->
+<div id="popup-date" class="overlay-popup hidden" style="display:none;">
+  <div class="overlay-popup-inner">
     <div class="popup-greeting">Today is</div>
     <div class="popup-date-big">October 1, 2032</div>
     <div class="popup-time-big" id="popup-time-display">08:00</div>
@@ -476,9 +470,18 @@ const G={
 };
 
 /* ── SHOW/HIDE ── */
-function show(id){const e=document.getElementById(id);e.classList.remove('hidden');e.style.display='flex';}
+function show(id){
+  const e=document.getElementById(id);
+  e.classList.remove('hidden');
+  // popup-delphi is block-level, overlay-popups are flex
+  if(id==='popup-delphi'){
+    e.style.display='flex';
+  } else {
+    e.style.display='flex';
+  }
+}
 function hide(id){const e=document.getElementById(id);e.classList.add('hidden');e.style.display='none';}
-function hideAll(){['boot-screen','cred-screen','pw-screen','acct-screen','chapter-card','login-screen','popup-delphi','popup-welcome','popup-date'].forEach(hide);}
+function hideAll(){['boot-screen','cred-screen','acct-screen','chapter-card','login-screen','popup-delphi','popup-welcome','popup-date'].forEach(hide);}
 
 /* ── CLOCK ── */
 function clockTick(){
@@ -490,7 +493,6 @@ function clockTick(){
   const s=pad(G.clockH)+':'+pad(G.clockM)+':'+pad(G.clockS);
   const el=document.getElementById('tb-clock');
   if(el)el.textContent=s;
-  // update popup time if visible
   const pd=document.getElementById('popup-time-display');
   if(pd)pd.textContent=pad(G.clockH)+':'+pad(G.clockM);
 }
@@ -529,17 +531,19 @@ function runBoot(){
   next();
 }
 
-/* ── CREDENTIAL SETUP ── */
+/* ── CREDENTIAL SETUP (name + password all in one terminal) ── */
+// credStep: 1=firstName, 2=lastName, 3=password, 4=confirmPassword
 let credStep=0;
+
 function credPrint(text,cls='d'){
   const el=document.getElementById('cred-out');
   const d=document.createElement('span');d.className='cl '+cls;d.textContent=text;
   el.appendChild(d);el.scrollTop=el.scrollHeight;
 }
+
 function runCredSetup(){
   show('cred-screen');
   const inp=document.getElementById('cred-inp');
-  // Print intro line by line
   const intro=[
     ['',''],['',''],
     ['  ╔═══════════════════════════════════════════════╗','sep'],
@@ -578,16 +582,24 @@ function handleCredKey(e){
   if(e.key!=='Enter')return;
   const inp=document.getElementById('cred-inp');
   const val=inp.value.trim();
+  // For password steps don't trim raw value
+  const rawVal=inp.value;
   inp.value='';
-  handleCred(val);
+  if(credStep===3||credStep===4){
+    handleCred(rawVal);
+  } else {
+    handleCred(val);
+  }
 }
 
 function handleCred(val){
   const inp=document.getElementById('cred-inp');
+
+  /* ── FIRST NAME ── */
   if(credStep===1){
     if(!val||val.length<2){credPrint('  Please enter a valid first name (2+ characters).','e');return;}
     G.firstName=val.charAt(0).toUpperCase()+val.slice(1).toLowerCase();
-    credPrint('  › '+G.firstName,'c');
+    credPrint('  first_name › '+G.firstName,'c');
     credStep=2;
     setTimeout(()=>{
       credPrint('','');
@@ -595,57 +607,99 @@ function handleCred(val){
       credPrint('','');
       document.getElementById('cred-pmt').textContent='last_name ›';
       inp.placeholder='Last name...';
+      inp.type='text';
       inp.focus();
     },200);
     return;
   }
+
+  /* ── LAST NAME ── */
   if(credStep===2){
     if(!val||val.length<2){credPrint('  Please enter a valid last name (2+ characters).','e');return;}
     G.lastName=val.charAt(0).toUpperCase()+val.slice(1).toLowerCase();
     G.fullName=G.firstName+' '+G.lastName;
-    credPrint('  › '+G.lastName,'c');
+    credPrint('  last_name › '+G.lastName,'c');
     credStep=3;
+    // Switch input to password type for the password steps
     setTimeout(()=>{
       credPrint('','');
       credPrint('  Step 2 of 2 — Create your password.','h');
-      credPrint('  Switching to secure password entry...','d');
-      // Wait briefly, then switch screens cleanly
+      credPrint('  Requirements:','d');
+      credPrint('   • 8 or more characters','d');
+      credPrint('   • At least one number','d');
+      credPrint('','');
+      credPrint('  Enter your password:','w');
+      credPrint('','');
+      document.getElementById('cred-pmt').textContent='password ›';
+      inp.placeholder='';
+      inp.type='password';
+      inp.focus();
+    },200);
+    return;
+  }
+
+  /* ── PASSWORD ── */
+  if(credStep===3){
+    if(val.length<8||!/\d/.test(val)){
+      credPrint('  password › ········','c');
+      credPrint('  ✗  Password must be 8+ characters and contain at least one number.','e');
+      credPrint('  Enter your password:','w');
+      credPrint('','');
+      inp.type='password';
+      inp.focus();
+      return;
+    }
+    G.pw=val;
+    credPrint('  password › '+'*'.repeat(val.length),'c');
+    credStep=4;
+    setTimeout(()=>{
+      credPrint('','');
+      credPrint('  Confirm password:','w');
+      credPrint('','');
+      document.getElementById('cred-pmt').textContent='confirm_password ›';
+      inp.type='password';
+      inp.focus();
+    },200);
+    return;
+  }
+
+  /* ── CONFIRM PASSWORD ── */
+  if(credStep===4){
+    credPrint('  confirm_password › '+'*'.repeat(val.length),'c');
+    if(val!==G.pw){
+      credPrint('  ✗  Passwords do not match. Try again.','e');
+      credPrint('','');
+      credPrint('  Enter your password:','w');
+      credPrint('','');
+      document.getElementById('cred-pmt').textContent='password ›';
+      G.pw='';
+      credStep=3;
+      inp.type='password';
+      inp.focus();
+      return;
+    }
+    // Success — generate account info and proceed
+    const fi=G.firstName.charAt(0).toLowerCase();
+    const ls=G.lastName.toLowerCase().replace(/[^a-z]/g,'');
+    G.email=fi+'.'+ls+'@delphi-soc.com';
+    G.employeeId='DSC-'+Math.floor(10000+Math.random()*89999);
+    credStep=5;
+    setTimeout(()=>{
+      credPrint('','');
+      credPrint('  ══════════════════════════════════════════════','sep');
+      credPrint('  ACCOUNT CREATED SUCCESSFULLY','s');
+      credPrint('  ══════════════════════════════════════════════','sep');
+      credPrint('','');
+      // Hide input row while processing
+      document.getElementById('cred-row').style.display='none';
       setTimeout(()=>{
         hide('cred-screen');
-        document.getElementById('pw-subhead').textContent=
-          'Step 2 of 2 — Create a password for '+G.firstName+' '+G.lastName;
-        show('pw-screen');
-        document.getElementById('pw1').focus();
-      },700);
+        runAccountCreation();
+      },900);
     },200);
     return;
   }
 }
-
-/* ── PASSWORD SCREEN ── */
-function submitPassword(){
-  const p1=document.getElementById('pw1').value;
-  const p2=document.getElementById('pw2').value;
-  const err=document.getElementById('pw-err');
-  err.textContent='';
-  if(p1.length<8||!/\d/.test(p1)){
-    err.textContent='Password must be 8+ characters and contain at least one number.';return;
-  }
-  if(p1!==p2){
-    err.textContent='Passwords do not match.';
-    document.getElementById('pw2').value='';
-    document.getElementById('pw2').focus();return;
-  }
-  G.pw=p1;
-  const fi=G.firstName.charAt(0).toLowerCase();
-  const ls=G.lastName.toLowerCase().replace(/[^a-z]/g,'');
-  G.email=fi+'.'+ls+'@delphi-soc.com';
-  G.employeeId='DSC-'+Math.floor(10000+Math.random()*89999);
-  hide('pw-screen');
-  runAccountCreation();
-}
-document.getElementById('pw1').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('pw2').focus();});
-document.getElementById('pw2').addEventListener('keydown',e=>{if(e.key==='Enter')submitPassword();});
 
 /* ── ACCOUNT CREATION ── */
 function acctPrint(text,cls='d'){
@@ -690,12 +744,10 @@ function runAccountCreation(){
 /* ── CHAPTER CARD → POPUPS ── */
 function goToChapterCard(){
   hide('acct-screen');
-  // Pre-load terminal in background (invisible)
   G.fs=buildFS();
   G.inbox=buildInbox();
   initTerminalUI();
   document.body.classList.add('t-active');
-  // But terminal stays behind popups
   show('chapter-card');
   document.getElementById('cc-act').textContent='ACT I — THE INCIDENT';
   document.getElementById('cc-title').textContent='CHAPTER 1';
@@ -708,13 +760,17 @@ function goToChapterCard(){
 
 /* ── 3 POPUPS ── */
 function showPopupDelphi(){
-  show('popup-delphi');
+  // Full screen solid black — sits above everything
+  const el=document.getElementById('popup-delphi');
+  el.style.cssText='position:fixed;inset:0;z-index:900;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#000;';
+  el.classList.remove('hidden');
   startClock();
   setTimeout(()=>{
     hide('popup-delphi');
     showPopupWelcome();
   },2800);
 }
+
 function showPopupWelcome(){
   document.getElementById('pw-name').textContent='Welcome, '+G.firstName+'.';
   document.getElementById('pw-role').textContent='Level 2 Analyst  ·  Security Operations Center';
@@ -725,23 +781,22 @@ function showPopupWelcome(){
     showPopupDate();
   },2800);
 }
+
 function showPopupDate(){
   show('popup-date');
   setTimeout(()=>{
     hide('popup-date');
-    // Terminal is already loaded — just print welcome messages now
     printTerminalWelcome();
   },2800);
 }
 
-/* ── INIT TERMINAL UI (called before popups) ── */
+/* ── INIT TERMINAL UI ── */
 function initTerminalUI(){
   G.cwd='/home/'+G.firstName.toLowerCase()+'.'+G.lastName.toLowerCase();
   document.getElementById('sb-name').textContent=G.fullName;
   document.getElementById('sb-id').textContent='ID: '+G.employeeId;
   document.getElementById('sb-date').textContent='October 1, 2032';
   document.getElementById('tb-clock').textContent='08:00:00';
-  // coworkers
   const cl=document.getElementById('cw-list');cl.innerHTML='';
   G.coworkers.forEach(c=>{
     const d=document.createElement('div');d.className='cw-row';
@@ -752,7 +807,7 @@ function initTerminalUI(){
   updatePrompt();
 }
 
-/* ── PRINT TERMINAL WELCOME MESSAGES CONSECUTIVELY ── */
+/* ── PRINT TERMINAL WELCOME ── */
 function printTerminalWelcome(){
   const lines=[
     {t:'Delphi Security Operations Center — Secure Terminal',c:'h',d:0},
@@ -767,9 +822,7 @@ function printTerminalWelcome(){
     {t:'Type  help  for available commands.',c:'info',d:1200},
     {t:'',c:'blank',d:1340},
   ];
-  lines.forEach(l=>{
-    setTimeout(()=>tPrint(l.t,l.c),l.d);
-  });
+  lines.forEach(l=>{setTimeout(()=>tPrint(l.t,l.c),l.d);});
   setTimeout(()=>document.getElementById('t-inp').focus(),1400);
 }
 
@@ -781,254 +834,25 @@ function buildFS(){
     '/home':{type:'dir',children:[slug]},
     ['/home/'+slug]:{type:'dir',children:['profile.txt','.session_log']},
     ['/home/'+slug+'/profile.txt']:{type:'file',perms:'-rw-r--r--',content:
-'DELPHI EMPLOYEE PROFILE\n'+
-'════════════════════════\n'+
-'Name:        '+G.fullName+'\n'+
-'Employee ID: '+G.employeeId+'\n'+
-'Email:       '+G.email+'\n'+
-'Department:  Security Operations Center\n'+
-'Role:        Analyst II\n'+
-'Clearance:   Level 2\n'+
-'Start Date:  October 1, 2032\n'+
-'Status:      ACTIVE\n\n'+
-'Oracle Access: GRANTED\nBaseline calibration: In progress (14-day window)'},
+'DELPHI EMPLOYEE PROFILE\n════════════════════════\nName:        '+G.fullName+'\nEmployee ID: '+G.employeeId+'\nEmail:       '+G.email+'\nDepartment:  Security Operations Center\nRole:        Analyst II\nClearance:   Level 2\nStart Date:  October 1, 2032\nStatus:      ACTIVE\n\nOracle Access: GRANTED\nBaseline calibration: In progress (14-day window)'},
     ['/home/'+slug+'/.session_log']:{type:'file',perms:'-rw-------',hidden:true,content:
-'Session log — '+G.employeeId+'\n\n'+
-'First login: October 1, 2032  08:00\n'+
-'Terminal: SOC-WORKSTATION-'+Math.floor(100+Math.random()*900)+'\n'+
-'IP: 10.14.'+Math.floor(1+Math.random()*250)+'.'+Math.floor(1+Math.random()*250)},
+'Session log — '+G.employeeId+'\n\nFirst login: October 1, 2032  08:00\nTerminal: SOC-WORKSTATION-'+Math.floor(100+Math.random()*900)+'\nIP: 10.14.'+Math.floor(1+Math.random()*250)+'.'+Math.floor(1+Math.random()*250)},
     '/mail':{type:'dir',children:['welcome.txt','from_hr.txt','from_okafor.txt','from_chen.txt','from_reyes.txt','from_nakamura.txt']},
-    '/mail/welcome.txt':{type:'file',perms:'-rw-r--r--',content:
-'FROM:    noreply@delphi.com\n'+
-'TO:      '+G.email+'\n'+
-'SUBJECT: Welcome to Delphi\n'+
-'DATE:    October 1, 2032\n'+
-'─────────────────────────────────────\n\n'+
-G.firstName+',\n\n'+
-'Welcome to Delphi.\n\n'+
-'You are joining the largest technology company in human history.\n'+
-'Billions of people rely on our infrastructure every day — to\n'+
-'communicate, navigate, access information, conduct business,\n'+
-'and interact with the world around them.\n\n'+
-'Delphi was founded in 2008 by Dr. Apollo Thorne with a mission\n'+
-'that remains at the heart of everything we do:\n\n'+
-'   "Make the world\'s information understandable."\n\n'+
-'Dr. Thorne believed the defining challenge of the digital age\n'+
-'was not generating information — it was making sense of it.\n'+
-'That belief shaped Delphi into what it is today.\n\n'+
-'You are now part of that mission.\n\n'+
-'Your account is active. Your workstation is ready.\n'+
-'Your team has sent you welcome messages — check your inbox.\n\n'+
-'— Delphi People Operations'},
-    '/mail/from_hr.txt':{type:'file',perms:'-rw-r--r--',content:
-'FROM:    hr@delphi.com\n'+
-'TO:      '+G.email+'\n'+
-'SUBJECT: Your access and onboarding information\n'+
-'DATE:    October 1, 2032\n'+
-'─────────────────────────────────────\n\n'+
-G.firstName+',\n\n'+
-'A few things to know before your first shift:\n\n'+
-'1. CREDENTIALS\n'+
-'   Your employee ID is '+G.employeeId+'.\n'+
-'   Your password is the one you created during onboarding.\n'+
-'   Keep it secure. Do not share it.\n\n'+
-'2. CLEARANCE\n'+
-'   You have Level 2 clearance. This grants access to the\n'+
-'   SOC terminal, case management, internal mail, and Oracle.\n\n'+
-'3. YOUR FIRST WEEK\n'+
-'   Today is orientation. Explore the terminal, read your\n'+
-'   messages, and review the documentation in /docs/\n'+
-'   Formal case assignments begin in Chapter 2.\n\n'+
-'4. THE HANDBOOK\n'+
-'   The SOC analyst handbook is at /docs/soc_handbook.txt\n'+
-'   It covers everything you need to know.\n\n'+
-'5. ORACLE\n'+
-'   Oracle is our internal analytics platform. You will learn\n'+
-'   more about it as you settle in. For now, know that it\n'+
-'   runs quietly in the background across all systems.\n\n'+
-'Questions? Reply to this message anytime.\n\n'+
-'— Delphi Human Resources'},
-    '/mail/from_okafor.txt':{type:'file',perms:'-rw-r--r--',content:
-'FROM:    j.okafor@delphi-soc.com\n'+
-'TO:      '+G.email+'\n'+
-'SUBJECT: Welcome to the SOC\n'+
-'DATE:    October 1, 2032\n'+
-'─────────────────────────────────────\n\n'+
-G.firstName+',\n\n'+
-'James Okafor. I run the Security Operations Center.\n\n'+
-'This team protects infrastructure that billions of people\n'+
-'depend on without knowing it. That is not a small thing.\n\n'+
-'Today is orientation. No pressure. Take your time with\n'+
-'the terminal. Read the docs. Get comfortable.\n\n'+
-'Type  help  to see available commands.\n'+
-'The handbook at /docs/soc_handbook.txt is worth your time.\n\n'+
-'Formal assignments begin next week. For now, just settle in.\n\n'+
-'— Okafor\n'+
-'SOC Lead, Delphi Security Operations'},
-    '/mail/from_chen.txt':{type:'file',perms:'-rw-r--r--',content:
-'FROM:    m.chen@delphi-soc.com\n'+
-'TO:      '+G.email+'\n'+
-'SUBJECT: Hey — welcome\n'+
-'DATE:    October 1, 2032\n'+
-'─────────────────────────────────────\n\n'+
-G.firstName+',\n\n'+
-'Maya Chen. Senior Analyst. Three years on this team.\n'+
-'You will probably work closest with me day to day.\n\n'+
-'A few things nobody tells you on day one:\n\n'+
-'— The terminal is faster than it looks. Learn the commands\n'+
-'  properly. It pays off quickly.\n\n'+
-'— Oracle flags a lot of noise. Low confidence scores are\n'+
-'  usually nothing. But read the logs yourself anyway.\n\n'+
-'— Okafor seems intense. He is not. He just cares and\n'+
-'  does not waste words.\n\n'+
-'If you have questions, just ask. No judgment here.\n\n'+
-'— Maya'},
-    '/mail/from_reyes.txt':{type:'file',perms:'-rw-r--r--',content:
-'FROM:    s.reyes@delphi-soc.com\n'+
-'TO:      '+G.email+'\n'+
-'SUBJECT: Welcome to the team\n'+
-'DATE:    October 1, 2032\n'+
-'─────────────────────────────────────\n\n'+
-G.firstName+',\n\n'+
-'Sofia Reyes — Threat Intelligence. Good to have you here.\n\n'+
-'My work sits a bit outside the main SOC workflow. I track\n'+
-'external threat actors and build intelligence profiles on\n'+
-'groups targeting Delphi infrastructure.\n\n'+
-'You probably will not cross paths with my work much in your\n'+
-'first few weeks — but when you do, reach out. Context\n'+
-'matters a lot in this job.\n\n'+
-'Looking forward to working with you.\n\n'+
-'— Sofia'},
-    '/mail/from_nakamura.txt':{type:'file',perms:'-rw-r--r--',content:
-'FROM:    t.nakamura@delphi-soc.com\n'+
-'TO:      '+G.email+'\n'+
-'SUBJECT: Hi!\n'+
-'DATE:    October 1, 2032\n'+
-'─────────────────────────────────────\n\n'+
-G.firstName+',\n\n'+
-'Toshi Nakamura — Analyst II, same level as you.\n'+
-'Started about eight months ago. I remember day one.\n\n'+
-'Honest advice: do not try to absorb everything at once.\n'+
-'The terminal, the tools, Oracle — it is a lot at first.\n'+
-'It clicks pretty quickly though.\n\n'+
-'Also — the break room on floor 2 has the good coffee.\n'+
-'Floor 4 has a better view. You decide what matters more.\n\n'+
-'Welcome. You are going to be great at this.\n\n'+
-'— Toshi'},
+    '/mail/welcome.txt':{type:'file',perms:'-rw-r--r--',content:'FROM:    noreply@delphi.com\nTO:      '+G.email+'\nSUBJECT: Welcome to Delphi\nDATE:    October 1, 2032\n─────────────────────────────────────\n\n'+G.firstName+',\n\nWelcome to Delphi.\n\nYou are joining the largest technology company in human history.\nBillions of people rely on our infrastructure every day — to\ncommunicate, navigate, access information, conduct business,\nand interact with the world around them.\n\nDelphi was founded in 2008 by Dr. Apollo Thorne with a mission\nthat remains at the heart of everything we do:\n\n   "Make the world\'s information understandable."\n\nDr. Thorne believed the defining challenge of the digital age\nwas not generating information — it was making sense of it.\nThat belief shaped Delphi into what it is today.\n\nYou are now part of that mission.\n\nYour account is active. Your workstation is ready.\nYour team has sent you welcome messages — check your inbox.\n\n— Delphi People Operations'},
+    '/mail/from_hr.txt':{type:'file',perms:'-rw-r--r--',content:'FROM:    hr@delphi.com\nTO:      '+G.email+'\nSUBJECT: Your access and onboarding information\nDATE:    October 1, 2032\n─────────────────────────────────────\n\n'+G.firstName+',\n\nA few things to know before your first shift:\n\n1. CREDENTIALS\n   Your employee ID is '+G.employeeId+'.\n   Your password is the one you created during onboarding.\n   Keep it secure. Do not share it.\n\n2. CLEARANCE\n   You have Level 2 clearance. This grants access to the\n   SOC terminal, case management, internal mail, and Oracle.\n\n3. YOUR FIRST WEEK\n   Today is orientation. Explore the terminal, read your\n   messages, and review the documentation in /docs/\n   Formal case assignments begin in Chapter 2.\n\n4. THE HANDBOOK\n   The SOC analyst handbook is at /docs/soc_handbook.txt\n   It covers everything you need to know.\n\n5. ORACLE\n   Oracle is our internal analytics platform. You will learn\n   more about it as you settle in. For now, know that it\n   runs quietly in the background across all systems.\n\nQuestions? Reply to this message anytime.\n\n— Delphi Human Resources'},
+    '/mail/from_okafor.txt':{type:'file',perms:'-rw-r--r--',content:'FROM:    j.okafor@delphi-soc.com\nTO:      '+G.email+'\nSUBJECT: Welcome to the SOC\nDATE:    October 1, 2032\n─────────────────────────────────────\n\n'+G.firstName+',\n\nJames Okafor. I run the Security Operations Center.\n\nThis team protects infrastructure that billions of people\ndepend on without knowing it. That is not a small thing.\n\nToday is orientation. No pressure. Take your time with\nthe terminal. Read the docs. Get comfortable.\n\nType  help  to see available commands.\nThe handbook at /docs/soc_handbook.txt is worth your time.\n\nFormal assignments begin next week. For now, just settle in.\n\n— Okafor\nSOC Lead, Delphi Security Operations'},
+    '/mail/from_chen.txt':{type:'file',perms:'-rw-r--r--',content:'FROM:    m.chen@delphi-soc.com\nTO:      '+G.email+'\nSUBJECT: Hey — welcome\nDATE:    October 1, 2032\n─────────────────────────────────────\n\n'+G.firstName+',\n\nMaya Chen. Senior Analyst. Three years on this team.\nYou will probably work closest with me day to day.\n\nA few things nobody tells you on day one:\n\n— The terminal is faster than it looks. Learn the commands\n  properly. It pays off quickly.\n\n— Oracle flags a lot of noise. Low confidence scores are\n  usually nothing. But read the logs yourself anyway.\n\n— Okafor seems intense. He is not. He just cares and\n  does not waste words.\n\nIf you have questions, just ask. No judgment here.\n\n— Maya'},
+    '/mail/from_reyes.txt':{type:'file',perms:'-rw-r--r--',content:'FROM:    s.reyes@delphi-soc.com\nTO:      '+G.email+'\nSUBJECT: Welcome to the team\nDATE:    October 1, 2032\n─────────────────────────────────────\n\n'+G.firstName+',\n\nSofia Reyes — Threat Intelligence. Good to have you here.\n\nMy work sits a bit outside the main SOC workflow. I track\nexternal threat actors and build intelligence profiles on\ngroups targeting Delphi infrastructure.\n\nYou probably will not cross paths with my work much in your\nfirst few weeks — but when you do, reach out. Context\nmatters a lot in this job.\n\nLooking forward to working with you.\n\n— Sofia'},
+    '/mail/from_nakamura.txt':{type:'file',perms:'-rw-r--r--',content:'FROM:    t.nakamura@delphi-soc.com\nTO:      '+G.email+'\nSUBJECT: Hi!\nDATE:    October 1, 2032\n─────────────────────────────────────\n\n'+G.firstName+',\n\nToshi Nakamura — Analyst II, same level as you.\nStarted about eight months ago. I remember day one.\n\nHonest advice: do not try to absorb everything at once.\nThe terminal, the tools, Oracle — it is a lot at first.\nIt clicks pretty quickly though.\n\nAlso — the break room on floor 2 has the good coffee.\nFloor 4 has a better view. You decide what matters more.\n\nWelcome. You are going to be great at this.\n\n— Toshi'},
     '/docs':{type:'dir',children:['soc_handbook.txt','oracle_reference.txt','delphi_overview.txt','security_policy.txt']},
-    '/docs/soc_handbook.txt':{type:'file',perms:'-rw-r--r--',content:
-'DELPHI SECURITY OPERATIONS CENTER\n'+
-'ANALYST HANDBOOK — EDITION 7\n'+
-'══════════════════════════════\n\n'+
-'SECTION 1: ROLE\n'+
-'────────────────\n'+
-'SOC analysts monitor, investigate, and respond to security\n'+
-'events across Delphi\'s global infrastructure. You are the\n'+
-'first line of defense for systems used by billions.\n\n'+
-'SECTION 2: TERMINAL COMMANDS\n'+
-'─────────────────────────────\n'+
-'  ls / ls -la [path]    List directory contents\n'+
-'  cd <directory>        Navigate directories (cd .. to go up)\n'+
-'  cat <file>            Read a file\n'+
-'  grep <pat> <file>     Search inside a file\n'+
-'  ps aux                List running processes\n'+
-'  ping <host/ip>        Test network connectivity\n'+
-'  pwd                   Print current directory\n'+
-'  whoami                Current user info\n'+
-'  inbox                 Open your inbox\n'+
-'  oracle                Open Oracle interface\n'+
-'  clear                 Clear terminal output\n'+
-'  help                  Show this reference\n\n'+
-'SECTION 3: CASE WORKFLOW\n'+
-'─────────────────────────\n'+
-'Cases appear in your right panel when assigned.\n'+
-'Read the objective carefully. Navigate the filesystem to\n'+
-'find relevant information. Follow case instructions to close.\n\n'+
-'SECTION 4: ORACLE\n'+
-'──────────────────\n'+
-'Oracle monitors all systems continuously.\n'+
-'Confidence: 0-20% low / 21-70% moderate / 70%+ high.\n'+
-'Always read underlying data. Oracle surfaces signals.\n'+
-'You draw the conclusions.\n\n'+
-'SECTION 5: ESCALATION\n'+
-'──────────────────────\n'+
-'Severity 1 incidents escalate to SOC Lead automatically.\n'+
-'When in doubt, escalate. Document everything.'},
-    '/docs/delphi_overview.txt':{type:'file',perms:'-rw-r--r--',content:
-'DELPHI CORPORATION — OVERVIEW\n'+
-'══════════════════════════════\n'+
-'Classification: Internal — All Employees\n\n'+
-'ABOUT DELPHI\n'+
-'────────────\n'+
-'Delphi is the largest technology and information company\n'+
-'in the world. Founded March 14, 2008, by Dr. Apollo Thorne,\n'+
-'it began as a search engine with a single mission:\n\n'+
-'   "Make the world\'s information understandable."\n\n'+
-'By 2032, Delphi\'s infrastructure underpins much of modern\n'+
-'digital life. Search, communications, navigation, cloud\n'+
-'computing, media, and enterprise services all run on\n'+
-'Delphi technology. Billions of people interact with Delphi\n'+
-'products every day, often without knowing it.\n\n'+
-'DR. APOLLO THORNE (1982 — 2027)\n'+
-'────────────────────────────────\n'+
-'Thorne believed humanity\'s defining challenge was not\n'+
-'producing information — it was understanding it.\n\n'+
-'Where other companies indexed websites, Delphi was built\n'+
-'to understand relationships between ideas.\n\n'+
-'His philosophy became Delphi\'s culture:\n\n'+
-'   "Information has value. Understanding creates power."\n\n'+
-'Thorne died unexpectedly in November 2027 at forty-five.\n'+
-'His speeches are preserved in company archives and quoted\n'+
-'in nearly every major Delphi presentation to this day.\n\n'+
-'SECURITY OPERATIONS\n'+
-'────────────────────\n'+
-'At Delphi\'s scale, even a minor incident can affect\n'+
-'millions of users. The SOC monitors threats, investigates\n'+
-'anomalies, and responds to security events across all\n'+
-'Delphi systems around the clock.\n\n'+
-'You are now part of that team.'},
-    '/docs/oracle_reference.txt':{type:'file',perms:'-rw-r--r--',content:
-'ORACLE v4.2 — ANALYST QUICK REFERENCE\n'+
-'══════════════════════════════════════\n\n'+
-'Oracle is Delphi\'s internal analytics and security platform.\n'+
-'It monitors all Delphi systems in real time.\n\n'+
-'CONFIDENCE SCORES:\n'+
-'  0–20%    Low — log and monitor\n'+
-'  21–70%   Moderate — investigate further\n'+
-'  71–90%   High — act promptly\n'+
-'  91–100%  Critical — immediate response required\n\n'+
-'Note: Oracle outputs are probabilistic, not definitive.\n'+
-'Always verify with underlying data before acting.\n\n'+
-'Access the Oracle tab in the navigation bar above.'},
-    '/docs/security_policy.txt':{type:'file',perms:'-rw-r--r--',content:
-'DELPHI INFORMATION SECURITY POLICY\n'+
-'════════════════════════════════════\n\n'+
-'1. CREDENTIALS — Never share your password.\n'+
-'   Report suspected compromise immediately.\n\n'+
-'2. ACCESS — Use only systems within your clearance level.\n'+
-'   All access is logged and reviewed.\n\n'+
-'3. INCIDENTS — Report all security events through the SOC.\n'+
-'   Do not resolve Severity 1 incidents alone.\n\n'+
-'4. DATA — Do not transmit sensitive data externally.\n\n'+
-'Violations may result in termination or legal action.'},
+    '/docs/soc_handbook.txt':{type:'file',perms:'-rw-r--r--',content:'DELPHI SECURITY OPERATIONS CENTER\nANALYST HANDBOOK — EDITION 7\n══════════════════════════════\n\nSECTION 1: ROLE\n────────────────\nSOC analysts monitor, investigate, and respond to security\nevents across Delphi\'s global infrastructure. You are the\nfirst line of defense for systems used by billions.\n\nSECTION 2: TERMINAL COMMANDS\n─────────────────────────────\n  ls / ls -la [path]    List directory contents\n  cd <directory>        Navigate directories (cd .. to go up)\n  cat <file>            Read a file\n  grep <pat> <file>     Search inside a file\n  ps aux                List running processes\n  ping <host/ip>        Test network connectivity\n  pwd                   Print current directory\n  whoami                Current user info\n  inbox                 Open your inbox\n  oracle                Open Oracle interface\n  clear                 Clear terminal output\n  help                  Show this reference\n\nSECTION 3: CASE WORKFLOW\n─────────────────────────\nCases appear in your right panel when assigned.\nRead the objective carefully. Navigate the filesystem to\nfind relevant information. Follow case instructions to close.\n\nSECTION 4: ORACLE\n──────────────────\nOracle monitors all systems continuously.\nConfidence: 0-20% low / 21-70% moderate / 70%+ high.\nAlways read underlying data. Oracle surfaces signals.\nYou draw the conclusions.\n\nSECTION 5: ESCALATION\n──────────────────────\nSeverity 1 incidents escalate to SOC Lead automatically.\nWhen in doubt, escalate. Document everything.'},
+    '/docs/delphi_overview.txt':{type:'file',perms:'-rw-r--r--',content:'DELPHI CORPORATION — OVERVIEW\n══════════════════════════════\nClassification: Internal — All Employees\n\nABOUT DELPHI\n────────────\nDelphi is the largest technology and information company\nin the world. Founded March 14, 2008, by Dr. Apollo Thorne,\nit began as a search engine with a single mission:\n\n   "Make the world\'s information understandable."\n\nBy 2032, Delphi\'s infrastructure underpins much of modern\ndigital life.\n\nDR. APOLLO THORNE (1982 — 2027)\n────────────────────────────────\nThorne died unexpectedly in November 2027 at forty-five.\nHis speeches are preserved in company archives.\n\nSECURITY OPERATIONS\n────────────────────\nAt Delphi\'s scale, even a minor incident can affect\nmillions of users. The SOC monitors threats, investigates\nanomalies, and responds to security events across all\nDelphi systems around the clock.\n\nYou are now part of that team.'},
+    '/docs/oracle_reference.txt':{type:'file',perms:'-rw-r--r--',content:'ORACLE v4.2 — ANALYST QUICK REFERENCE\n══════════════════════════════════════\n\nOracle is Delphi\'s internal analytics and security platform.\nIt monitors all Delphi systems in real time.\n\nCONFIDENCE SCORES:\n  0–20%    Low — log and monitor\n  21–70%   Moderate — investigate further\n  71–90%   High — act promptly\n  91–100%  Critical — immediate response required\n\nNote: Oracle outputs are probabilistic, not definitive.\nAlways verify with underlying data before acting.\n\nAccess the Oracle tab in the navigation bar above.'},
+    '/docs/security_policy.txt':{type:'file',perms:'-rw-r--r--',content:'DELPHI INFORMATION SECURITY POLICY\n════════════════════════════════════\n\n1. CREDENTIALS — Never share your password.\n   Report suspected compromise immediately.\n\n2. ACCESS — Use only systems within your clearance level.\n   All access is logged and reviewed.\n\n3. INCIDENTS — Report all security events through the SOC.\n   Do not resolve Severity 1 incidents alone.\n\n4. DATA — Do not transmit sensitive data externally.\n\nViolations may result in termination or legal action.'},
     '/oracle':{type:'dir',children:['status.txt']},
-    '/oracle/status.txt':{type:'file',perms:'-rw-r--r--',content:
-'ORACLE STATUS — October 1, 2032\n\n'+
-'System:            Online\n'+
-'Version:           4.2.1\n'+
-'Active cases:      0\n'+
-'Anomalies:         0\n'+
-'Attribution:       No active analysis\n'+
-'Infrastructure:    ALL SYSTEMS NOMINAL\n'+
-'Monitored systems: 847\n\n'+
-'Baseline calibration in progress for new analyst.'},
+    '/oracle/status.txt':{type:'file',perms:'-rw-r--r--',content:'ORACLE STATUS — October 1, 2032\n\nSystem:            Online\nVersion:           4.2.1\nActive cases:      0\nAnomalies:         0\nAttribution:       No active analysis\nInfrastructure:    ALL SYSTEMS NOMINAL\nMonitored systems: 847\n\nBaseline calibration in progress for new analyst.'},
     '/cases':{type:'dir',children:['README.txt']},
-    '/cases/README.txt':{type:'file',perms:'-rw-r--r--',content:
-'CASE MANAGEMENT SYSTEM\n\n'+
-'Your case queue is empty.\n\n'+
-'This is your first day. Formal case assignments begin\n'+
-'in Chapter 2 after onboarding is complete.\n\n'+
-'Use today to explore the terminal and read your mail.'},
+    '/cases/README.txt':{type:'file',perms:'-rw-r--r--',content:'CASE MANAGEMENT SYSTEM\n\nYour case queue is empty.\n\nThis is your first day. Formal case assignments begin\nin Chapter 2 after onboarding is complete.\n\nUse today to explore the terminal and read your mail.'},
   };
 }
 
@@ -1113,7 +937,7 @@ function resolvePath(input){
 function getNode(p){return G.fs[resolvePath(p)]||null;}
 function listDir(path,la){
   let p=resolvePath(path),node=G.fs[p];
-  if(!node){tPrint('ls: cannot access \''+( path||'.')+ '\': No such file or directory','error');return;}
+  if(!node){tPrint('ls: cannot access \''+(path||'.')+'\': No such file or directory','error');return;}
   if(node.type!=='dir'){tPrint('ls: '+path+': Not a directory','error');return;}
   let ch=(node.children||[]).filter(c=>la||!c.startsWith('.'));
   if(!ch.length){tPrint('(empty)','info');return;}
