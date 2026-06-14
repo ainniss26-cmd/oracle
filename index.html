@@ -504,10 +504,10 @@ function runBoot(){
     {t:'DELPHI SYSTEMS CORPORATION',c:'b'},
     {t:'Secure Boot Sequence — v9.4.1',c:'d'},
     {t:'',c:''},
-    {t:'[  OK  ]  Hardware security module initialized',c:'d'},
-    {t:'[  OK  ]  Encrypted storage verified',c:'d'},
-    {t:'[  OK  ]  Cryptographic certificates loaded',c:'d'},
-    {t:'[  OK  ]  Secure network tunnel established',c:'d'},
+    {t:'[  OK  ]  Hardware security module initialized',c:'b'},
+    {t:'[  OK  ]  Encrypted storage verified',c:'b'},
+    {t:'[  OK  ]  Cryptographic certificates loaded',c:'b'},
+    {t:'[  OK  ]  Secure network tunnel established',c:'b'},
     {t:'[  OK  ]  Delphi Infrastructure Layer connected',c:'w'},
     {t:'[  OK  ]  Oracle v4.2 online',c:'c'},
     {t:'[  OK  ]  Security Operations Center active',c:'w'},
@@ -543,8 +543,8 @@ function runCredSetup(){
   const intro=[
     ['',''],['',''],
     ['  ╔═══════════════════════════════════════════════╗','sep'],
-    ['  ║       DELPHI PEOPLE OPERATIONS               ║','sep'],
-    ['  ║    NEW EMPLOYEE ONBOARDING TERMINAL          ║','sep'],
+    ['  ║        DELPHI PEOPLE OPERATIONS               ║','sep'],
+    ['  ║     NEW EMPLOYEE ONBOARDING TERMINAL          ║','sep'],
     ['  ╚═══════════════════════════════════════════════╝','sep'],
     ['',''],
     ['  Welcome to Delphi.','w'],
@@ -597,6 +597,7 @@ function handleCred(val){
       inp.placeholder='Last name...';
       inp.focus();
     },200);
+    inp.placeholder='';
     return;
   }
   if(credStep===2){
