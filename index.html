@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ORACLE — Delphi Systems</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#070b12;--bg2:#0e1420;--bg3:#131b28;--bg4:#1a2236;
+  --border:#18243a;--border2:#1f2e48;
+  --blue:#1e90ff;--blue2:#4dabff;--blue3:#0a2a5c;
+  --cyan:#00d4ff;--text:#e8edf8;--text-dim:#4a5a78;--text-mid:#8a9dbf;
+  --success:#00c87a;--warn:#f5a623;--error:#ff4444;--oracle:#9b7fe8;
+  --mono:'Share Tech Mono',monospace;--sans:'Inter',sans-serif;
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);}
+body{color:var(--text);font-family:var(--mono);font-size:13px;line-height:1.5;display:flex;flex-direction:column;}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.25}}
+@keyframes scanMove{0%{transform:translateY(-100%)}100%{transform:translateY(100vh)}}
+@keyframes glitch{0%,95%,100%{transform:none;opacity:1}96%{transform:translateX(-2px);opacity:0.85}98%{transform:translateX(2px);opacity:0.9}}
+@keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+@keyframes bootIn{from{opacity:0}to{opacity:1}}
+
+/* scanline effect */
+#scanline{position:fixed;inset:0;pointer-events:none;z-index:9999;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.015) 2px,rgba(0,0,0,0.015) 4px);}
+#scan-sweep{position:fixed;left:0;right:0;height:120px;pointer-events:none;z-index:9998;
+  background:linear-gradient(to bottom,transparent,rgba(30,144,255,0.018),transparent);
+  animation:scanMove 6s linear infinite;}
+
+/* grid bg */
+.grid-bg{position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    linear-gradient(rgba(30,144,255,0.028) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(30,144,255,0.028) 1px,transparent 1px);
+  background-size:44px 44px;}
+
+/* ── TOP BAR ── */
+.topbar{
+  height:46px;background:rgba(11,16,26,0.95);border-bottom:1px solid var(--border2);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 28px;flex-shrink:0;position:relative;z-index:10;
+  backdrop-filter:blur(8px);
+}
+.tb-logo{display:flex;align-items:center;gap:10px;}
+.tb-logo-name{font-family:var(--sans);font-size:15px;font-weight:700;color:var(--text);letter-spacing:5px;animation:glitch 8s ease infinite;}
+.tb-right{display:flex;align-items:center;gap:20px;font-family:var(--mono);font-size:10px;color:var(--text-dim);}
+.tb-status{display:flex;align-items:center;gap:6px;}
+.tb-dot{width:5px;height:5px;border-radius:50%;background:var(--success);animation:pulse 2.5s ease infinite;}
+.tb-version{color:var(--border2);font-size:9px;letter-spacing:1px;}
+
+/* ── MAIN LAYOUT ── */
+.main{flex:1;overflow:hidden;display:flex;position:relative;z-index:1;}
+
+/* ── LEFT: BIG LOGO AREA ── */
+.left-panel{
+  flex:1;display:flex;flex-direction:column;justify-content:center;
+  padding:0 80px 0 80px;
+  border-right:1px solid var(--border);
+}
+.corp-eyebrow{
+  font-family:var(--mono);font-size:9px;color:var(--text-dim);
+  letter-spacing:4px;text-transform:uppercase;margin-bottom:28px;
+  animation:fadeIn 0.6s ease 0.2s both;
+}
+.corp-logo{
+  display:flex;align-items:center;gap:18px;margin-bottom:20px;
+  animation:fadeIn 0.6s ease 0.35s both;
+}
+.corp-logo-name{
+  font-family:var(--sans);font-size:52px;font-weight:700;color:var(--text);
+  letter-spacing:10px;text-transform:uppercase;line-height:1;
+}
+.corp-tagline{
+  font-family:var(--sans);font-size:13px;color:var(--text-dim);
+  letter-spacing:3px;margin-bottom:44px;
+  animation:fadeIn 0.6s ease 0.5s both;
+}
+.corp-desc{
+  font-family:var(--sans);font-size:13px;color:var(--text-mid);
+  line-height:1.85;max-width:420px;margin-bottom:40px;
+  animation:fadeIn 0.6s ease 0.65s both;
+}
+.corp-stats{
+  display:flex;gap:36px;
+  animation:fadeIn 0.6s ease 0.8s both;
+}
+.stat-item{display:flex;flex-direction:column;gap:4px;}
+.stat-num{font-family:var(--mono);font-size:20px;color:var(--blue2);letter-spacing:2px;}
+.stat-label{font-family:var(--sans);font-size:9px;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;}
+
+/* ── RIGHT: MENU ── */
+.right-panel{
+  width:420px;flex-shrink:0;display:flex;flex-direction:column;
+  padding:0;background:var(--bg2);
+  border-left:1px solid var(--border);
+}
+.menu-header{
+  padding:28px 32px 20px;border-bottom:1px solid var(--border);
+  animation:fadeIn 0.5s ease 0.3s both;
+}
+.menu-header-label{font-family:var(--mono);font-size:9px;color:var(--text-dim);letter-spacing:3px;text-transform:uppercase;margin-bottom:4px;}
+.menu-header-title{font-family:var(--sans);font-size:15px;font-weight:600;color:var(--text);letter-spacing:1px;}
+
+.menu-items{flex:1;padding:20px 24px;display:flex;flex-direction:column;gap:10px;overflow-y:auto;}
+
+/* ── MENU CARDS ── */
+.menu-card{
+  background:var(--bg3);border:1px solid var(--border2);
+  padding:18px 20px;cursor:pointer;
+  transition:border-color 0.18s,background 0.18s,transform 0.12s;
+  position:relative;overflow:hidden;
+  animation:fadeIn 0.5s ease both;
+  text-decoration:none;display:block;
+}
+.menu-card:nth-child(1){animation-delay:0.4s;}
+.menu-card:nth-child(2){animation-delay:0.5s;}
+.menu-card:nth-child(3){animation-delay:0.6s;}
+.menu-card:nth-child(4){animation-delay:0.7s;}
+.menu-card:nth-child(5){animation-delay:0.8s;}
+
+.menu-card::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:2px;
+  background:transparent;transition:background 0.18s;
+}
+.menu-card:hover{border-color:var(--blue);background:var(--bg4);transform:translateX(2px);}
+.menu-card:hover::before{background:var(--blue);}
+.menu-card.locked:hover{border-color:var(--border2);background:var(--bg3);transform:none;cursor:default;}
+.menu-card.locked:hover::before{background:transparent;}
+
+.mc-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px;}
+.mc-label{font-family:var(--mono);font-size:9px;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;}
+.mc-title{font-family:var(--sans);font-size:13px;font-weight:600;color:var(--text);}
+.mc-badge{
+  font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;
+  padding:3px 7px;border:1px solid;flex-shrink:0;margin-left:10px;margin-top:2px;
+}
+.mc-badge.available{border-color:var(--blue3);color:var(--blue2);background:rgba(10,42,92,0.4);}
+.mc-badge.locked{border-color:#1a2030;color:#2a3850;background:transparent;}
+.mc-badge.new{border-color:#0a3020;color:var(--success);background:rgba(0,40,20,0.3);}
+.mc-desc{font-family:var(--sans);font-size:11px;color:var(--text-dim);line-height:1.65;margin-top:2px;}
+.mc-arrow{
+  position:absolute;right:18px;bottom:16px;
+  font-family:var(--mono);font-size:14px;color:var(--blue);
+  opacity:0;transition:opacity 0.15s,transform 0.15s;
+}
+.menu-card:not(.locked):hover .mc-arrow{opacity:1;transform:translateX(3px);}
+
+/* divider */
+.menu-divider{
+  height:1px;background:var(--border);margin:4px 0;
+  animation:fadeIn 0.5s ease 0.75s both;
+}
+
+/* ── BOTTOM BAR ── */
+.menu-footer{
+  padding:16px 32px;border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  animation:fadeIn 0.5s ease 0.9s both;
+}
+.mf-ver{font-family:var(--mono);font-size:9px;color:var(--text-dim);letter-spacing:2px;}
+.mf-tag{font-family:var(--mono);font-size:9px;color:var(--border2);letter-spacing:1px;}
+
+/* ── TERMINAL BLINK CURSOR on desc ── */
+.cursor{display:inline-block;width:7px;height:12px;background:var(--blue2);vertical-align:middle;animation:blink 1s step-end infinite;margin-left:1px;}
+
+/* ── LOCKED OVERLAY TEXT ── */
+.locked-msg{
+  position:fixed;bottom:28px;left:50%;transform:translateX(-50%);
+  font-family:var(--mono);font-size:11px;color:var(--text-dim);
+  background:var(--bg3);border:1px solid var(--border2);
+  padding:8px 18px;letter-spacing:1px;
+  opacity:0;transition:opacity 0.3s;pointer-events:none;
+  z-index:100;
+}
+.locked-msg.show{opacity:1;}
+</style>
+</head>
+<body>
+
+<div id="scanline"></div>
+<div id="scan-sweep"></div>
+<div class="grid-bg"></div>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="tb-logo">
+    <svg width="22" height="22" viewBox="0 0 32 32" fill="none">
+      <line x1="16" y1="3" x2="16" y2="29" stroke="#1e90ff" stroke-width="2.5"/>
+      <line x1="4" y1="16" x2="28" y2="16" stroke="#1e90ff" stroke-width="2.5"/>
+      <path d="M8 7 Q16 13 24 7" stroke="#1e90ff" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <path d="M8 25 Q16 19 24 25" stroke="#1e90ff" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    </svg>
+    <span class="tb-logo-name">DELPHI</span>
+  </div>
+  <div class="tb-right">
+    <div class="tb-status"><div class="tb-dot"></div>Systems Online</div>
+    <span class="tb-version">v1.0.0 — EARLY ACCESS</span>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- LEFT PANEL -->
+  <div class="left-panel">
+    <div class="corp-eyebrow">Delphi Systems Corporation — Internal Access Portal</div>
+    <div class="corp-logo">
+      <svg width="56" height="56" viewBox="0 0 100 100" fill="none">
+        <line x1="50" y1="8" x2="50" y2="92" stroke="#1e90ff" stroke-width="5" stroke-linecap="round"/>
+        <line x1="8" y1="50" x2="92" y2="50" stroke="#1e90ff" stroke-width="5" stroke-linecap="round"/>
+        <path d="M22 18 Q50 40 78 18" stroke="#1e90ff" stroke-width="5" fill="none" stroke-linecap="round"/>
+        <path d="M22 82 Q50 60 78 82" stroke="#1e90ff" stroke-width="5" fill="none" stroke-linecap="round"/>
+      </svg>
+      <div class="corp-logo-name">ORACLE</div>
+    </div>
+    <div class="corp-tagline">The World, Understood.</div>
+    <div class="corp-desc">
+      You are a Security Operations analyst at Delphi — the largest technology corporation in human history. Billions of people depend on your infrastructure every day.<br><br>
+      Navigate threats. Uncover the truth. Protect the network.<span class="cursor"></span>
+    </div>
+    <div class="corp-stats">
+      <div class="stat-item">
+        <div class="stat-num">4.2B</div>
+        <div class="stat-label">Users Protected</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">847</div>
+        <div class="stat-label">Systems Online</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">2032</div>
+        <div class="stat-label">In-World Year</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL: MENU -->
+  <div class="right-panel">
+    <div class="menu-header">
+      <div class="menu-header-label">Main Menu</div>
+      <div class="menu-header-title">Select Mode</div>
+    </div>
+
+    <div class="menu-items">
+
+      <!-- STORY MODE -->
+      <a class="menu-card" href="oracle.html" id="card-story">
+        <div class="mc-top">
+          <div>
+            <div class="mc-label">Campaign</div>
+            <div class="mc-title">The Incident — Act I</div>
+          </div>
+          <div class="mc-badge new">Chapter 1</div>
+        </div>
+        <div class="mc-desc">Begin your first day at Delphi SOC. Create your employee profile, explore the terminal, and uncover what's waiting in Chapter 1.</div>
+        <div class="mc-arrow">›</div>
+      </a>
+
+      <div class="menu-divider"></div>
+
+      <!-- PLACEHOLDER MODES -->
+      <div class="menu-card locked" onclick="showLocked()">
+        <div class="mc-top">
+          <div>
+            <div class="mc-label">Mode</div>
+            <div class="mc-title">Threat Hunt</div>
+          </div>
+          <div class="mc-badge locked">Locked</div>
+        </div>
+        <div class="mc-desc">Standalone investigation scenarios. Identify threat actors from raw logs and Oracle intelligence reports.</div>
+      </div>
+
+      <div class="menu-card locked" onclick="showLocked()">
+        <div class="mc-top">
+          <div>
+            <div class="mc-label">Mode</div>
+            <div class="mc-title">Incident Response</div>
+          </div>
+          <div class="mc-badge locked">Locked</div>
+        </div>
+        <div class="mc-desc">Race against the clock. Active breach in progress — triage, contain, and report before the damage spreads.</div>
+      </div>
+
+      <div class="menu-card locked" onclick="showLocked()">
+        <div class="mc-top">
+          <div>
+            <div class="mc-label">Mode</div>
+            <div class="mc-title">Oracle Training</div>
+          </div>
+          <div class="mc-badge locked">Locked</div>
+        </div>
+        <div class="mc-desc">Learn the Oracle analytics platform. Practice reading confidence scores, attribution models, and behavioral patterns.</div>
+      </div>
+
+      <div class="menu-card locked" onclick="showLocked()">
+        <div class="mc-top">
+          <div>
+            <div class="mc-label">Mode</div>
+            <div class="mc-title">Archive</div>
+          </div>
+          <div class="mc-badge locked">Locked</div>
+        </div>
+        <div class="mc-desc">Cold case files. Review historical incidents from Delphi's security archives and reconstruct what happened.</div>
+      </div>
+
+    </div>
+
+    <div class="menu-footer">
+      <span class="mf-ver">ORACLE v1.0.0</span>
+      <span class="mf-tag">Delphi Systems Corp. — 2032</span>
+    </div>
+  </div>
+
+</div>
+
+<div class="locked-msg" id="locked-msg">This mode is not yet available.</div>
+
+<script>
+function showLocked(){
+  const el=document.getElementById('locked-msg');
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t=setTimeout(()=>el.classList.remove('show'),1800);
+}
+</script>
+</body>
+</html>
