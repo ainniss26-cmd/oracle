@@ -34,7 +34,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:13
 #cred-screen{position:fixed;inset:0;background:var(--bg);z-index:700;flex-direction:column;align-items:center;justify-content:center;padding:40px;}
 .cred-box{width:100%;max-width:640px;display:flex;flex-direction:column;max-height:100vh;}
 #cred-out{font-family:var(--mono);font-size:13px;line-height:1.9;overflow-y:auto;flex:1;padding-bottom:6px;}
-.cl{display:block;}.cl.d{color:var(--text-dim);}.cl.b{color:var(--blue2);}.cl.c{color:var(--cyan);}
+.cl{display:block;white-space:pre;}.cl.d{color:var(--text-dim);}.cl.b{color:var(--blue2);}.cl.c{color:var(--cyan);}
 .cl.w{color:var(--text);}.cl.s{color:var(--success);}.cl.e{color:var(--error);}.cl.sep{color:#1e2a3a;}.cl.h{color:var(--blue);font-size:11px;letter-spacing:2px;}
 .cred-inp-row{display:flex;align-items:center;gap:8px;margin-top:10px;flex-shrink:0;padding-top:4px;border-top:1px solid var(--border);}
 .cred-pmt{color:var(--blue2);font-size:13px;white-space:nowrap;flex-shrink:0;}
@@ -597,7 +597,6 @@ function handleCred(val){
       inp.placeholder='Last name...';
       inp.focus();
     },200);
-    document.textContent='';
     return;
   }
   if(credStep===2){
