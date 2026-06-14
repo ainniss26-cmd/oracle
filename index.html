@@ -337,7 +337,7 @@ body.t-active #main-terminal{display:flex;}
 <div id="popup-date" class="overlay-popup hidden" style="display:none;">
   <div class="overlay-popup-inner">
     <div class="popup-greeting">Today is</div>
-    <div class="popup-date-big">October 1, 2032</div>
+    <div class="popup-date-big">October 4, 2032</div>
     <div class="popup-time-big" id="popup-time-display">08:00</div>
     <div class="popup-day">Monday &nbsp;·&nbsp; Day 1</div>
   </div>
@@ -597,7 +597,7 @@ function handleCred(val){
 
   /* ── FIRST NAME ── */
   if(credStep===1){
-    if(!val||val.length<2){credPrint('  Please enter a valid first name (2+ characters).','e');return;}
+    if(!val||val.length<2||!/^[A-Za-z'-]+$/.test(val)){credPrint('  Please enter a valid first name (2+ characters).','e');return;}
     G.firstName=val.charAt(0).toUpperCase()+val.slice(1).toLowerCase();
     credPrint('  first_name › '+G.firstName,'c');
     credStep=2;
