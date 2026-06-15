@@ -1864,8 +1864,9 @@ function renderChatMessages(email){
     const isMe=msg.from==='me';
     const d=document.createElement('div');
     d.className='chat-msg'+(isMe?' mine':'');
-    d.innerHTML=`<div class="chat-msg-from${isMe?' me':''}">\${isMe?G.firstName:msg.name}</div>
-      <div class="chat-msg-body">\${msg.text}</div>`;
+    const fromName=isMe?G.firstName:msg.name;
+    const fromCls='chat-msg-from'+(isMe?' me':'');
+    d.innerHTML='<div class="'+fromCls+'">'+fromName+'</div><div class="chat-msg-body">'+msg.text+'</div>';
     el.appendChild(d);
   });
   el.scrollTop=el.scrollHeight;
@@ -1890,7 +1891,7 @@ function renderChatReplies(email){
   }
   let html='<div class="chat-reply-label">Reply</div>';
   available.forEach(opt=>{
-    html+=`<div class="chat-reply-opt" onclick="selectChatReply('${email}','${opt.label.replace(/'/g,"\'")}')">\${opt.label}</div>`;
+        const esc=opt.label.replace(/"/g,"&quot;");html+='<div class="chat-reply-opt" onclick="selectChatReply(&quot;'+email+'&quot;,&quot;'+esc+'&quot;)">'+opt.label+'</div>';
   });
   el.innerHTML=html;
 }
