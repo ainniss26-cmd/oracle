@@ -1784,90 +1784,30 @@ function getInitialChatMessages(email){
   return msgs[email]||[];
 }
 
-/* Dialogue options per contact — each has replies and a follow-up from the contact */
+/* Dialogue options per contact */
 const CHAT_DIALOGUES={
   'd.mercer':[
-    {
-      label:'Thank you. Getting started now.',
-      me:'Thank you. Getting started now.',
-      reply:'Good. Work through those onboarding tasks and let me know once you're done with the docs.',
-    },
-    {
-      label:'Question about Oracle.',
-      me:'Quick question — how much should I rely on Oracle day to day?',
-      reply:'Think of it as a very good starting point. It flags things worth looking at. But you verify everything yourself. Oracle is a tool, not a decision-maker. Never forget that.',
-    },
-    {
-      label:'What should I focus on today?',
-      me:'What should I focus on today?',
-      reply:'Read the SOC handbook in /docs/. Then run oracle status to get familiar with the platform. After that, explore the directory and get to know the team.',
-    },
-    {
-      label:'Looking forward to working here.',
-      me:'Looking forward to working here.',
-      reply:'Good. We have a strong team. Do the work, trust your instincts, and you'll fit in fine.',
-    },
+    {label:"Thank you. Getting started now.",me:"Thank you. Getting started now.",reply:"Good. Work through those onboarding tasks and let me know once you're done with the docs."},
+    {label:"Question about Oracle.",me:"Quick question — how much should I rely on Oracle day to day?",reply:"Think of it as a very good starting point. It flags things worth looking at. But you verify everything yourself. Oracle is a tool, not a decision-maker. Never forget that."},
+    {label:"What should I focus on today?",me:"What should I focus on today?",reply:"Read the SOC handbook in /docs/. Then run oracle status to get familiar with the platform. After that, explore the directory and get to know the team."},
+    {label:"Looking forward to working here.",me:"Looking forward to working here.",reply:"Good. We have a strong team. Do the work, trust your instincts, and you'll fit in fine."},
   ],
   's.chen':[
-    {
-      label:'Thanks for the heads up.',
-      me:'Thanks for the heads up. I'll read the handbook early.',
-      reply:'Smart. Also check out /archive/thorne/ when you get a chance. Apollo Thorne's speeches are in there. Good context for understanding what Delphi is actually about.',
-    },
-    {
-      label:'Any advice for a first day?',
-      me:'Any advice for the first day?',
-      reply:'Don't try to absorb everything at once. Learn the filesystem layout, read the key docs, and get comfortable with the terminal. The rest follows naturally.',
-    },
-    {
-      label:'What is it like working here?',
-      me:'What is it like working here?',
-      reply:'Honestly? It's interesting work. The scale of what we're protecting is hard to fully appreciate at first. Give it a few weeks and it starts to feel real.',
-    },
-    {
-      label:'What should I know about Oracle?',
-      me:'Anything I should know about Oracle before I use it?',
-      reply:'Read the confidence scores carefully. Low scores are usually noise. Moderate scores are worth a look. High scores need action. But always check the underlying data — Oracle can be wrong.',
-    },
+    {label:"Thanks for the heads up.",me:"Thanks for the heads up. I'll read the handbook early.",reply:"Smart. Also check out /archive/thorne/ when you get a chance. Apollo Thorne's speeches are in there. Good context for understanding what Delphi is actually about."},
+    {label:"Any advice for a first day?",me:"Any advice for the first day?",reply:"Don't try to absorb everything at once. Learn the filesystem layout, read the key docs, and get comfortable with the terminal. The rest follows naturally."},
+    {label:"What is it like working here?",me:"What is it like working here?",reply:"Honestly? It's interesting work. The scale of what we're protecting is hard to fully appreciate at first. Give it a few weeks and it starts to feel real."},
+    {label:"What should I know about Oracle?",me:"Anything I should know about Oracle before I use it?",reply:"Read the confidence scores carefully. Low scores are usually noise. Moderate scores are worth a look. High scores need action. But always check the underlying data — Oracle can be wrong."},
   ],
   'm.torres':[
-    {
-      label:'Good to know. Any tips?',
-      me:'Good to know. Any tips for getting up to speed?',
-      reply:'Read everything in /docs/ before you do anything else. And check out the Thorne archive — /archive/thorne/. It sounds optional but it really isn't.',
-    },
-    {
-      label:'Ha. What is the learning curve like?',
-      me:'Ha. What's the learning curve actually like?',
-      reply:'Steep for about a week, then it clicks. The terminal especially. Once the commands are second nature, everything else opens up.',
-    },
-    {
-      label:'What does incident response look like?',
-      me:'What does incident response actually look like day to day?',
-      reply:'Alert comes in, you pull logs, trace the activity, classify the severity. Most of it is nothing. When it's something — that's when it gets interesting. And stressful.',
-    },
-    {
-      label:'Thanks for the welcome.',
-      me:'Thanks for the welcome.',
-      reply:'Anytime. You'll do fine. The team here is good.',
-    },
+    {label:"Good to know. Any tips?",me:"Good to know. Any tips for getting up to speed?",reply:"Read everything in /docs/ before you do anything else. And check out the Thorne archive — /archive/thorne/. It sounds optional but it really isn't."},
+    {label:"Ha. What is the learning curve like?",me:"Ha. What's the learning curve actually like?",reply:"Steep for about a week, then it clicks. The terminal especially. Once the commands are second nature, everything else opens up."},
+    {label:"What does incident response look like?",me:"What does incident response actually look like day to day?",reply:"Alert comes in, you pull logs, trace the activity, classify the severity. Most of it is nothing. When it's something — that's when it gets interesting. And stressful."},
+    {label:"Thanks for the welcome.",me:"Thanks for the welcome.",reply:"Anytime. You'll do fine. The team here is good."},
   ],
   'e.carter':[
-    {
-      label:'Thanks. What does threat intel cover?',
-      me:'Thanks. What does threat intelligence actually cover?',
-      reply:'External actors mostly. Nation-state groups, organized crime, hacktivists — anyone who might target Delphi infrastructure. I track their behavior and build profiles so the SOC knows what to expect.',
-    },
-    {
-      label:'How will I know when to loop you in?',
-      me:'How will I know when to loop you in on a case?',
-      reply:'If activity doesn't match known internal behavior, if an attack pattern looks coordinated, or if you see references to external tooling — those are the signals. When in doubt, flag it.',
-    },
-    {
-      label:'Looking forward to working together.',
-      me:'Looking forward to working together.',
-      reply:'Likewise. Don't hesitate to reach out.',
-    },
+    {label:"Thanks. What does threat intel cover?",me:"Thanks. What does threat intelligence actually cover?",reply:"External actors mostly. Nation-state groups, organized crime, hacktivists — anyone who might target Delphi infrastructure. I track their behavior and build profiles so the SOC knows what to expect."},
+    {label:"How will I know when to loop you in?",me:"How will I know when to loop you in on a case?",reply:"If activity doesn't match known internal behavior, if an attack pattern looks coordinated, or if you see references to external tooling — those are the signals. When in doubt, flag it."},
+    {label:"Looking forward to working together.",me:"Looking forward to working together.",reply:"Likewise. Don't hesitate to reach out."},
   ],
 };
 
