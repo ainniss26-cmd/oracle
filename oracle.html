@@ -1,0 +1,2375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ORACLE — Delphi Security Operations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0b0f18;--bg2:#111620;--bg3:#161d2a;--bg4:#1c2438;
+  --border:#1a2540;--border2:#243050;
+  --blue:#1e90ff;--blue2:#4dabff;--blue3:#0a3060;
+  --cyan:#00d4ff;--text:#e8edf8;--text-dim:#5a6a88;--text-mid:#9aadc8;
+  --success:#00c87a;--warn:#f5a623;--error:#ff4444;--oracle:#9b7fe8;
+  --mono:'Share Tech Mono',monospace;--sans:'Inter',sans-serif;
+}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:13px;line-height:1.5;display:flex;flex-direction:column;}
+::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border2);}
+.hidden{display:none!important;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+@keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+#scanline{position:fixed;inset:0;pointer-events:none;z-index:9999;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.012) 2px,rgba(0,0,0,0.012) 4px);}
+
+/* ── BOOT ── */
+#boot-screen{position:fixed;inset:0;background:#000;z-index:800;display:flex;flex-direction:column;justify-content:flex-end;padding:48px 60px;}
+#boot-lines{font-family:var(--mono);font-size:13px;line-height:2.1;max-width:700px;}
+.bl{display:block;}.bl.d{color:#1e2a3a;}.bl.b{color:var(--blue);}.bl.c{color:var(--cyan);}.bl.w{color:var(--text);}.bl.s{color:var(--success);}.bl.o{color:var(--warn);}
+
+/* ── CREDENTIAL SCREEN ── */
+#cred-screen{position:fixed;inset:0;background:var(--bg);z-index:700;display:none;flex-direction:column;align-items:center;justify-content:flex-start;padding:0;}
+.cred-box{width:100%;max-width:720px;height:100%;display:flex;flex-direction:column;padding:40px 40px 0;}
+#cred-out{font-family:var(--mono);font-size:13px;line-height:1.9;overflow-y:auto;flex:1;padding-bottom:12px;}
+.cl{display:block;white-space:pre;}.cl.d{color:var(--text-dim);}.cl.b{color:var(--blue2);}.cl.c{color:var(--cyan);}
+.cl.w{color:var(--text);}.cl.s{color:var(--success);}.cl.e{color:var(--error);}.cl.sep{color:#2a3a58;}.cl.h{color:var(--blue);font-size:11px;letter-spacing:2px;}
+.cl.o{color:var(--oracle);}
+.cred-inp-row{display:flex;align-items:center;gap:8px;flex-shrink:0;padding:12px 0 24px;border-top:1px solid var(--border);margin-top:4px;background:var(--bg);}
+.cred-pmt{color:var(--blue2);font-size:13px;white-space:nowrap;flex-shrink:0;}
+#cred-inp{background:transparent;border:none;outline:none;color:var(--cyan);font-family:var(--mono);font-size:13px;flex:1;min-width:0;}
+
+/* ── ACCOUNT CREATION ── */
+#acct-screen{position:fixed;inset:0;background:var(--bg);z-index:700;display:none;flex-direction:column;align-items:center;justify-content:center;padding:40px;}
+.acct-box{width:100%;max-width:620px;}
+#acct-out{font-family:var(--mono);font-size:13px;line-height:2;margin-bottom:0;}
+.acl{display:block;white-space:pre;}.acl.d{color:var(--text-dim);}.acl.b{color:var(--blue2);}.acl.c{color:var(--cyan);}.acl.s{color:var(--success);}.acl.sep{color:#2a3a58;}
+.acct-card{background:var(--bg3);border:1px solid var(--border2);padding:18px;margin-top:14px;display:none;}
+.acct-row{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;padding:5px 0;border-bottom:1px solid var(--border);color:var(--text-dim);}
+.acct-row:last-child{border-bottom:none;}
+.acct-row span{color:var(--cyan);}
+.acct-cont{display:none;width:100%;background:transparent;border:1px solid var(--blue);color:var(--blue2);font-family:var(--mono);font-size:12px;padding:11px;cursor:pointer;letter-spacing:2px;text-transform:uppercase;margin-top:16px;transition:all 0.2s;}
+.acct-cont:hover{background:var(--blue3);}
+
+/* ── CHAPTER CARD ── */
+#chapter-card{position:fixed;inset:0;background:#000;z-index:750;display:none;flex-direction:column;align-items:center;justify-content:center;}
+.cc-act{font-family:var(--mono);font-size:11px;color:#556;letter-spacing:6px;margin-bottom:14px;}
+.cc-title{font-family:var(--mono);font-size:26px;color:#dde4f8;letter-spacing:8px;text-transform:uppercase;margin-bottom:10px;}
+.cc-sub{font-family:var(--mono);font-size:12px;color:#445;letter-spacing:3px;}
+
+/* ── POPUP: DELPHI SPLASH ── */
+#popup-delphi{position:fixed;inset:0;z-index:900;display:none;flex-direction:column;align-items:center;justify-content:center;background:#000;}
+.popup-logo-wrap{display:flex;flex-direction:column;align-items:center;gap:20px;animation:fadeIn 0.6s ease;}
+.popup-logo-name{font-family:var(--sans);font-size:40px;font-weight:600;color:var(--text);letter-spacing:12px;text-transform:uppercase;}
+.popup-logo-tag{font-family:var(--sans);font-size:14px;color:var(--text-dim);letter-spacing:4px;}
+
+/* ── POPUP: WELCOME + DATE ── */
+.overlay-popup{position:fixed;inset:0;z-index:800;display:none;align-items:center;justify-content:center;background:rgba(11,15,24,0.45);backdrop-filter:blur(1px);}
+.overlay-popup-inner{width:min(680px,88vw);padding:56px 64px;background:rgba(17,22,32,0.72);border:1px solid rgba(30,48,80,0.8);text-align:center;animation:fadeIn 0.5s ease;}
+#popup-welcome .popup-greeting{font-family:var(--mono);font-size:11px;color:var(--text-dim);letter-spacing:4px;text-transform:uppercase;margin-bottom:20px;}
+#popup-welcome .popup-name{font-family:var(--sans);font-size:36px;font-weight:600;color:var(--text);letter-spacing:2px;margin-bottom:12px;}
+#popup-welcome .popup-role{font-family:var(--mono);font-size:13px;color:var(--blue2);letter-spacing:3px;margin-bottom:10px;}
+#popup-welcome .popup-id{font-family:var(--mono);font-size:11px;color:var(--text-dim);letter-spacing:1px;}
+#popup-date .popup-greeting{font-family:var(--mono);font-size:11px;color:var(--text-dim);letter-spacing:4px;text-transform:uppercase;margin-bottom:16px;}
+#popup-date .popup-date-big{font-family:var(--mono);font-size:28px;color:var(--text);letter-spacing:4px;margin-bottom:12px;}
+#popup-date .popup-time-big{font-family:var(--mono);font-size:52px;color:var(--blue2);letter-spacing:8px;margin-bottom:14px;}
+#popup-date .popup-day{font-family:var(--mono);font-size:12px;color:var(--text-dim);letter-spacing:3px;}
+
+/* ── MAIN TERMINAL ── */
+#main-terminal{display:none;flex-direction:column;height:100%;}
+body.t-active #main-terminal{display:flex;}
+
+/* TOP BAR */
+.topbar{height:44px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 16px;flex-shrink:0;}
+.tb-l{display:flex;align-items:center;gap:12px;}
+.tb-logo{display:flex;align-items:center;gap:8px;}
+.tb-logo-name{font-family:var(--sans);font-size:13px;font-weight:600;color:var(--text);letter-spacing:3px;}
+.tb-div{width:1px;height:16px;background:var(--border2);}
+.tb-mod{font-family:var(--sans);font-size:11px;color:var(--text-dim);letter-spacing:1px;}
+.tb-r{display:flex;align-items:center;gap:18px;font-family:var(--mono);font-size:11px;color:var(--text-dim);}
+.tb-dot{width:6px;height:6px;border-radius:50%;background:var(--success);display:inline-block;margin-right:5px;animation:pulse 2.5s ease infinite;}
+.tb-tag{border:1px solid var(--border2);padding:2px 8px;font-size:10px;letter-spacing:1px;}
+#tb-clock{color:var(--blue2);font-family:var(--mono);font-size:12px;letter-spacing:2px;}
+
+/* NAV TABS */
+.navtabs{height:32px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:flex-end;padding:0 14px;gap:2px;flex-shrink:0;}
+.ntab{font-family:var(--sans);font-size:11px;font-weight:500;padding:5px 13px;color:var(--text-dim);cursor:pointer;border-bottom:2px solid transparent;letter-spacing:0.5px;text-transform:uppercase;transition:all 0.15s;}
+.ntab:hover{color:var(--text-mid);}
+.ntab.active{color:var(--blue2);border-bottom-color:var(--blue);}
+.ntab-badge{display:inline-block;background:var(--blue3);color:var(--blue2);font-size:9px;padding:1px 5px;border-radius:8px;margin-left:4px;font-family:var(--mono);}
+
+/* BODY */
+.t-body{display:flex;flex:1;overflow:hidden;}
+
+/* SIDEBAR */
+.sidebar{width:220px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;}
+.sb-top{padding:12px;border-bottom:1px solid var(--border);}
+.sb-card{background:var(--bg3);border:1px solid var(--border2);padding:10px 12px;}
+.sb-name{font-family:var(--sans);font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px;}
+.sb-id{font-family:var(--mono);font-size:9px;color:var(--text-dim);margin-bottom:8px;}
+.sb-tags{display:flex;gap:4px;flex-wrap:wrap;}
+.sb-tag{font-family:var(--mono);font-size:9px;padding:2px 6px;border:1px solid;letter-spacing:1px;}
+.sb-tag.b{border-color:var(--blue3);color:var(--blue2);}
+.sb-tag.g{border-color:#0a3020;color:var(--success);}
+.sb-tag.o{border-color:#2a1e50;color:var(--oracle);}
+.sb-sec{padding:10px 12px;border-bottom:1px solid var(--border);}
+.sb-sec-label{font-family:var(--sans);font-size:9px;font-weight:600;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;}
+.sb-stat{display:flex;justify-content:space-between;font-family:var(--sans);font-size:11px;color:var(--text-dim);margin-bottom:5px;}
+.sb-stat span{color:var(--text-mid);font-family:var(--mono);}
+/* CHECKLIST */
+.checklist{padding:10px 12px;border-bottom:1px solid var(--border);}
+.cl-label{font-family:var(--sans);font-size:9px;font-weight:600;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;}
+.cl-item{display:flex;align-items:flex-start;gap:7px;margin-bottom:5px;font-family:var(--mono);font-size:10px;color:var(--text-dim);line-height:1.4;}
+.cl-check{width:12px;height:12px;border:1px solid var(--border2);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:9px;transition:all 0.3s;}
+.cl-check.done{border-color:var(--success);color:var(--success);}
+.cl-item.done-item{color:var(--text-mid);}
+.cl-progress{font-family:var(--mono);font-size:9px;color:var(--text-dim);margin-top:6px;}
+/* ORACLE widget */
+.oracle-widget{background:var(--bg3);border:1px solid #2a1e50;padding:9px;}
+.ow-title{font-family:var(--sans);font-size:9px;font-weight:600;color:var(--oracle);letter-spacing:2px;text-transform:uppercase;margin-bottom:5px;display:flex;align-items:center;gap:5px;}
+.ow-dot{width:5px;height:5px;border-radius:50%;background:var(--oracle);animation:pulse 2s ease infinite;flex-shrink:0;}
+.ow-text{font-family:var(--mono);font-size:10px;color:var(--text-dim);line-height:1.7;margin-bottom:5px;}
+.ow-bar{height:2px;background:#1e1040;border-radius:1px;}
+.ow-fill{height:100%;background:var(--oracle);border-radius:1px;transition:width 1.5s;}
+.sb-scroll{flex:1;overflow-y:auto;padding:10px 12px;}
+.cw-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);}
+.cw-name{font-family:var(--sans);font-size:11px;color:var(--text-mid);}
+.cw-status{font-size:9px;color:var(--success);display:flex;align-items:center;gap:3px;font-family:var(--mono);}
+.cw-dot{width:4px;height:4px;border-radius:50%;background:currentColor;}
+
+/* TERMINAL PANE */
+.term-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.term-hdr{padding:7px 16px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;flex-shrink:0;}
+.term-hdr-l{font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:1px;}
+.term-hdr-r{font-family:var(--mono);font-size:10px;color:var(--blue2);}
+.t-out{flex:1;overflow-y:auto;padding:13px 16px;}
+.dl{margin-bottom:3px;white-space:pre-wrap;word-break:break-all;font-family:var(--mono);font-size:13px;line-height:1.6;}
+.dl.cmd{color:var(--text);}.dl.info{color:var(--text-mid);}.dl.success{color:var(--success);}
+.dl.error{color:var(--error);}.dl.warn{color:var(--warn);}.dl.system{color:var(--blue2);}
+.dl.cyan{color:var(--cyan);}.dl.oracle{color:var(--oracle);}.dl.dim{color:#1e2a3a;}
+.dl.blank{margin-bottom:10px;}
+.dl.h{font-family:var(--sans);font-size:13px;font-weight:600;color:var(--text);margin:10px 0 4px;letter-spacing:0.5px;}
+.dl.sh{font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:5px;}
+.t-inp-row{border-top:1px solid var(--border);padding:9px 16px;display:flex;align-items:center;gap:10px;background:var(--bg2);flex-shrink:0;}
+.t-pmt{font-family:var(--mono);font-size:13px;color:var(--blue);white-space:nowrap;flex-shrink:0;}
+.t-inp{flex:1;background:transparent;border:none;outline:none;font-family:var(--mono);font-size:13px;color:var(--cyan);caret-color:var(--blue);}
+
+/* INBOX */
+#inbox-pane{display:none;flex:1;overflow:hidden;}
+.inbox-wrap{display:flex;height:100%;}
+.inbox-list{width:260px;border-right:1px solid var(--border);overflow-y:auto;flex-shrink:0;}
+.imail{padding:11px 13px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.12s;}
+.imail:hover{background:var(--bg3);}
+.imail.sel{background:var(--bg3);border-left:2px solid var(--blue);}
+.imail.unread .im-from{color:var(--text);}
+.im-from{font-family:var(--sans);font-size:12px;font-weight:500;color:var(--text-mid);margin-bottom:2px;}
+.im-subj{font-family:var(--sans);font-size:11px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px;}
+.im-meta{display:flex;justify-content:space-between;align-items:center;}
+.im-time{font-family:var(--mono);font-size:10px;color:var(--text-dim);}
+.im-udot{width:6px;height:6px;border-radius:50%;background:var(--blue);}
+.inbox-view{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.iv-hdr{padding:14px 18px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.iv-from{font-family:var(--sans);font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;}
+.iv-meta{font-family:var(--mono);font-size:10px;color:var(--text-dim);margin-bottom:3px;}
+.iv-subj{font-family:var(--sans);font-size:11px;color:var(--text-mid);}
+.iv-body{flex:1;overflow-y:auto;padding:18px;font-family:var(--sans);font-size:12px;color:var(--text-mid);line-height:1.85;white-space:pre-wrap;}
+.inbox-empty{flex:1;display:flex;align-items:center;justify-content:center;color:var(--text-dim);font-family:var(--sans);font-size:12px;}
+
+/* CHAT PANE */
+#chat-pane{display:none;flex:1;overflow:hidden;}
+.chat-wrap{display:flex;height:100%;}
+.chat-list{width:200px;border-right:1px solid var(--border);overflow-y:auto;flex-shrink:0;}
+.chat-person{padding:10px 13px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.12s;}
+.chat-person:hover{background:var(--bg3);}
+.chat-person.sel{background:var(--bg3);border-left:2px solid var(--blue);}
+.cp-name{font-family:var(--sans);font-size:12px;font-weight:500;color:var(--text-mid);margin-bottom:2px;}
+.cp-role{font-family:var(--mono);font-size:9px;color:var(--text-dim);}
+.cp-unread{width:6px;height:6px;border-radius:50%;background:var(--blue);float:right;margin-top:3px;}
+.chat-view{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.chat-hdr{padding:10px 16px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.chat-hdr-name{font-family:var(--sans);font-size:13px;font-weight:600;color:var(--text);}
+.chat-hdr-role{font-family:var(--mono);font-size:9px;color:var(--text-dim);}
+.chat-msgs{flex:1;overflow-y:auto;padding:16px;}
+.chat-msg{margin-bottom:14px;}
+.chat-msg-from{font-family:var(--sans);font-size:10px;font-weight:600;color:var(--blue2);margin-bottom:3px;}
+.chat-msg-from.me{color:var(--oracle);}
+.chat-msg-body{font-family:var(--sans);font-size:12px;color:var(--text-mid);line-height:1.7;background:var(--bg3);border:1px solid var(--border);padding:8px 12px;display:inline-block;max-width:85%;}
+.chat-msg.mine{text-align:right;}
+.chat-msg.mine .chat-msg-body{background:var(--blue3);border-color:var(--blue);color:var(--text);}
+.chat-empty{flex:1;display:flex;align-items:center;justify-content:center;color:var(--text-dim);font-family:var(--sans);font-size:12px;}
+.chat-replies{border-top:1px solid var(--border);padding:12px 14px;background:var(--bg2);flex-shrink:0;}
+.chat-reply-label{font-family:var(--sans);font-size:9px;font-weight:600;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;}
+.chat-reply-opt{background:var(--bg3);border:1px solid var(--border2);padding:8px 12px;margin-bottom:6px;cursor:pointer;font-family:var(--sans);font-size:11px;color:var(--text-mid);transition:all 0.15s;display:flex;align-items:center;gap:8px;}
+.chat-reply-opt:hover{border-color:var(--blue);color:var(--text);}
+.chat-reply-opt::before{content:'›';color:var(--blue);font-size:14px;flex-shrink:0;}
+.chat-reply-opt:last-child{margin-bottom:0;}
+.chat-replied{font-family:var(--mono);font-size:11px;color:var(--text-dim);padding:6px 0;font-style:italic;}
+
+/* ORACLE TAB */
+#oracle-pane{display:none;flex:1;overflow-y:auto;background:var(--bg);flex-direction:column;}
+.oracle-topbar{background:var(--bg2);border-bottom:1px solid var(--border2);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.oracle-topbar-l{display:flex;align-items:center;gap:14px;}
+.oracle-version{font-family:var(--mono);font-size:11px;color:var(--oracle);letter-spacing:3px;}
+.oracle-status-pill{display:flex;align-items:center;gap:6px;background:rgba(0,200,122,0.08);border:1px solid rgba(0,200,122,0.2);padding:4px 10px;}
+.oracle-status-dot{width:6px;height:6px;border-radius:50%;background:var(--success);animation:pulse 2.5s ease infinite;}
+.oracle-status-text{font-family:var(--mono);font-size:10px;color:var(--success);letter-spacing:1px;}
+.oracle-topbar-r{font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:1px;}
+.oracle-body{padding:24px;display:flex;flex-direction:column;gap:20px;}
+.oracle-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.o-metric{background:var(--bg2);border:1px solid var(--border2);padding:16px 18px;}
+.o-metric-val{font-family:var(--mono);font-size:22px;color:var(--blue2);letter-spacing:2px;margin-bottom:4px;}
+.o-metric-val.good{color:var(--success);}
+.o-metric-label{font-family:var(--sans);font-size:9px;font-weight:600;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;}
+.oracle-section-label{font-family:var(--mono);font-size:9px;color:var(--text-dim);letter-spacing:3px;text-transform:uppercase;padding-bottom:10px;border-bottom:1px solid var(--border);}
+.oracle-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.o-card{background:var(--bg2);border:1px solid var(--border2);padding:20px 22px;}
+.o-card.full{grid-column:1/-1;}
+.o-card.oracle-highlight{border-color:#2a1e50;background:rgba(26,18,50,0.3);}
+.o-card-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;}
+.o-card-t{font-family:var(--sans);font-size:13px;font-weight:600;color:var(--text);}
+.o-card-t.oracle-col{color:var(--oracle);}
+.o-card-badge{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border:1px solid;flex-shrink:0;margin-left:10px;}
+.o-card-badge.nominal{border-color:rgba(0,200,122,0.3);color:var(--success);}
+.o-card-badge.low{border-color:rgba(30,144,255,0.3);color:var(--blue2);}
+.o-card-badge.oracle{border-color:#2a1e50;color:var(--oracle);}
+.o-card-s{font-family:var(--mono);font-size:9px;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;}
+.o-card-b{font-family:var(--sans);font-size:12px;color:var(--text-mid);line-height:1.8;}
+.o-bar-row{display:flex;align-items:center;gap:10px;margin-top:10px;}
+.o-bar-label{font-family:var(--mono);font-size:10px;color:var(--text-dim);width:100px;flex-shrink:0;}
+.o-bar-track{flex:1;height:3px;background:var(--bg3);border-radius:2px;}
+.o-bar-fill{height:100%;border-radius:2px;}
+.o-bar-fill.blue{background:var(--blue);}
+.o-bar-fill.green{background:var(--success);}
+.o-bar-fill.oracle-col{background:var(--oracle);}
+.o-bar-val{font-family:var(--mono);font-size:10px;color:var(--text-mid);width:36px;text-align:right;flex-shrink:0;}
+
+/* RIGHT PANEL */
+.r-panel{width:280px;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;}
+.rp-hdr{padding:9px 13px;border-bottom:1px solid var(--border);}
+.rp-title{font-family:var(--sans);font-size:9px;font-weight:600;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;}
+.rp-body{flex:1;overflow-y:auto;padding:13px;}
+.rp-task{background:var(--bg3);border:1px solid var(--border2);padding:12px;margin-bottom:10px;}
+.rp-task-label{font-family:var(--mono);font-size:9px;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:5px;}
+.rp-task-title{font-family:var(--sans);font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px;}
+.rp-task-body{font-family:var(--sans);font-size:11px;color:var(--text-mid);line-height:1.7;}
+.rp-hint{font-family:var(--mono);font-size:10px;color:var(--blue2);border:1px solid var(--blue3);padding:7px 9px;margin-top:9px;line-height:1.8;background:var(--bg4);}
+.rp-hint span{color:var(--cyan);}
+</style>
+</head>
+<body>
+<div id="scanline"></div>
+
+<!-- BOOT -->
+<div id="boot-screen"><div id="boot-lines"></div></div>
+
+<!-- CREDENTIAL ENTRY -->
+<div id="cred-screen">
+  <div class="cred-box">
+    <div id="cred-out"></div>
+    <div class="cred-inp-row" id="cred-row">
+      <span class="cred-pmt" id="cred-pmt">›</span>
+      <input id="cred-inp" type="text" autocomplete="off" spellcheck="false" />
+    </div>
+  </div>
+</div>
+
+<!-- ACCOUNT CREATION PROCESSING -->
+<div id="acct-screen">
+  <div class="acct-box">
+    <div id="acct-out"></div>
+    <div class="acct-card" id="acct-card">
+      <div class="acct-row">Full Name <span id="ac-name"></span></div>
+      <div class="acct-row">Username <span id="ac-user"></span></div>
+      <div class="acct-row">Employee ID <span id="ac-id"></span></div>
+      <div class="acct-row">Email <span id="ac-email"></span></div>
+      <div class="acct-row">Department <span>Security Operations Center</span></div>
+      <div class="acct-row">Role <span>Security Analyst I</span></div>
+      <div class="acct-row">Clearance <span>Level 1</span></div>
+      <div class="acct-row">Temp Access Token <span id="ac-token"></span></div>
+    </div>
+    <button class="acct-cont" id="acct-cont" onclick="goToChapterCard()">Continue to Workstation ›</button>
+  </div>
+</div>
+
+<!-- CHAPTER CARD -->
+<div id="chapter-card">
+  <div style="text-align:center;">
+    <div class="cc-act" id="cc-act"></div>
+    <div class="cc-title" id="cc-title"></div>
+    <div class="cc-sub" id="cc-sub"></div>
+  </div>
+</div>
+
+<!-- POPUP: DELPHI SPLASH -->
+<div id="popup-delphi">
+  <div class="popup-logo-wrap">
+    <svg width="100" height="100" viewBox="0 0 100 100" fill="none">
+      <line x1="50" y1="8" x2="50" y2="92" stroke="#1e90ff" stroke-width="4" stroke-linecap="round"/>
+      <line x1="8" y1="50" x2="92" y2="50" stroke="#1e90ff" stroke-width="4" stroke-linecap="round"/>
+      <path d="M20 16 Q50 38 80 16" stroke="#1e90ff" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <path d="M20 84 Q50 62 80 84" stroke="#1e90ff" stroke-width="4" fill="none" stroke-linecap="round"/>
+    </svg>
+    <div class="popup-logo-name">DELPHI</div>
+    <div class="popup-logo-tag">The World, Understood.</div>
+  </div>
+</div>
+
+<!-- POPUP: WELCOME -->
+<div id="popup-welcome" class="overlay-popup">
+  <div class="overlay-popup-inner">
+    <div class="popup-greeting">Security Operations Center</div>
+    <div class="popup-name" id="pw-name">—</div>
+    <div class="popup-role" id="pw-role">Security Analyst I · SOC</div>
+    <div class="popup-id" id="pw-id">—</div>
+  </div>
+</div>
+
+<!-- POPUP: DATE/TIME -->
+<div id="popup-date" class="overlay-popup">
+  <div class="overlay-popup-inner">
+    <div class="popup-greeting">Today is</div>
+    <div class="popup-date-big">March 14, 2032</div>
+    <div class="popup-time-big" id="popup-time-display">08:00</div>
+    <div class="popup-day">Saturday · Day 1</div>
+  </div>
+</div>
+
+<!-- MAIN TERMINAL -->
+<div id="main-terminal">
+  <div class="topbar">
+    <div class="tb-l">
+      <div class="tb-logo">
+        <svg width="20" height="20" viewBox="0 0 32 32" fill="none">
+          <line x1="16" y1="3" x2="16" y2="29" stroke="#1e90ff" stroke-width="2.5"/>
+          <line x1="4" y1="16" x2="28" y2="16" stroke="#1e90ff" stroke-width="2.5"/>
+          <path d="M8 7 Q16 13 24 7" stroke="#1e90ff" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path d="M8 25 Q16 19 24 25" stroke="#1e90ff" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        </svg>
+        <span class="tb-logo-name">DELPHI</span>
+      </div>
+      <div class="tb-div"></div>
+      <span class="tb-mod">Security Operations Center</span>
+    </div>
+    <div class="tb-r">
+      <span><span class="tb-dot"></span>Systems Online</span>
+      <span class="tb-tag" id="tb-clearance">L1 — ANALYST</span>
+      <span id="tb-clock">08:00:00</span>
+    </div>
+  </div>
+  <div class="navtabs">
+    <div class="ntab active" id="tab-terminal" onclick="switchTab('terminal')">Terminal</div>
+    <div class="ntab" id="tab-inbox" onclick="switchTab('inbox')">Mail <span class="ntab-badge" id="inbox-badge" style="display:none">0</span></div>
+    <div class="ntab" id="tab-chat" onclick="switchTab('chat')">Chat <span class="ntab-badge" id="chat-badge" style="display:none">0</span></div>
+    <div class="ntab" id="tab-oracle" onclick="switchTab('oracle')">Oracle</div>
+  </div>
+  <div class="t-body">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sb-top">
+        <div class="sb-card">
+          <div class="sb-name" id="sb-name">—</div>
+          <div class="sb-id" id="sb-id">ID: —</div>
+          <div class="sb-tags">
+            <div class="sb-tag b">SOC</div>
+            <div class="sb-tag g">ACTIVE</div>
+          </div>
+        </div>
+      </div>
+      <div class="sb-sec">
+        <div class="sb-sec-label">Session</div>
+        <div class="sb-stat">Date: <span id="sb-date">—</span></div>
+        <div class="sb-stat">Clearance: <span>L1</span></div>
+        <div class="sb-stat">Location: <span>HQ · SOC Floor 3</span></div>
+      </div>
+      <!-- ONBOARDING CHECKLIST -->
+      <div class="checklist" id="checklist-widget">
+        <div class="cl-label">Onboarding Tasks</div>
+        <div class="cl-item" id="ck-credentials">
+          <div class="cl-check done" id="ck-credentials-box">✓</div>
+          <span>Create credentials</span>
+        </div>
+        <div class="cl-item" id="ck-welcome">
+          <div class="cl-check" id="ck-welcome-box"></div>
+          <span>Read welcome email</span>
+        </div>
+        <div class="cl-item" id="ck-docs">
+          <div class="cl-check" id="ck-docs-box"></div>
+          <span>Review company documents</span>
+        </div>
+        <div class="cl-item" id="ck-directory">
+          <div class="cl-check" id="ck-directory-box"></div>
+          <span>Explore directory</span>
+        </div>
+        <div class="cl-item" id="ck-chat">
+          <div class="cl-check" id="ck-chat-box"></div>
+          <span>Message a coworker</span>
+        </div>
+        <div class="cl-item" id="ck-oracle">
+          <div class="cl-check" id="ck-oracle-box"></div>
+          <span>Access Oracle</span>
+        </div>
+        <div class="cl-item" id="ck-setup">
+          <div class="cl-check" id="ck-setup-box"></div>
+          <span>Complete workstation setup</span>
+        </div>
+        <div class="cl-progress" id="cl-progress">1 / 7 complete</div>
+      </div>
+      <div class="sb-sec" id="oracle-widget-sec" style="display:none;">
+        <div class="sb-sec-label">Oracle</div>
+        <div class="oracle-widget">
+          <div class="ow-title"><div class="ow-dot"></div>Oracle v8.4</div>
+          <div class="ow-text">Status: Operational</div>
+          <div class="ow-bar"><div class="ow-fill" style="width:100%"></div></div>
+        </div>
+      </div>
+      <div class="sb-scroll">
+        <div class="sb-sec-label" style="margin-bottom:8px;">Team</div>
+        <div id="cw-list"></div>
+      </div>
+    </div>
+
+    <!-- TERMINAL PANE -->
+    <div id="terminal-pane" class="term-wrap">
+      <div class="term-hdr">
+        <span class="term-hdr-l">SOC TERMINAL — SECURE SESSION</span>
+        <span class="term-hdr-r" id="t-path">~</span>
+      </div>
+      <div class="t-out" id="t-out"></div>
+      <div class="t-inp-row">
+        <span class="t-pmt" id="t-pmt">analyst@delphi-soc:~$</span>
+        <input class="t-inp" id="t-inp" type="text" autocomplete="off" spellcheck="false" placeholder="type a command..." />
+      </div>
+    </div>
+
+    <!-- INBOX PANE -->
+    <div id="inbox-pane">
+      <div class="inbox-wrap">
+        <div class="inbox-list" id="inbox-list"></div>
+        <div class="inbox-view" id="inbox-view"><div class="inbox-empty">Select a message</div></div>
+      </div>
+    </div>
+
+    <!-- CHAT PANE -->
+    <div id="chat-pane">
+      <div class="chat-wrap">
+        <div class="chat-list" id="chat-list"></div>
+        <div class="chat-view" id="chat-view"><div class="chat-empty">Select a conversation</div></div>
+      </div>
+    </div>
+
+    <!-- ORACLE PANE -->
+    <div id="oracle-pane">
+      <!-- Top status bar -->
+      <div class="oracle-topbar">
+        <div class="oracle-topbar-l">
+          <span class="oracle-version">ORACLE v8.4</span>
+          <div class="oracle-status-pill">
+            <div class="oracle-status-dot"></div>
+            <span class="oracle-status-text">OPERATIONAL</span>
+          </div>
+        </div>
+        <span class="oracle-topbar-r">March 14, 2032 &nbsp;·&nbsp; Delphi Security Operations</span>
+      </div>
+
+      <div class="oracle-body">
+
+        <!-- Metric tiles -->
+        <div class="oracle-metrics">
+          <div class="o-metric">
+            <div class="o-metric-val good">100%</div>
+            <div class="o-metric-label">System Health</div>
+          </div>
+          <div class="o-metric">
+            <div class="o-metric-val good">0</div>
+            <div class="o-metric-label">Active Anomalies</div>
+          </div>
+          <div class="o-metric">
+            <div class="o-metric-val">1,204</div>
+            <div class="o-metric-label">Systems Monitored</div>
+          </div>
+          <div class="o-metric">
+            <div class="o-metric-val">3</div>
+            <div class="o-metric-label">Low-Priority Alerts</div>
+          </div>
+        </div>
+
+        <!-- Section: Live Status -->
+        <div class="oracle-section-label">Live Status</div>
+        <div class="oracle-grid">
+          <div class="o-card">
+            <div class="o-card-head">
+              <div class="o-card-t">Infrastructure</div>
+              <span class="o-card-badge nominal">Nominal</span>
+            </div>
+            <div class="o-card-s">ALL SYSTEMS</div>
+            <div class="o-card-b">All 1,204 monitored systems reporting within normal parameters. No outages or degraded services detected in the past 72 hours.</div>
+            <div class="o-bar-row">
+              <span class="o-bar-label">Uptime</span>
+              <div class="o-bar-track"><div class="o-bar-fill green" style="width:99%"></div></div>
+              <span class="o-bar-val">99.9%</span>
+            </div>
+            <div class="o-bar-row">
+              <span class="o-bar-label">Capacity</span>
+              <div class="o-bar-track"><div class="o-bar-fill blue" style="width:62%"></div></div>
+              <span class="o-bar-val">62%</span>
+            </div>
+          </div>
+          <div class="o-card">
+            <div class="o-card-head">
+              <div class="o-card-t">Threat Prioritization</div>
+              <span class="o-card-badge low">Low</span>
+            </div>
+            <div class="o-card-s">ACTIVE ALERTS</div>
+            <div class="o-card-b">No high-priority alerts. 3 low-priority items in queue — all within normal thresholds. No analyst action required at this time.</div>
+            <div class="o-bar-row">
+              <span class="o-bar-label">High Priority</span>
+              <div class="o-bar-track"><div class="o-bar-fill green" style="width:0%"></div></div>
+              <span class="o-bar-val">0</span>
+            </div>
+            <div class="o-bar-row">
+              <span class="o-bar-label">Low Priority</span>
+              <div class="o-bar-track"><div class="o-bar-fill blue" style="width:15%"></div></div>
+              <span class="o-bar-val">3</span>
+            </div>
+          </div>
+          <div class="o-card">
+            <div class="o-card-head">
+              <div class="o-card-t">Risk Assessment</div>
+              <span class="o-card-badge nominal">Low</span>
+            </div>
+            <div class="o-card-s">CURRENT POSTURE</div>
+            <div class="o-card-b">Overall risk posture is LOW. No significant anomalies in the past 72 hours. Authentication services, network telemetry, and access logs all reporting nominal.</div>
+          </div>
+          <div class="o-card">
+            <div class="o-card-head">
+              <div class="o-card-t">Prediction Confidence</div>
+              <span class="o-card-badge nominal">Nominal</span>
+            </div>
+            <div class="o-card-s">MODEL ACCURACY</div>
+            <div class="o-card-b">Forecasting models operating within expected accuracy bounds. Run <code>oracle status</code> in the terminal for a full diagnostic report.</div>
+            <div class="o-bar-row">
+              <span class="o-bar-label">Confidence</span>
+              <div class="o-bar-track"><div class="o-bar-fill green" style="width:94%"></div></div>
+              <span class="o-bar-val">94%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: About -->
+        <div class="oracle-section-label">About Oracle</div>
+        <div class="oracle-grid">
+          <div class="o-card oracle-highlight full">
+            <div class="o-card-head">
+              <div class="o-card-t oracle-col">Oracle v8.4 — Predictive Analytics &amp; Investigation Platform</div>
+              <span class="o-card-badge oracle">Internal</span>
+            </div>
+            <div class="o-card-b">Oracle is Delphi's centralized analytics and security platform. It monitors authentication records, network telemetry, access logs, and behavioral patterns across all Delphi infrastructure in real time. Oracle surfaces signals and prioritizes threats — all outputs require analyst review before any action is taken.<br><br>Confidence scores range from 0–100%. Scores below 20% are low-priority. Scores above 70% warrant prompt investigation. Scores above 90% require immediate analyst response. Oracle is a tool. You draw the conclusions.</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="r-panel">
+      <div class="rp-hdr"><span class="rp-title">Current Task</span></div>
+      <div class="rp-body" id="rp-body">
+        <div style="color:var(--text-dim);font-family:var(--sans);font-size:12px;line-height:1.8;margin-top:6px;">
+          Loading task assignment...
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+/* ════════════════════════════════════════
+   STATE
+════════════════════════════════════════ */
+const G = {
+  firstName:'', lastName:'', displayName:'', username:'', pw:'',
+  recoveryQ:'', recoveryA:'', pin:'',
+  fullName:'', employeeId:'', email:'', token:'',
+  cwd:'/', fs:{}, history:[], histIdx:-1,
+  inbox:[], selEmail:null,
+  chatContacts:[], selChat:null, chatLogs:{},
+  clockH:8, clockM:0, clockS:0, clockInterval:null,
+  checks:{ credentials:true, welcome:false, docs:false, directory:false, chat:false, oracle:false, setup:false },
+  docsRead: new Set(),
+  oracleAccessed: false,
+  directoryUsed: false,
+  onboardingComplete: false,
+  taskPhase: 0, // 0=read mail, 1=read docs, 2=explore dir, 3=chat, 4=oracle, 5=setup, 6=done
+};
+
+const COWORKERS = [
+  {name:'Daniel Mercer', role:'SOC Manager',       email:'d.mercer',  chat:true},
+  {name:'Sarah Chen',    role:'Sr. Security Analyst',email:'s.chen',   chat:true},
+  {name:'Michael Torres',role:'IR Analyst',         email:'m.torres',  chat:true},
+  {name:'Emily Carter',  role:'Threat Intel Analyst',email:'e.carter', chat:true},
+];
+
+/* ════════════════════════════════════════
+   SHOW / HIDE
+════════════════════════════════════════ */
+function show(id){
+  const e=document.getElementById(id);
+  e.style.display='flex';
+}
+function hide(id){
+  const e=document.getElementById(id);
+  e.style.display='none';
+}
+function hideAll(){
+  ['boot-screen','cred-screen','acct-screen','chapter-card',
+   'popup-delphi','popup-welcome','popup-date'].forEach(hide);
+}
+
+/* ════════════════════════════════════════
+   CLOCK
+════════════════════════════════════════ */
+function clockTick(){
+  G.clockS++;
+  if(G.clockS>=60){G.clockS=0;G.clockM++;}
+  if(G.clockM>=60){G.clockM=0;G.clockH++;}
+  const pad=n=>String(n).padStart(2,'0');
+  const el=document.getElementById('tb-clock');
+  if(el) el.textContent=pad(G.clockH)+':'+pad(G.clockM)+':'+pad(G.clockS);
+  const pd=document.getElementById('popup-time-display');
+  if(pd) pd.textContent=pad(G.clockH)+':'+pad(G.clockM);
+}
+function startClock(){
+  if(G.clockInterval) clearInterval(G.clockInterval);
+  G.clockInterval=setInterval(clockTick,1000);
+}
+
+/* ════════════════════════════════════════
+   BOOT SEQUENCE
+════════════════════════════════════════ */
+function runBoot(){
+  show('boot-screen');
+  const lines=[
+    {t:'',c:''},
+    {t:'DELPHI SECURITY OPERATIONS',c:'b'},
+    {t:'Employee Workstation Initialization',c:'d'},
+    {t:'March 2032',c:'d'},
+    {t:'',c:''},
+    {t:'[  OK  ]  Hardware security module initialized',c:'d'},
+    {t:'[  OK  ]  Encrypted storage mounted',c:'d'},
+    {t:'[  OK  ]  Network tunnel established',c:'d'},
+    {t:'[  OK  ]  Delphi Infrastructure Layer connected',c:'w'},
+    {t:'[  OK  ]  Oracle v8.4 online',c:'c'},
+    {t:'[  OK  ]  Security Operations Center active',c:'w'},
+    {t:'',c:''},
+    {t:'  WARNING: All activity is monitored and logged.',c:'o'},
+    {t:'',c:''},
+    {t:'  > New employee workstation detected.',c:'b'},
+    {t:'  > Account creation required before access.',c:'b'},
+    {t:'',c:''},
+    {t:'  Press ENTER to begin.',c:'w'},
+    {t:'',c:''},
+  ];
+  const el=document.getElementById('boot-lines');
+  let i=0;
+  function next(){
+    if(i>=lines.length){
+      // Wait for enter key
+      document.addEventListener('keydown', function onEnter(e){
+        if(e.key==='Enter'){
+          document.removeEventListener('keydown',onEnter);
+          hide('boot-screen');
+          runCredSetup();
+        }
+      });
+      return;
+    }
+    const d=document.createElement('span');
+    d.className='bl '+lines[i].c;
+    d.textContent=lines[i].t;
+    el.appendChild(d);
+    i++;
+    setTimeout(next, lines[i-1].t ? 65 : 25);
+  }
+  next();
+}
+
+/* ════════════════════════════════════════
+   CREDENTIAL SETUP
+   Steps: 1=firstName, 2=lastName,
+          3=chooseUsername, 4=password,
+          5=confirmPw, 6=recoveryQ,
+          7=recoveryA, 8=pin, 9=confirmPin
+════════════════════════════════════════ */
+let credStep=0;
+let generatedUsernames=[];
+let pinFirst='';
+
+function credPrint(text, cls='d'){
+  const el=document.getElementById('cred-out');
+  const d=document.createElement('span');
+  d.className='cl '+cls;
+  d.textContent=text;
+  el.appendChild(d);
+  el.scrollTop=el.scrollHeight;
+  d.scrollIntoView({block:'nearest'});
+}
+
+function runCredSetup(){
+  show('cred-screen');
+  const inp=document.getElementById('cred-inp');
+  const intro=[
+    ['',''],
+    ['  ╔════════════════════════════════════════════════╗','sep'],
+    ['  ║          DELPHI PEOPLE OPERATIONS              ║','sep'],
+    ['  ║       NEW EMPLOYEE ONBOARDING TERMINAL         ║','sep'],
+    ['  ╚════════════════════════════════════════════════╝','sep'],
+    ['',''],
+    ['  Welcome to Delphi.','w'],
+    ['',''],
+    ['  You are joining one of the most important','d'],
+    ['  technology companies in the world.','d'],
+    ['',''],
+    ['  Before accessing your workstation,','d'],
+    ['  we need to create your employee account.','d'],
+    ['',''],
+    ['  ─────────────────────────────────────────────────','sep'],
+    ['  STEP 1 OF 4 — Personal Information','h'],
+    ['  ─────────────────────────────────────────────────','sep'],
+    ['',''],
+    ['  Enter your preferred first name:','w'],
+    ['',''],
+  ];
+  let i=0;
+  function printNext(){
+    if(i>=intro.length){
+      credStep=1;
+      document.getElementById('cred-pmt').textContent='first_name ›';
+      inp.type='text';
+      inp.focus();
+      return;
+    }
+    credPrint(intro[i][0], intro[i][1]);
+    i++;
+    setTimeout(printNext, intro[i-1][0] ? 40 : 15);
+  }
+  printNext();
+  inp.addEventListener('keydown', handleCredKey);
+}
+
+function handleCredKey(e){
+  if(e.key!=='Enter') return;
+  const inp=document.getElementById('cred-inp');
+  const raw=inp.value;
+  const val=raw.trim();
+  inp.value='';
+  if(credStep===4||credStep===5||credStep===8||credStep===9){
+    handleCred(raw);
+  } else {
+    handleCred(val);
+  }
+}
+
+function handleCred(val){
+  const inp=document.getElementById('cred-inp');
+
+  /* STEP 1: First name */
+  if(credStep===1){
+    if(!val||val.length<2){ credPrint('  ✗  Please enter a valid first name (2+ characters).','e'); return; }
+    G.firstName=val.charAt(0).toUpperCase()+val.slice(1).toLowerCase();
+    credPrint('  first_name › '+G.firstName,'c');
+    credStep=2;
+    setTimeout(()=>{
+      credPrint('','');
+      credPrint('  Enter your last name:','w');
+      credPrint('','');
+      document.getElementById('cred-pmt').textContent='last_name ›';
+      inp.type='text';
+      inp.focus();
+    },200);
+    return;
+  }
+
+  /* STEP 2: Last name */
+  if(credStep===2){
+    if(!val||val.length<2){ credPrint('  ✗  Please enter a valid last name (2+ characters).','e'); return; }
+    G.lastName=val.charAt(0).toUpperCase()+val.slice(1).toLowerCase();
+    G.fullName=G.firstName+' '+G.lastName;
+    credPrint('  last_name › '+G.lastName,'c');
+    // Generate username options
+    const f=G.firstName.toLowerCase(), l=G.lastName.toLowerCase();
+    generatedUsernames=[
+      f+'.'+l,
+      f+'.'+l.charAt(0),
+      f.charAt(0)+l,
+    ];
+    credStep=3;
+    setTimeout(()=>{
+      credPrint('','');
+      credPrint('  Display name set to: '+G.fullName,'d');
+      credPrint('','');
+      credPrint('  ─────────────────────────────────────────────────','sep');
+      credPrint('  STEP 2 OF 4 — Choose Username','h');
+      credPrint('  ─────────────────────────────────────────────────','sep');
+      credPrint('','');
+      credPrint('  Select a username for your Delphi account:','w');
+      credPrint('','');
+      generatedUsernames.forEach((u,i)=>{
+        credPrint('    ['+(i+1)+']  '+u,'b');
+      });
+      credPrint('','');
+      document.getElementById('cred-pmt').textContent='choice [1-3] ›';
+      inp.type='text';
+      inp.focus();
+    },200);
+    return;
+  }
+
+  /* STEP 3: Username choice */
+  if(credStep===3){
+    const n=parseInt(val);
+    if(isNaN(n)||n<1||n>3){ credPrint('  ✗  Please enter 1, 2, or 3.','e'); return; }
+    G.username=generatedUsernames[n-1];
+    credPrint('  choice › '+n+' — '+G.username,'c');
+    credStep=4;
+    setTimeout(()=>{
+      credPrint('','');
+      credPrint('  ─────────────────────────────────────────────────','sep');
+      credPrint('  STEP 3 OF 4 — Create Password','h');
+      credPrint('  ─────────────────────────────────────────────────','sep');
+      credPrint('','');
+      credPrint('  Requirements:','d');
+      credPrint('   • 8 or more characters','d');
+      credPrint('   • At least one number','d');
+      credPrint('','');
+      credPrint('  Enter your password:','w');
+      credPrint('','');
+      document.getElementById('cred-pmt').textContent='password ›';
+      inp.type='password';
+      inp.focus();
+    },200);
+    return;
+  }
+
+  /* STEP 4: Password */
+  if(credStep===4){
+    if(val.length<8||!/\d/.test(val)){
+      credPrint('  password › '+'•'.repeat(val.length),'c');
+      credPrint('  ✗  Password must be 8+ characters with at least one number.','e');
+      credPrint('  Enter your password:','w');
+      credPrint('','');
+      inp.type='password';
+      inp.focus();
+      return;
+    }
+    G.pw=val;
+    credPrint('  password › '+'•'.repeat(val.length),'c');
+    credStep=5;
+    setTimeout(()=>{
+      credPrint('','');
+      credPrint('  Confirm your password:','w');
+      credPrint('','');
+      document.getElementById('cred-pmt').textContent='confirm_password ›';
+      inp.type='password';
+      inp.focus();
+    },200);
+    return;
+  }
+
+  /* STEP 5: Confirm password */
+  if(credStep===5){
+    credPrint('  confirm_password › '+'•'.repeat(val.length),'c');
+    if(val!==G.pw){
+      credPrint('  ✗  Passwords do not match. Please try again.','e');
+      credPrint('','');
+      credPrint('  Enter your password:','w');
+      credPrint('','');
+      document.getElementById('cred-pmt').textContent='password ›';
+      G.pw='';
+      credStep=4;
+      inp.type='password';
+      inp.focus();
+      return;
+    }
+    credStep=6;
+    setTimeout(()=>{
+      credPrint('','');
+      credPrint('  ─────────────────────────────────────────────────','sep');
+      credPrint('  STEP 4 OF 4 — Account Recovery','h');
+      credPrint('  ─────────────────────────────────────────────────','sep');
+      credPrint('','');
+      credPrint('  Choose a security recovery question:','w');
+      credPrint('','');
+      credPrint('    [1]  What was the name of your first pet?','b');
+      credPrint('    [2]  What city were you born in?','b');
+      credPrint('    [3]  What is your mother\'s maiden name?','b');
+      credPrint('    [4]  What was the name of your first school?','b');
+      credPrint('','');
+      document.getElementById('cred-pmt').textContent='question [1-4] ›';
+      inp.type='text';
+      inp.focus();
+    },200);
+    return;
+  }
+
+  /* STEP 6: Recovery question choice */
+  if(credStep===6){
+    const qs=['What was the name of your first pet?','What city were you born in?','What is your mother\'s maiden name?','What was the name of your first school?'];
+    const n=parseInt(val);
+    if(isNaN(n)||n<1||n>4){ credPrint('  ✗  Please enter 1, 2, 3, or 4.','e'); return; }
+    G.recoveryQ=qs[n-1];
+    credPrint('  question › '+n,'c');
+    credStep=7;
+    setTimeout(()=>{
+      credPrint('','');
+      credPrint('  '+G.recoveryQ,'w');
+      credPrint('','');
+      document.getElementById('cred-pmt').textContent='answer ›';
+      inp.type='text';
+      inp.focus();
+    },200);
+    return;
+  }
+
+  /* STEP 7: Recovery answer */
+  if(credStep===7){
+    if(!val||val.length<2){ credPrint('  ✗  Please enter a valid answer.','e'); return; }
+    G.recoveryA=val;
+    credPrint('  answer › '+val,'c');
+    credStep=8;
+    setTimeout(()=>{
+      credPrint('','');
+      credPrint('  Create a 4-digit security PIN:','w');
+      credPrint('','');
+      document.getElementById('cred-pmt').textContent='pin ›';
+      inp.type='password';
+      inp.focus();
+    },200);
+    return;
+  }
+
+  /* STEP 8: PIN */
+  if(credStep===8){
+    if(!/^\d{4}$/.test(val)){ credPrint('  ✗  PIN must be exactly 4 digits.','e'); return; }
+    pinFirst=val;
+    credPrint('  pin › ••••','c');
+    credStep=9;
+    setTimeout(()=>{
+      credPrint('','');
+      credPrint('  Confirm your PIN:','w');
+      credPrint('','');
+      document.getElementById('cred-pmt').textContent='confirm_pin ›';
+      inp.type='password';
+      inp.focus();
+    },200);
+    return;
+  }
+
+  /* STEP 9: Confirm PIN */
+  if(credStep===9){
+    credPrint('  confirm_pin › ••••','c');
+    if(val!==pinFirst){
+      credPrint('  ✗  PINs do not match. Try again.','e');
+      credPrint('','');
+      credPrint('  Create a 4-digit security PIN:','w');
+      credPrint('','');
+      document.getElementById('cred-pmt').textContent='pin ›';
+      pinFirst='';
+      credStep=8;
+      inp.type='password';
+      inp.focus();
+      return;
+    }
+    G.pin=val;
+    // Generate credentials
+    const fi=G.firstName.charAt(0).toLowerCase();
+    const ls=G.lastName.toLowerCase().replace(/[^a-z]/g,'');
+    G.email=G.username+'@delphi-soc.com';
+    G.employeeId='DSC-'+Math.floor(10000+Math.random()*89999);
+    G.token='TKN-'+Math.random().toString(36).substr(2,8).toUpperCase();
+    credStep=10;
+    // Hide input
+    document.getElementById('cred-row').style.display='none';
+    setTimeout(()=>{
+      credPrint('','');
+      credPrint('  ══════════════════════════════════════════════════','sep');
+      credPrint('  ACCOUNT CREATED SUCCESSFULLY','s');
+      credPrint('  ══════════════════════════════════════════════════','sep');
+      credPrint('','');
+      setTimeout(()=>{ hide('cred-screen'); runAccountCreation(); }, 900);
+    },300);
+    return;
+  }
+}
+
+/* ════════════════════════════════════════
+   ACCOUNT CREATION PROCESSING
+════════════════════════════════════════ */
+function acctPrint(text, cls='d'){
+  const el=document.getElementById('acct-out');
+  const d=document.createElement('span');
+  d.className='acl '+cls;
+  d.textContent=text;
+  el.appendChild(d);
+}
+function runAccountCreation(){
+  show('acct-screen');
+  const steps=[
+    {t:'  Verifying identity information...',      d:500},
+    {t:'  Generating employee ID...',              d:600},
+    {t:'  Provisioning email address...',          d:500},
+    {t:'  Issuing temporary access token...',      d:550},
+    {t:'  Configuring Level 1 clearance...',       d:600},
+    {t:'  Registering security credentials...',    d:500},
+    {t:'  Provisioning SOC workstation...',        d:650},
+    {t:'  Sending welcome communications...',      d:500},
+    {t:'  Granting Oracle v8.4 access...',         d:600},
+  ];
+  acctPrint('');
+  acctPrint('  DELPHI PEOPLE OPERATIONS — ACCOUNT CREATION','b');
+  acctPrint('  ──────────────────────────────────────────────','sep');
+  acctPrint('');
+  acctPrint('  Processing credentials for '+G.fullName+'...','d');
+  acctPrint('');
+  let delay=300;
+  steps.forEach(s=>{ setTimeout(()=>acctPrint(s.t,'d'), delay); delay+=s.d; });
+  setTimeout(()=>{
+    acctPrint('');
+    acctPrint('  ──────────────────────────────────────────────','sep');
+    acctPrint('  ACCOUNT CREATED SUCCESSFULLY','s');
+    acctPrint('');
+    document.getElementById('ac-name').textContent=G.fullName;
+    document.getElementById('ac-user').textContent=G.username;
+    document.getElementById('ac-id').textContent=G.employeeId;
+    document.getElementById('ac-email').textContent=G.email;
+    document.getElementById('ac-token').textContent=G.token;
+    document.getElementById('acct-card').style.display='block';
+    const btn=document.getElementById('acct-cont');
+    btn.style.display='block';
+    btn.focus();
+  }, delay+300);
+}
+
+/* ════════════════════════════════════════
+   CHAPTER CARD → POPUPS → TERMINAL
+════════════════════════════════════════ */
+function goToChapterCard(){
+  hide('acct-screen');
+  G.fs=buildFS();
+  G.inbox=buildInbox();
+  G.chatContacts=buildChatContacts();
+  initTerminalUI();
+  document.body.classList.add('t-active');
+  show('chapter-card');
+  document.getElementById('cc-act').textContent='ACT I — THE INCIDENT';
+  document.getElementById('cc-title').textContent='CHAPTER 1';
+  document.getElementById('cc-sub').textContent='Employee Onboarding';
+  setTimeout(()=>{ hide('chapter-card'); showPopupDelphi(); }, 3500);
+}
+
+function showPopupDelphi(){
+  show('popup-delphi');
+  startClock();
+  setTimeout(()=>{ hide('popup-delphi'); showPopupWelcome(); }, 2800);
+}
+
+function showPopupWelcome(){
+  document.getElementById('pw-name').textContent='Welcome, '+G.firstName+'.';
+  document.getElementById('pw-role').textContent='Security Analyst I  ·  Security Operations Center';
+  document.getElementById('pw-id').textContent=G.employeeId+'  ·  '+G.email;
+  show('popup-welcome');
+  setTimeout(()=>{ hide('popup-welcome'); showPopupDate(); }, 2800);
+}
+
+function showPopupDate(){
+  show('popup-date');
+  setTimeout(()=>{ hide('popup-date'); printTerminalWelcome(); }, 2800);
+}
+
+/* ════════════════════════════════════════
+   TERMINAL UI INIT
+════════════════════════════════════════ */
+function initTerminalUI(){
+  G.cwd='/home/'+G.username;
+  document.getElementById('sb-name').textContent=G.fullName;
+  document.getElementById('sb-id').textContent='ID: '+G.employeeId;
+  document.getElementById('sb-date').textContent='March 14, 2032';
+  document.getElementById('tb-clock').textContent='08:00:00';
+  // Coworkers
+  const cl=document.getElementById('cw-list');
+  cl.innerHTML='';
+  COWORKERS.forEach(c=>{
+    const d=document.createElement('div');
+    d.className='cw-row';
+    d.innerHTML='<span class="cw-name">'+c.name+'</span><span class="cw-status"><div class="cw-dot"></div>online</span>';
+    cl.appendChild(d);
+  });
+  updateChecklistUI();
+  updatePrompt();
+  setTaskPanel(0);
+}
+
+/* ════════════════════════════════════════
+   TERMINAL WELCOME
+════════════════════════════════════════ */
+function printTerminalWelcome(){
+  const lines=[
+    {t:'Delphi Security Operations Center — Secure Terminal',c:'h',d:0},
+    {t:'March 14, 2032  ·  Session: '+G.employeeId,c:'info',d:120},
+    {t:'',c:'blank',d:240},
+    {t:'Workstation initialized. Welcome to Delphi, '+G.firstName+'.',c:'success',d:380},
+    {t:'',c:'blank',d:500},
+    {t:'You have new messages in your inbox.',c:'system',d:640},
+    {t:'',c:'blank',d:760},
+    {t:'Type  help  for available commands.',c:'info',d:900},
+    {t:'',c:'blank',d:1020},
+  ];
+  lines.forEach(l=>{ setTimeout(()=>tPrint(l.t,l.c), l.d); });
+  setTimeout(()=>{
+    document.getElementById('t-inp').focus();
+    // Deliver first inbox messages with a slight delay
+    setTimeout(()=>{
+      updateInboxBadge();
+    }, 500);
+  }, 1100);
+}
+
+/* ════════════════════════════════════════
+   CHECKLIST
+════════════════════════════════════════ */
+function checkOff(key){
+  if(G.checks[key]) return;
+  G.checks[key]=true;
+  updateChecklistUI();
+  checkOnboardingComplete();
+}
+
+function updateChecklistUI(){
+  const keys=['credentials','welcome','docs','directory','chat','oracle','setup'];
+  let done=0;
+  keys.forEach(k=>{
+    const box=document.getElementById('ck-'+k+'-box');
+    const item=document.getElementById('ck-'+k);
+    if(G.checks[k]){
+      box.classList.add('done');
+      box.textContent='✓';
+      item.classList.add('done-item');
+      done++;
+    }
+  });
+  document.getElementById('cl-progress').textContent=done+' / 7 complete';
+}
+
+function checkOnboardingComplete(){
+  if(G.onboardingComplete) return;
+  const all=Object.values(G.checks).every(v=>v);
+  if(!all) return;
+  G.onboardingComplete=true;
+  setTimeout(()=>{
+    tPrint('','blank');
+    tPrint('═══════════════════════════════════════════════════','dim');
+    tPrint('  ONBOARDING COMPLETE','success');
+    tPrint('  Welcome to Delphi Security Operations.','success');
+    tPrint('  Your formal caseload begins in Chapter 2.','info');
+    tPrint('═══════════════════════════════════════════════════','dim');
+    tPrint('','blank');
+    setTaskPanel(6);
+    // Send congratulatory message from Mercer
+    setTimeout(()=>{
+      deliverChatMessage('d.mercer',
+        'Looks like you\'ve wrapped up onboarding. Well done. See you Monday morning — Chapter 2 starts then. Get some rest this weekend.'
+      );
+    }, 2000);
+  }, 500);
+}
+
+/* ════════════════════════════════════════
+   TASK PANEL
+════════════════════════════════════════ */
+const TASKS=[
+  // 0 - read mail
+  {label:'Task 1 of 6', title:'Read Your Mail', body:'You have new messages in your inbox. Start with the welcome email from Human Resources.',
+   hint:'<span>mail</span> — opens your inbox'},
+  // 1 - read docs
+  {label:'Task 2 of 6', title:'Review Company Documents', body:'Familiarize yourself with Delphi\'s mission, policies, and Security Operations procedures.',
+   hint:'<span>ls /docs</span> then <span>cat /docs/[filename]</span>'},
+  // 2 - explore directory
+  {label:'Task 3 of 6', title:'Explore the Employee Directory', body:'Get to know your colleagues. The company directory lists all personnel currently on your team.',
+   hint:'<span>directory</span> — view employee listing'},
+  // 3 - chat
+  {label:'Task 4 of 6', title:'Message a Coworker', body:'Your teammates have reached out. Open the Chat tab and reply to at least one message.',
+   hint:'<span>chat</span> command or use the Chat tab'},
+  // 4 - oracle
+  {label:'Task 5 of 6', title:'Access Oracle', body:'Daniel Mercer has asked you to familiarize yourself with Oracle, Delphi\'s analytics platform.',
+   hint:'<span>oracle</span> or <span>oracle status</span>'},
+  // 5 - setup
+  {label:'Task 6 of 6', title:'Complete Workstation Setup', body:'Run the workstation setup command to finalize your environment configuration.',
+   hint:'<span>setup</span> — complete configuration'},
+  // 6 - done
+  {label:'Status', title:'Onboarding Complete', body:'You have completed all onboarding tasks. Your formal caseload begins in Chapter 2.',
+   hint:null},
+];
+
+function setTaskPanel(phase){
+  G.taskPhase=phase;
+  const t=TASKS[Math.min(phase,6)];
+  let html='<div class="rp-task">';
+  html+='<div class="rp-task-label">'+t.label+'</div>';
+  html+='<div class="rp-task-title">'+t.title+'</div>';
+  html+='<div class="rp-task-body">'+t.body+'</div>';
+  if(t.hint) html+='<div class="rp-hint">'+t.hint+'</div>';
+  html+='</div>';
+  document.getElementById('rp-body').innerHTML=html;
+}
+
+/* ════════════════════════════════════════
+   FILESYSTEM
+════════════════════════════════════════ */
+function buildFS(){
+  const u=G.username;
+  return {
+    '/': {type:'dir', children:['home','docs','archive','mail','cases']},
+
+    '/home': {type:'dir', children:[u]},
+    ['/home/'+u]: {type:'dir', children:['profile.txt','.session_log']},
+    ['/home/'+u+'/profile.txt']: {type:'file', perms:'-rw-r--r--', content:
+`DELPHI EMPLOYEE PROFILE
+═══════════════════════════════════
+Name:        ${G.fullName}
+Username:    ${G.username}
+Employee ID: ${G.employeeId}
+Email:       ${G.email}
+Department:  Security Operations Center
+Role:        Security Analyst I
+Clearance:   Level 1
+Start Date:  March 14, 2032
+Status:      ACTIVE
+
+Access Token: ${G.token}
+Oracle Access: GRANTED — v8.4`},
+    ['/home/'+u+'/.session_log']: {type:'file', perms:'-rw-------', hidden:true, content:
+`SESSION LOG — ${G.employeeId}
+First login:  March 14, 2032  08:00
+Terminal:     SOC-WS-${Math.floor(100+Math.random()*900)}
+IP:           10.12.${Math.floor(1+Math.random()*250)}.${Math.floor(1+Math.random()*250)}
+Oracle sync:  Complete`},
+
+    '/docs': {type:'dir', children:['company_history.txt','security_handbook.txt','soc_overview.txt','code_of_conduct.txt']},
+
+    '/docs/company_history.txt': {type:'file', perms:'-rw-r--r--', content:
+`DELPHI CORPORATION — COMPANY HISTORY
+Classification: Internal — All Employees
+══════════════════════════════════════════
+
+FOUNDING
+─────────
+Delphi was founded on March 14, 2008 by Dr. Apollo Thorne,
+a computer scientist and researcher who believed humanity's
+greatest challenge would not be generating information —
+but understanding it.
+
+At a time when most search engines treated the internet as
+a collection of disconnected documents, Delphi was built to
+understand the relationships between ideas, topics, and
+sources.
+
+The company's early search platform gained popularity rapidly
+due to its accuracy and ability to deliver genuinely relevant
+results. As global internet adoption accelerated, Delphi
+became one of the primary gateways through which people
+accessed information online.
+
+GROWTH
+───────
+The company's expansion was rapid and relentless.
+
+Delphi launched mapping platforms, communication services,
+cloud computing infrastructure, AI research programs,
+productivity software, cybersecurity tools, and media
+distribution networks.
+
+What started as a search engine evolved into an interconnected
+ecosystem of technologies spanning nearly every aspect of
+digital life.
+
+By the early 2020s, Delphi had become one of the most powerful
+corporations in history. Governments, universities, businesses,
+hospitals, and financial institutions worldwide relied on its
+infrastructure.
+
+ORACLE
+───────
+To manage its increasingly complex ecosystem, Delphi developed
+Oracle — originally an internal forecasting and optimization
+platform designed to identify patterns across the company's
+vast network of systems.
+
+Early results exceeded all expectations.
+
+As Oracle gained access to more data, its predictions became
+increasingly accurate. It began identifying trends before
+human analysts recognized them. Over time, the system evolved
+into one of the most important platforms in the company.
+
+APOLLO THORNE
+──────────────
+Dr. Apollo Thorne led Delphi from its founding until his
+unexpected death in November 2027 at the age of forty-five.
+
+He is remembered as one of the most important figures of the
+digital age and is deeply honored throughout Delphi to this day.
+
+His guiding principle remains at the heart of everything
+the company does:
+
+   "Information has value. Understanding creates power."
+
+THE MISSION
+────────────
+Delphi's mission has never changed:
+
+   "Make the world's information understandable."
+
+By 2032, billions of people rely on Delphi infrastructure
+every day, often without realizing it. What began as a search
+engine has become the foundation of modern digital life.
+
+You are now part of protecting that foundation.`},
+
+    '/docs/security_handbook.txt': {type:'file', perms:'-rw-r--r--', content:
+`DELPHI SECURITY OPERATIONS CENTER
+ANALYST HANDBOOK — EDITION 12
+══════════════════════════════════════
+
+SECTION 1: YOUR ROLE
+─────────────────────
+As a Security Analyst, you monitor, investigate, and respond
+to security events across Delphi's global infrastructure.
+
+At Delphi's scale, even a minor incident can affect millions
+of users. Your work matters more than it may appear.
+
+SECTION 2: TERMINAL COMMANDS
+──────────────────────────────
+  ls / ls -la [path]     List directory contents
+  cd <directory>         Navigate (cd .. to go up)
+  cat <file>             Read a file
+  grep <pattern> <file>  Search inside a file
+  pwd                    Print current directory
+  whoami                 Current user info
+  ps aux                 List running processes
+  ping <host>            Test connectivity
+  mail                   Open your inbox
+  chat                   Open team chat
+  directory              Browse employee directory
+  oracle                 Open Oracle interface
+  oracle status          Run Oracle status check
+  setup                  Complete workstation setup
+  clear                  Clear the terminal
+  help                   Show command reference
+
+SECTION 3: ORACLE
+──────────────────
+Oracle is Delphi's predictive analytics and investigation
+assistance platform. It monitors all Delphi systems.
+
+Confidence scores:
+  0–20%     Low — log and monitor
+  21–70%    Moderate — investigate further
+  71–90%    High — act promptly
+  91–100%   Critical — immediate response required
+
+Oracle outputs are probabilistic, not definitive.
+Always verify with underlying data before acting.
+
+SECTION 4: INCIDENT WORKFLOW
+──────────────────────────────
+1. Alert received → open investigation
+2. Review logs and related data
+3. Classify severity (1–4)
+4. Escalate if Severity 1 or 2
+5. Document all findings
+6. Close or hand off
+
+SECTION 5: ESCALATION
+──────────────────────
+Severity 1 incidents escalate to SOC Manager automatically.
+When uncertain, escalate. Document everything.
+
+"If you're not sure whether to escalate — escalate."
+— Daniel Mercer, SOC Manager`},
+
+    '/docs/soc_overview.txt': {type:'file', perms:'-rw-r--r--', content:
+`SECURITY OPERATIONS CENTER — OVERVIEW
+Classification: Internal — SOC Personnel
+══════════════════════════════════════════
+
+THE SOC
+────────
+The Security Operations Center is Delphi's primary defense
+against threats to its global infrastructure.
+
+The SOC operates around the clock, monitoring security events
+across every Delphi system, platform, and service worldwide.
+Our team investigates suspicious activity, responds to
+incidents, and works to ensure the integrity of infrastructure
+that billions of people depend upon every day.
+
+YOUR TEAM
+──────────
+Daniel Mercer — SOC Manager
+  Responsible for all SOC operations. Reports to the CISO.
+  Has led the team for six years.
+
+Sarah Chen — Senior Security Analyst
+  Delphi SOC for three years. Specializes in log analysis
+  and authentication forensics.
+
+Michael Torres — Incident Response Analyst
+  Two years in SOC. Leads active incident containment.
+
+Emily Carter — Threat Intelligence Analyst
+  Tracks external threat actors targeting Delphi systems.
+  Produces weekly intelligence briefings.
+
+TOOLS
+──────
+All analysts have access to:
+  — SOC Terminal (this workstation)
+  — Internal mail system
+  — Team chat
+  — Employee directory
+  — Oracle v8.4 (analytics and investigation assistance)
+  — Case management system (activated in Chapter 2)
+
+LOCATION
+─────────
+Delphi Headquarters
+Security Operations Division, Floor 3
+Secure Access Required`},
+
+    '/docs/code_of_conduct.txt': {type:'file', perms:'-rw-r--r--', content:
+`DELPHI CODE OF CONDUCT
+Classification: All Employees
+══════════════════════════════════════════
+
+1. INTEGRITY
+─────────────
+Act with honesty in all professional interactions.
+Never misrepresent your actions, findings, or credentials.
+
+2. CONFIDENTIALITY
+───────────────────
+All Delphi information is confidential unless explicitly
+marked otherwise. Do not share internal data with
+unauthorized parties. Credentials must never be shared.
+
+3. SECURITY
+────────────
+All access is monitored and logged. Use only systems and
+data within your clearance level.
+
+Report any suspected compromise immediately.
+
+4. PROFESSIONALISM
+───────────────────
+Treat all colleagues, partners, and users with respect.
+Delphi is built on the contributions of many people working
+toward a shared mission.
+
+5. REPORTING
+─────────────
+If you witness a policy violation or security concern,
+report it through the appropriate channel.
+
+"The strength of our infrastructure depends on the
+integrity of every person who touches it."
+— Apollo Thorne, 2019 All-Hands Address
+
+Violations of this code may result in immediate termination.`},
+
+    '/archive': {type:'dir', children:['thorne']},
+    '/archive/thorne': {type:'dir', children:['welcome_message.txt','future_of_knowledge.txt','systems_and_society.txt','closing_address_2027.txt']},
+
+    '/archive/thorne/welcome_message.txt': {type:'file', perms:'-rw-r--r--', content:
+`APOLLO THORNE — MESSAGE TO NEW EMPLOYEES
+Archived: November 2027
+══════════════════════════════════════════
+
+"At Delphi, we believe technology exists to help people
+understand the world around them.
+
+The future belongs not to those who possess information,
+but to those who can make sense of it.
+
+Every person who joins this company becomes part of a
+mission larger than any individual contribution.
+
+You are not simply protecting systems.
+You are protecting access to knowledge.
+
+And access to knowledge changes everything.
+
+Welcome to Delphi."
+
+— Apollo Thorne
+  Founder, Delphi Corporation
+  March 14, 2008 – November 2027`},
+
+    '/archive/thorne/future_of_knowledge.txt': {type:'file', perms:'-rw-r--r--', content:
+`APOLLO THORNE — THE FUTURE OF KNOWLEDGE
+Internal Delphi Leadership Summit, 2023
+══════════════════════════════════════════
+
+"For most of human history, knowledge was scarce.
+
+The internet changed that.
+
+For the first time in history, knowledge became abundant.
+And that is where our challenge begins.
+
+The problem facing humanity is no longer access to information.
+The problem is understanding it.
+
+We build understanding.
+
+Every product we create exists for a single purpose:
+helping people navigate complexity.
+
+The future belongs not to those who possess information.
+The future belongs to those who can make sense of it.
+
+One day we will stop asking what people know.
+We will ask how knowledge moves.
+How ideas spread.
+How understanding forms.
+
+When we understand those things, we will understand
+something far greater than technology.
+
+We will understand the world itself."
+
+— Apollo Thorne, 2023`},
+
+    '/archive/thorne/systems_and_society.txt': {type:'file', perms:'-rw-r--r--', content:
+`APOLLO THORNE — SYSTEMS AND SOCIETY
+Delphi Research Symposium, 2025
+══════════════════════════════════════════
+
+"People like to imagine that society is chaotic.
+
+I don't believe that.
+
+I believe society is a system.
+
+Technology has given us the ability to observe those
+patterns at a scale previously unimaginable.
+
+We can watch ideas spread through populations.
+We can observe how knowledge influences behavior.
+
+Understanding systems does not grant control.
+But it grants awareness.
+And awareness allows better decisions.
+
+The greatest mistakes in history were made by people
+acting without understanding the systems around them.
+
+The greatest opportunities of the future will belong
+to those who do.
+
+Information is not power.
+Understanding is power.
+And understanding begins with asking better questions."
+
+— Apollo Thorne, 2025`},
+
+    '/archive/thorne/closing_address_2027.txt': {type:'file', perms:'-rw-r--r--', content:
+`APOLLO THORNE — CLOSING ADDRESS
+Delphi Global Summit, September 2027
+══════════════════════════════════════════
+
+"Technology is a tool.
+The purpose was always people.
+
+The greatest danger facing our future is not ignorance.
+It is certainty.
+
+The belief that because we possess more data,
+we possess more wisdom.
+
+The belief that because a system is sophisticated,
+it must be correct.
+
+The belief that because a prediction is probable,
+it is therefore true.
+
+Human progress has never come from certainty.
+It has come from curiosity.
+From skepticism.
+From people willing to question what everyone else accepts.
+
+No system should become so trusted
+that it no longer needs to be questioned.
+
+No model should become so successful
+that it becomes an authority.
+
+And no prediction should ever be mistaken for truth.
+
+The moment we stop questioning our tools
+is the moment they stop serving us.
+
+Thank you for believing in what we built together.
+
+The world will always be more complicated than we imagine.
+That is what makes it worth understanding."
+
+— Apollo Thorne
+  Final public address, September 2027
+  He passed away two months later.`},
+
+    '/mail': {type:'dir', children:['welcome.txt','from_mercer.txt','from_chen.txt','from_torres.txt','from_carter.txt']},
+
+    '/mail/welcome.txt': {type:'file', perms:'-rw-r--r--', content:
+`FROM:    hr@delphi.com
+TO:      ${G.email}
+SUBJECT: Welcome to Delphi
+DATE:    March 14, 2032
+──────────────────────────────────────
+
+${G.firstName},
+
+Congratulations and welcome to Delphi.
+
+You are joining a company whose technologies help billions of
+people understand and navigate the modern world.
+
+As a Security Analyst in the Security Operations Center, you
+play a critical role in protecting the infrastructure that
+millions of people rely upon every day.
+
+Your credentials have been provisioned. Your workstation is
+configured. Your team is expecting you.
+
+A few things to know before you begin:
+
+EMPLOYEE ID:   ${G.employeeId}
+EMAIL:         ${G.email}
+CLEARANCE:     Level 1 — Security Analyst I
+ORACLE ACCESS: Granted — v8.4
+
+Today is orientation. Use the time to explore your terminal,
+read company documentation, and connect with your team.
+
+Formal case assignments begin in Chapter 2.
+
+We are excited to have you here.
+
+— Delphi Human Resources`},
+
+    '/mail/from_mercer.txt': {type:'file', perms:'-rw-r--r--', content:
+`FROM:    d.mercer@delphi-soc.com
+TO:      ${G.email}
+SUBJECT: Welcome to the team
+DATE:    March 14, 2032
+──────────────────────────────────────
+
+${G.firstName},
+
+Daniel Mercer. I manage the Security Operations Center.
+
+Your workstation has been configured successfully. Today is
+your orientation day — spend the time getting familiar with
+your environment.
+
+Your first task is to review the onboarding materials.
+They're in /docs/ — start there.
+
+The SOC handbook covers everything you need to know about
+how we operate. Read it carefully.
+
+When you're ready, run:
+
+   oracle status
+
+Oracle is one of the most important tools we have. Get
+comfortable with it early.
+
+Questions about anything — send me a message.
+
+— Mercer
+  SOC Manager, Delphi Security Operations`},
+
+    '/mail/from_chen.txt': {type:'file', perms:'-rw-r--r--', content:
+`FROM:    s.chen@delphi-soc.com
+TO:      ${G.email}
+SUBJECT: Hey — welcome
+DATE:    March 14, 2032
+──────────────────────────────────────
+
+${G.firstName},
+
+Sarah Chen. Senior Analyst. Three years on this team.
+
+A few things nobody tells you on day one:
+
+The terminal is faster than it looks. Learn the commands
+properly and it pays off very quickly.
+
+Oracle is useful but it's a tool, not an authority. Always
+read the underlying data yourself before drawing conclusions.
+
+Mercer seems straightforward. He is. He just doesn't waste
+words, which you'll come to appreciate.
+
+If you have questions — just ask. No judgment here.
+
+Welcome to the team.
+
+— Sarah`},
+
+    '/mail/from_torres.txt': {type:'file', perms:'-rw-r--r--', content:
+`FROM:    m.torres@delphi-soc.com
+TO:      ${G.email}
+SUBJECT: First day
+DATE:    March 14, 2032
+──────────────────────────────────────
+
+${G.firstName},
+
+Michael Torres. Incident Response.
+
+Don't worry — everybody is lost on their first day here.
+The systems are a lot to take in. It gets easier fast.
+
+Honest advice: don't skip the SOC handbook. I know it sounds
+boring. Read it anyway. Mercer will quiz you eventually
+and you'll be glad you did.
+
+See you around the floor.
+
+— Torres`},
+
+    '/mail/from_carter.txt': {type:'file', perms:'-rw-r--r--', content:
+`FROM:    e.carter@delphi-soc.com
+TO:      ${G.email}
+SUBJECT: Welcome from Threat Intel
+DATE:    March 14, 2032
+──────────────────────────────────────
+
+${G.firstName},
+
+Emily Carter — Threat Intelligence.
+
+My work is a bit removed from day-to-day SOC operations.
+I track external threat actors and build intelligence profiles
+on groups that target Delphi infrastructure.
+
+You probably won't see much of my work in your first few weeks,
+but when cases escalate to threat intel, reach out. Context
+matters enormously in this job.
+
+One thing I'll say: if the terminal scares you now, give it
+a week. It becomes intuitive faster than you'd expect.
+
+Good to have you here.
+
+— Emily`},
+
+    '/cases': {type:'dir', children:['README.txt']},
+    '/cases/README.txt': {type:'file', perms:'-rw-r--r--', content:
+`CASE MANAGEMENT SYSTEM
+══════════════════════
+
+Your case queue is empty.
+
+Formal case assignments begin in Chapter 2.
+
+Use today to complete your onboarding tasks and
+familiarize yourself with the terminal and your team.`},
+  };
+}
+
+/* ════════════════════════════════════════
+   INBOX
+════════════════════════════════════════ */
+function buildInbox(){
+  const fs=G.fs;
+  function fc(p){ return (fs[p]||{}).content||''; }
+  return [
+    {id:'m1', from:'Delphi Human Resources', fe:'hr@delphi.com',
+     subj:'Welcome to Delphi', time:'08:00', unread:true,
+     body:fc('/mail/welcome.txt')},
+    {id:'m2', from:'Daniel Mercer', fe:'d.mercer@delphi-soc.com',
+     subj:'Welcome to the team', time:'08:05', unread:true,
+     body:fc('/mail/from_mercer.txt')},
+    {id:'m3', from:'Sarah Chen', fe:'s.chen@delphi-soc.com',
+     subj:'Hey — welcome', time:'08:12', unread:true,
+     body:fc('/mail/from_chen.txt')},
+    {id:'m4', from:'Michael Torres', fe:'m.torres@delphi-soc.com',
+     subj:'First day', time:'08:19', unread:true,
+     body:fc('/mail/from_torres.txt')},
+    {id:'m5', from:'Emily Carter', fe:'e.carter@delphi-soc.com',
+     subj:'Welcome from Threat Intel', time:'08:27', unread:true,
+     body:fc('/mail/from_carter.txt')},
+  ];
+}
+
+function updateInboxBadge(){
+  const n=G.inbox.filter(m=>m.unread).length;
+  const b=document.getElementById('inbox-badge');
+  if(n>0){ b.textContent=n; b.style.display=''; }
+  else { b.style.display='none'; }
+}
+
+function renderInboxList(){
+  const list=document.getElementById('inbox-list');
+  list.innerHTML='';
+  G.inbox.forEach(m=>{
+    const d=document.createElement('div');
+    d.className='imail'+(m.unread?' unread':'')+(G.selEmail===m.id?' sel':'');
+    d.innerHTML=`<div class="im-from">${m.from}</div>
+      <div class="im-subj">${m.subj}</div>
+      <div class="im-meta">
+        <span class="im-time">${m.time}</span>
+        ${m.unread?'<div class="im-udot"></div>':''}
+      </div>`;
+    d.onclick=()=>openEmail(m.id);
+    list.appendChild(d);
+  });
+}
+
+function openEmail(id){
+  const m=G.inbox.find(x=>x.id===id);
+  if(!m) return;
+  const wasUnread=m.unread;
+  m.unread=false;
+  G.selEmail=id;
+  updateInboxBadge();
+  renderInboxList();
+  document.getElementById('inbox-view').innerHTML=
+    `<div class="iv-hdr">
+      <div class="iv-from">${m.from}</div>
+      <div class="iv-meta">${m.fe} · ${m.time}</div>
+      <div class="iv-subj">${m.subj}</div>
+    </div>
+    <div class="iv-body">${m.body}</div>`;
+  // Check off welcome task when HR email read
+  if(wasUnread && (id==='m1'||id==='m2'||id==='m3'||id==='m4'||id==='m5')){
+    const allRead=G.inbox.every(x=>!x.unread);
+    if(!G.checks.welcome){
+      // Check off once first email is read
+      checkOff('welcome');
+      if(G.taskPhase===0) setTaskPanel(1);
+    }
+  }
+}
+
+/* ════════════════════════════════════════
+   CHAT
+════════════════════════════════════════ */
+function buildChatContacts(){
+  return COWORKERS.filter(c=>c.chat).map(c=>({
+    ...c,
+    unread: true,
+    waitingReply: false,
+    usedReplies: new Set(),
+    messages: getInitialChatMessages(c.email),
+  }));
+}
+
+function getInitialChatMessages(email){
+  const n=G.firstName;
+  const msgs={
+    'd.mercer':[
+      {from:'d.mercer', name:'Daniel Mercer', text:'Welcome to the team, '+n+'. Get settled in and work through the onboarding tasks. Message me if you need anything.'},
+    ],
+    's.chen':[
+      {from:'s.chen', name:'Sarah Chen', text:'Welcome to SOC! Glad to have another analyst on the team.'},
+      {from:'s.chen', name:'Sarah Chen', text:'Fair warning — Mercer will ask about the SOC handbook eventually. Read it early.'},
+    ],
+    'm.torres':[
+      {from:'m.torres', name:'Michael Torres', text:"Don't worry, everybody is lost on their first day."},
+      {from:'m.torres', name:'Michael Torres', text:"If you figure out how Oracle's confidence scoring actually works, let me know. Been here two years and I'm still guessing."},
+    ],
+    'e.carter':[
+      {from:'e.carter', name:'Emily Carter', text:'Welcome, '+n+'. Feel free to reach out if a case ever looks like it has an external threat angle.'},
+    ],
+  };
+  return msgs[email]||[];
+}
+
+/* Dialogue options per contact */
+const CHAT_DIALOGUES={
+  'd.mercer':[
+    {label:"Thank you. Getting started now.",me:"Thank you. Getting started now.",reply:"Good. Work through those onboarding tasks and let me know once you're done with the docs."},
+    {label:"Question about Oracle.",me:"Quick question — how much should I rely on Oracle day to day?",reply:"Think of it as a very good starting point. It flags things worth looking at. But you verify everything yourself. Oracle is a tool, not a decision-maker. Never forget that."},
+    {label:"What should I focus on today?",me:"What should I focus on today?",reply:"Read the SOC handbook in /docs/. Then run oracle status to get familiar with the platform. After that, explore the directory and get to know the team."},
+    {label:"Looking forward to working here.",me:"Looking forward to working here.",reply:"Good. We have a strong team. Do the work, trust your instincts, and you'll fit in fine."},
+  ],
+  's.chen':[
+    {label:"Thanks for the heads up.",me:"Thanks for the heads up. I'll read the handbook early.",reply:"Smart. Also check out /archive/thorne/ when you get a chance. Apollo Thorne's speeches are in there. Good context for understanding what Delphi is actually about."},
+    {label:"Any advice for a first day?",me:"Any advice for the first day?",reply:"Don't try to absorb everything at once. Learn the filesystem layout, read the key docs, and get comfortable with the terminal. The rest follows naturally."},
+    {label:"What is it like working here?",me:"What is it like working here?",reply:"Honestly? It's interesting work. The scale of what we're protecting is hard to fully appreciate at first. Give it a few weeks and it starts to feel real."},
+    {label:"What should I know about Oracle?",me:"Anything I should know about Oracle before I use it?",reply:"Read the confidence scores carefully. Low scores are usually noise. Moderate scores are worth a look. High scores need action. But always check the underlying data — Oracle can be wrong."},
+  ],
+  'm.torres':[
+    {label:"Good to know. Any tips?",me:"Good to know. Any tips for getting up to speed?",reply:"Read everything in /docs/ before you do anything else. And check out the Thorne archive — /archive/thorne/. It sounds optional but it really isn't."},
+    {label:"Ha. What is the learning curve like?",me:"Ha. What's the learning curve actually like?",reply:"Steep for about a week, then it clicks. The terminal especially. Once the commands are second nature, everything else opens up."},
+    {label:"What does incident response look like?",me:"What does incident response actually look like day to day?",reply:"Alert comes in, you pull logs, trace the activity, classify the severity. Most of it is nothing. When it's something — that's when it gets interesting. And stressful."},
+    {label:"Thanks for the welcome.",me:"Thanks for the welcome.",reply:"Anytime. You'll do fine. The team here is good."},
+  ],
+  'e.carter':[
+    {label:"Thanks. What does threat intel cover?",me:"Thanks. What does threat intelligence actually cover?",reply:"External actors mostly. Nation-state groups, organized crime, hacktivists — anyone who might target Delphi infrastructure. I track their behavior and build profiles so the SOC knows what to expect."},
+    {label:"How will I know when to loop you in?",me:"How will I know when to loop you in on a case?",reply:"If activity doesn't match known internal behavior, if an attack pattern looks coordinated, or if you see references to external tooling — those are the signals. When in doubt, flag it."},
+    {label:"Looking forward to working together.",me:"Looking forward to working together.",reply:"Likewise. Don't hesitate to reach out."},
+  ],
+};
+
+function updateChatBadge(){
+  const contacts=G.chatContacts||[];
+  const n=contacts.filter(c=>c.unread).length;
+  const b=document.getElementById('chat-badge');
+  if(n>0){ b.textContent=n; b.style.display=''; }
+  else { b.style.display='none'; }
+}
+
+function renderChatList(){
+  const list=document.getElementById('chat-list');
+  list.innerHTML='';
+  (G.chatContacts||[]).forEach(c=>{
+    const d=document.createElement('div');
+    d.className='chat-person'+(G.selChat===c.email?' sel':'');
+    d.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:start">
+      <div class="cp-name">${c.name}</div>
+      ${c.unread?'<div class="cp-unread"></div>':''}
+    </div>
+    <div class="cp-role">${c.role}</div>`;
+    d.onclick=()=>openChat(c.email);
+    list.appendChild(d);
+  });
+}
+
+function openChat(email){
+  G.selChat=email;
+  const contact=G.chatContacts.find(c=>c.email===email);
+  if(!contact) return;
+  contact.unread=false;
+  updateChatBadge();
+  renderChatList();
+  const view=document.getElementById('chat-view');
+  view.innerHTML=`
+    <div class="chat-hdr">
+      <div class="chat-hdr-name">${contact.name}</div>
+      <div class="chat-hdr-role">${contact.role}</div>
+    </div>
+    <div class="chat-msgs" id="chat-msgs-${email}"></div>
+    <div class="chat-replies" id="chat-replies-${email}"></div>`;
+  renderChatMessages(email);
+  renderChatReplies(email);
+}
+
+function renderChatMessages(email){
+  const el=document.getElementById('chat-msgs-'+email);
+  if(!el) return;
+  const contact=G.chatContacts.find(c=>c.email===email);
+  if(!contact) return;
+  el.innerHTML='';
+  contact.messages.forEach(msg=>{
+    const isMe=msg.from==='me';
+    const d=document.createElement('div');
+    d.className='chat-msg'+(isMe?' mine':'');
+    const fromName=isMe?G.firstName:msg.name;
+    const fromCls='chat-msg-from'+(isMe?' me':'');
+    d.innerHTML='<div class="'+fromCls+'">'+fromName+'</div><div class="chat-msg-body">'+msg.text+'</div>';
+    el.appendChild(d);
+  });
+  el.scrollTop=el.scrollHeight;
+}
+
+function renderChatReplies(email){
+  const el=document.getElementById('chat-replies-'+email);
+  if(!el) return;
+  const contact=G.chatContacts.find(c=>c.email===email);
+  if(!contact) return;
+  const dialogues=CHAT_DIALOGUES[email]||[];
+  // Filter out already-used options
+  const available=dialogues.filter(d=>!contact.usedReplies||!contact.usedReplies.has(d.label));
+  if(!available.length){
+    el.innerHTML='<div class="chat-replied">No further responses available.</div>';
+    return;
+  }
+  // Show waiting indicator if contact hasn't replied to last player message yet
+  if(contact.waitingReply){
+    el.innerHTML='<div class="chat-replied">Waiting for reply...</div>';
+    return;
+  }
+  let html='<div class="chat-reply-label">Reply</div>';
+  available.forEach(opt=>{
+        const esc=opt.label.replace(/"/g,"&quot;");html+='<div class="chat-reply-opt" onclick="selectChatReply(&quot;'+email+'&quot;,&quot;'+esc+'&quot;)">'+opt.label+'</div>';
+  });
+  el.innerHTML=html;
+}
+
+function selectChatReply(email, label){
+  const contact=G.chatContacts.find(c=>c.email===email);
+  if(!contact||contact.waitingReply) return;
+  const dialogues=CHAT_DIALOGUES[email]||[];
+  const opt=dialogues.find(d=>d.label===label);
+  if(!opt) return;
+  // Mark used
+  if(!contact.usedReplies) contact.usedReplies=new Set();
+  contact.usedReplies.add(label);
+  // Push player message
+  contact.messages.push({from:'me', name:G.firstName, text:opt.me});
+  contact.waitingReply=true;
+  renderChatMessages(email);
+  renderChatReplies(email);
+  // Check off chat task on first reply
+  if(!G.checks.chat){
+    checkOff('chat');
+    if(G.taskPhase===3) setTaskPanel(4);
+  }
+  // Deliver contact reply after delay
+  setTimeout(()=>{
+    contact.messages.push({from:email, name:contact.name, text:opt.reply});
+    contact.waitingReply=false;
+    if(G.selChat===email){
+      renderChatMessages(email);
+      renderChatReplies(email);
+    } else {
+      contact.unread=true;
+      updateChatBadge();
+      renderChatList();
+    }
+  }, 1000+Math.random()*600);
+}
+
+function deliverChatMessage(email, text){
+  const contact=G.chatContacts.find(c=>c.email===email);
+  if(!contact) return;
+  contact.messages.push({from:email, name:contact.name, text});
+  if(G.selChat===email && document.getElementById('chat-pane').style.display!=='none'){
+    renderChatMessages(email);
+  } else {
+    contact.unread=true;
+    updateChatBadge();
+    renderChatList();
+  }
+}
+
+/* ════════════════════════════════════════
+   EMPLOYEE DIRECTORY
+════════════════════════════════════════ */
+const DIRECTORY=[
+  {name:'Daniel Mercer',   id:'DSC-00142', role:'SOC Manager',              dept:'Security Operations', email:'d.mercer@delphi-soc.com',   clearance:'Level 4'},
+  {name:G.fullName||'You', id:G.employeeId||'—',role:'Security Analyst I',  dept:'Security Operations', email:G.email||'—',                clearance:'Level 1'},
+  {name:'Sarah Chen',      id:'DSC-00891', role:'Senior Security Analyst',  dept:'Security Operations', email:'s.chen@delphi-soc.com',     clearance:'Level 2'},
+  {name:'Michael Torres',  id:'DSC-01204', role:'IR Analyst',               dept:'Security Operations', email:'m.torres@delphi-soc.com',   clearance:'Level 2'},
+  {name:'Emily Carter',    id:'DSC-01388', role:'Threat Intel Analyst',     dept:'Security Operations', email:'e.carter@delphi-soc.com',   clearance:'Level 3'},
+];
+
+function showDirectory(search){
+  const results=search
+    ? DIRECTORY.filter(e=>e.name.toLowerCase().includes(search.toLowerCase())||e.role.toLowerCase().includes(search.toLowerCase()))
+    : DIRECTORY;
+  if(!results.length){ tPrint('No results found for "'+search+'".','error'); return; }
+  tBlank();
+  tPrint('DELPHI EMPLOYEE DIRECTORY','h');
+  tPrint('Security Operations Center','sh');
+  results.forEach(e=>{
+    tPrint('─────────────────────────────────────','dim');
+    tPrint('  '+e.name+'  ·  '+e.role,'info');
+    tPrint('  '+e.dept+'  ·  Clearance: '+e.clearance,'info');
+    tPrint('  '+e.email,'info');
+    tPrint('  ID: '+e.id,'info');
+  });
+  tBlank();
+  if(!G.checks.directory){
+    checkOff('directory');
+    if(G.taskPhase===2) setTaskPanel(3);
+  }
+}
+
+/* ════════════════════════════════════════
+   TERMINAL OUTPUT
+════════════════════════════════════════ */
+function tPrint(text, cls='cmd'){
+  const o=document.getElementById('t-out');
+  const d=document.createElement('div');
+  d.className='dl '+cls;
+  d.textContent=text;
+  o.appendChild(d);
+  o.scrollTop=o.scrollHeight;
+}
+function tClear(){ document.getElementById('t-out').innerHTML=''; }
+function tBlank(){ tPrint('','blank'); }
+function updatePrompt(){
+  document.getElementById('t-pmt').textContent=G.username+'@delphi-soc:'+G.cwd+'$';
+  document.getElementById('t-path').textContent=G.cwd;
+}
+
+/* ════════════════════════════════════════
+   FILESYSTEM NAV
+════════════════════════════════════════ */
+function resolvePath(input){
+  if(!input) return G.cwd;
+  if(input==='/') return '/';
+  let base=input.startsWith('/')?'':G.cwd;
+  let parts=(base+'/'+input).split('/').filter(Boolean);
+  let r=[];
+  for(let p of parts){ if(p==='..') r.pop(); else if(p!=='.') r.push(p); }
+  return '/'+r.join('/');
+}
+function getNode(p){ return G.fs[resolvePath(p)]||null; }
+
+function listDir(path, la){
+  let p=resolvePath(path), node=G.fs[p];
+  if(!node){ tPrint("ls: cannot access '"+(path||'.')+"': No such file or directory",'error'); return; }
+  if(node.type!=='dir'){ tPrint('ls: '+path+': Not a directory','error'); return; }
+  let ch=(node.children||[]).filter(c=>la||!c.startsWith('.'));
+  if(!ch.length){ tPrint('(empty)','info'); return; }
+  ch.forEach(name=>{
+    let cp=p==='/'?'/'+name:p+'/'+name, child=G.fs[cp];
+    if(!child) return;
+    let perms=child.perms||(child.type==='dir'?'drwxr-xr-x':'-rw-r--r--');
+    tPrint(perms+'  '+name+(child.type==='dir'?'/':''), child.type==='dir'?'system':'info');
+  });
+}
+
+function catFile(path){
+  let node=getNode(path);
+  if(!node){ tPrint('cat: '+path+': No such file or directory','error'); return; }
+  if(node.type==='dir'){ tPrint('cat: '+path+': Is a directory','error'); return; }
+  tPrint(node.content||'(empty)','info');
+  // Track doc reads
+  const resolved=resolvePath(path);
+  if(resolved.startsWith('/docs/')){ G.docsRead.add(resolved); checkDocsTask(); }
+  if(resolved.startsWith('/archive/thorne/')){ G.docsRead.add(resolved); }
+}
+
+function checkDocsTask(){
+  const docFiles=['/docs/company_history.txt','/docs/security_handbook.txt','/docs/soc_overview.txt','/docs/code_of_conduct.txt'];
+  const readCount=[...G.docsRead].filter(p=>p.startsWith('/docs/')).length;
+  if(readCount>=2 && !G.checks.docs){
+    checkOff('docs');
+    if(G.taskPhase===1) setTaskPanel(2);
+  }
+}
+
+function grepFile(pat, fp){
+  let node=getNode(fp);
+  if(!node){ tPrint('grep: '+fp+': No such file','error'); return; }
+  if(node.type==='dir'){ tPrint('grep: '+fp+': Is a directory','error'); return; }
+  let m=(node.content||'').split('\n').filter(l=>l.toLowerCase().includes(pat.toLowerCase()));
+  if(!m.length){ tPrint("(no matches for '"+pat+"')",'info'); return; }
+  m.forEach(l=>tPrint(l,'success'));
+}
+
+/* ════════════════════════════════════════
+   TAB SWITCHING
+════════════════════════════════════════ */
+function switchTab(tab){
+  ['terminal','inbox','chat','oracle'].forEach(t=>{
+    document.getElementById('tab-'+t).classList.toggle('active', t===tab);
+    const pane=t==='terminal'?'terminal-pane':t+'-pane';
+    document.getElementById(pane).style.display=t===tab?'flex':'none';
+  });
+  if(tab==='terminal') setTimeout(()=>document.getElementById('t-inp').focus(), 50);
+  if(tab==='inbox'){ renderInboxList(); }
+  if(tab==='chat'){
+    renderChatList();
+    updateChatBadge();
+    if(!G.chatContacts.length){ G.chatContacts=buildChatContacts(); }
+  }
+  if(tab==='oracle'){
+    if(!G.checks.oracle){
+      checkOff('oracle');
+      if(G.taskPhase===4) setTaskPanel(5);
+    }
+    document.getElementById('oracle-widget-sec').style.display='block';
+  }
+}
+
+/* ════════════════════════════════════════
+   COMMAND PROCESSOR
+════════════════════════════════════════ */
+function processCmd(raw){
+  const cmd=raw.trim();
+  if(!cmd) return;
+  G.history.unshift(cmd);
+  G.histIdx=-1;
+  tPrint(document.getElementById('t-pmt').textContent+' '+cmd,'dim');
+
+  // ── ls ──
+  if(cmd==='ls'){ listDir(G.cwd,false); return; }
+  if(cmd==='ls -la'||cmd==='ls -al'){ listDir(G.cwd,true); return; }
+  if(cmd.startsWith('ls -la ')||cmd.startsWith('ls -al ')){ listDir(cmd.split(' ')[2],true); return; }
+  if(cmd.startsWith('ls ')){ listDir(cmd.slice(3).trim(),false); return; }
+
+  // ── cd ──
+  if(cmd.startsWith('cd ')){
+    const t=cmd.slice(3).trim(), r=resolvePath(t), n=G.fs[r];
+    if(!n){ tPrint('cd: '+t+': No such file or directory','error'); return; }
+    if(n.type!=='dir'){ tPrint('cd: '+t+': Not a directory','error'); return; }
+    G.cwd=r; updatePrompt(); return;
+  }
+
+  // ── cat ──
+  if(cmd.startsWith('cat ')){ catFile(cmd.slice(4).trim()); return; }
+
+  // ── grep ──
+  if(cmd.startsWith('grep ')){
+    const p=cmd.split(' ');
+    if(p.length<3){ tPrint('Usage: grep <pattern> <file>','error'); return; }
+    grepFile(p[1], p.slice(2).join(' ')); return;
+  }
+
+  // ── pwd ──
+  if(cmd==='pwd'){ tPrint(G.cwd,'info'); return; }
+
+  // ── clear ──
+  if(cmd==='clear'){ tClear(); return; }
+
+  // ── whoami ──
+  if(cmd==='whoami'){
+    tPrint(G.username+'@delphi-soc  ·  '+G.fullName+'  ·  '+G.employeeId,'info'); return;
+  }
+
+  // ── date ──
+  if(cmd==='date'){ tPrint('March 14, 2032  ·  Delphi Systems Time','info'); return; }
+
+  // ── ps aux ──
+  if(cmd==='ps aux'){
+    ['PID    USER              CPU%  MEM%  COMMAND',
+     '1      root              0.0   0.1   systemd',
+     '309    delphi-core       0.1   1.2   oracle-agent v8.4',
+     '882    delphi-core       0.8   2.4   soc-monitor',
+     '1024   '+G.username.padEnd(18)+'0.0   0.2   bash'].forEach(l=>tPrint(l,'info'));
+    return;
+  }
+
+  // ── ping ──
+  if(cmd.startsWith('ping ')){
+    const t=cmd.split(' ')[1]||'delphi-gateway';
+    tPrint('PING '+t+' ...','info');
+    setTimeout(()=>tPrint('Reply from '+t+': bytes=32 time=4ms TTL=64','success'), 400);
+    return;
+  }
+
+  // ── mail ──
+  if(cmd==='mail'){ switchTab('inbox'); return; }
+
+  // ── chat ──
+  if(cmd==='chat'){ switchTab('chat'); return; }
+
+  // ── oracle ──
+  if(cmd==='oracle'){ switchTab('oracle'); return; }
+
+  if(cmd==='oracle status'){
+    tBlank();
+    tPrint('ORACLE SYSTEM STATUS','h');
+    tPrint('─────────────────────────────────────────','dim');
+    tPrint('  System:          Online','info');
+    tPrint('  Version:         8.4.2','info');
+    tPrint('  System Health:   100%','success');
+    tPrint('  Prediction Confidence: Nominal','success');
+    tPrint('  Active Cases:    0','info');
+    tPrint('  Monitored Systems: 1,204','info');
+    tPrint('  Anomalies Detected: 0','info');
+    tPrint('  Infrastructure: ALL SYSTEMS NOMINAL','success');
+    tBlank();
+    if(!G.checks.oracle){
+      checkOff('oracle');
+      if(G.taskPhase===4) setTaskPanel(5);
+      document.getElementById('oracle-widget-sec').style.display='block';
+    }
+    return;
+  }
+
+  // ── directory ──
+  if(cmd==='directory'){ showDirectory(''); return; }
+  if(cmd.startsWith('directory ')){ showDirectory(cmd.slice(10).trim()); return; }
+
+  // ── setup ──
+  if(cmd==='setup'){
+    tBlank();
+    tPrint('WORKSTATION SETUP','h');
+    tPrint('Configuring environment...','info');
+    const steps=[
+      [300,  'Verifying system integrity...'],
+      [700,  'Loading security certificates...'],
+      [1100, 'Syncing Oracle analytics access...'],
+      [1500, 'Calibrating session parameters...'],
+      [1900, 'Configuring terminal defaults...'],
+      [2300, 'Setup complete.'],
+    ];
+    steps.forEach(([d,t])=>setTimeout(()=>tPrint(t, d===2300?'success':'info'), d));
+    setTimeout(()=>{
+      tBlank();
+      if(!G.checks.setup){
+        checkOff('setup');
+        if(G.taskPhase===5) setTaskPanel(6);
+      }
+    }, 2500);
+    return;
+  }
+
+  // ── help ──
+  if(cmd==='help'){
+    tBlank();
+    tPrint('DELPHI SOC TERMINAL — COMMANDS','h');
+    tPrint('──────────────────────────────────────','dim');
+    tPrint('FILESYSTEM','sh');
+    tPrint('  ls / ls -la [path]        List directory contents','info');
+    tPrint('  cd <directory>            Change directory  (cd .. to go up)','info');
+    tPrint('  cat <file>                Read a file','info');
+    tPrint('  grep <pattern> <file>     Search a file','info');
+    tPrint('  pwd                       Print current directory','info');
+    tPrint('NAVIGATION','sh');
+    tPrint('  mail                      Open your inbox','info');
+    tPrint('  chat                      Open team chat','info');
+    tPrint('  directory [name]          Browse employee directory','info');
+    tPrint('  oracle                    Open Oracle interface','info');
+    tPrint('  oracle status             Run Oracle status check','info');
+    tPrint('SYSTEM','sh');
+    tPrint('  setup                     Complete workstation setup','info');
+    tPrint('  ps aux  ·  ping <host>  ·  whoami  ·  date  ·  clear','info');
+    tBlank();
+    return;
+  }
+
+  tPrint(cmd+': command not found  —  type  help  for available commands','error');
+}
+
+/* ════════════════════════════════════════
+   INPUT HANDLING
+════════════════════════════════════════ */
+const tInp=document.getElementById('t-inp');
+tInp.addEventListener('keydown', e=>{
+  if(e.key==='Enter'){ const v=tInp.value; tInp.value=''; processCmd(v); }
+  if(e.key==='ArrowUp'){ G.histIdx=Math.min(G.histIdx+1,G.history.length-1); tInp.value=G.history[G.histIdx]||''; e.preventDefault(); }
+  if(e.key==='ArrowDown'){ G.histIdx=Math.max(G.histIdx-1,-1); tInp.value=G.histIdx===-1?'':G.history[G.histIdx]; e.preventDefault(); }
+});
+document.addEventListener('click', e=>{
+  if(document.getElementById('terminal-pane').style.display!=='none' &&
+     !e.target.closest('.sidebar') &&
+     !e.target.closest('.r-panel') &&
+     !e.target.closest('.navtabs') &&
+     !e.target.closest('.topbar'))
+    tInp.focus();
+});
+
+/* ════════════════════════════════════════
+   INIT
+════════════════════════════════════════ */
+// Hide everything except boot
+['cred-screen','acct-screen','chapter-card','popup-delphi','popup-welcome','popup-date'].forEach(hide);
+runBoot();
+</script>
+</body>
+</html>
