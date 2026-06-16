@@ -208,11 +208,42 @@ body.t-active #main-terminal{display:flex;}
 .chat-replied{font-family:var(--mono);font-size:11px;color:var(--text-dim);padding:6px 0;font-style:italic;}
 
 /* ORACLE TAB */
-#oracle-pane{display:none;flex:1;overflow-y:auto;padding:20px;}
-.o-card{background:var(--bg2);border:1px solid var(--border2);padding:16px;margin-bottom:12px;}
-.o-card-t{font-family:var(--sans);font-size:12px;font-weight:600;color:var(--text);margin-bottom:3px;}
+#oracle-pane{display:none;flex:1;overflow-y:auto;background:var(--bg);flex-direction:column;}
+.oracle-topbar{background:var(--bg2);border-bottom:1px solid var(--border2);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.oracle-topbar-l{display:flex;align-items:center;gap:14px;}
+.oracle-version{font-family:var(--mono);font-size:11px;color:var(--oracle);letter-spacing:3px;}
+.oracle-status-pill{display:flex;align-items:center;gap:6px;background:rgba(0,200,122,0.08);border:1px solid rgba(0,200,122,0.2);padding:4px 10px;}
+.oracle-status-dot{width:6px;height:6px;border-radius:50%;background:var(--success);animation:pulse 2.5s ease infinite;}
+.oracle-status-text{font-family:var(--mono);font-size:10px;color:var(--success);letter-spacing:1px;}
+.oracle-topbar-r{font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:1px;}
+.oracle-body{padding:24px;display:flex;flex-direction:column;gap:20px;}
+.oracle-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.o-metric{background:var(--bg2);border:1px solid var(--border2);padding:16px 18px;}
+.o-metric-val{font-family:var(--mono);font-size:22px;color:var(--blue2);letter-spacing:2px;margin-bottom:4px;}
+.o-metric-val.good{color:var(--success);}
+.o-metric-label{font-family:var(--sans);font-size:9px;font-weight:600;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;}
+.oracle-section-label{font-family:var(--mono);font-size:9px;color:var(--text-dim);letter-spacing:3px;text-transform:uppercase;padding-bottom:10px;border-bottom:1px solid var(--border);}
+.oracle-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.o-card{background:var(--bg2);border:1px solid var(--border2);padding:20px 22px;}
+.o-card.full{grid-column:1/-1;}
+.o-card.oracle-highlight{border-color:#2a1e50;background:rgba(26,18,50,0.3);}
+.o-card-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;}
+.o-card-t{font-family:var(--sans);font-size:13px;font-weight:600;color:var(--text);}
+.o-card-t.oracle-col{color:var(--oracle);}
+.o-card-badge{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border:1px solid;flex-shrink:0;margin-left:10px;}
+.o-card-badge.nominal{border-color:rgba(0,200,122,0.3);color:var(--success);}
+.o-card-badge.low{border-color:rgba(30,144,255,0.3);color:var(--blue2);}
+.o-card-badge.oracle{border-color:#2a1e50;color:var(--oracle);}
 .o-card-s{font-family:var(--mono);font-size:9px;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;}
-.o-card-b{font-family:var(--sans);font-size:11px;color:var(--text-mid);line-height:1.75;}
+.o-card-b{font-family:var(--sans);font-size:12px;color:var(--text-mid);line-height:1.8;}
+.o-bar-row{display:flex;align-items:center;gap:10px;margin-top:10px;}
+.o-bar-label{font-family:var(--mono);font-size:10px;color:var(--text-dim);width:100px;flex-shrink:0;}
+.o-bar-track{flex:1;height:3px;background:var(--bg3);border-radius:2px;}
+.o-bar-fill{height:100%;border-radius:2px;}
+.o-bar-fill.blue{background:var(--blue);}
+.o-bar-fill.green{background:var(--success);}
+.o-bar-fill.oracle-col{background:var(--oracle);}
+.o-bar-val{font-family:var(--mono);font-size:10px;color:var(--text-mid);width:36px;text-align:right;flex-shrink:0;}
 
 /* RIGHT PANEL */
 .r-panel{width:280px;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;}
@@ -430,26 +461,114 @@ body.t-active #main-terminal{display:flex;}
 
     <!-- ORACLE PANE -->
     <div id="oracle-pane">
-      <div class="dl h" style="margin-bottom:12px;">Oracle v8.4 — Analyst Interface</div>
-      <div class="o-card">
-        <div class="o-card-t">System Status</div>
-        <div class="o-card-s">INFRASTRUCTURE OVERVIEW</div>
-        <div class="o-card-b">All monitored systems reporting nominal. Oracle is operating within expected parameters. Run <span style="color:var(--cyan);font-family:var(--mono)">oracle status</span> in the terminal for a detailed report.</div>
+      <!-- Top status bar -->
+      <div class="oracle-topbar">
+        <div class="oracle-topbar-l">
+          <span class="oracle-version">ORACLE v8.4</span>
+          <div class="oracle-status-pill">
+            <div class="oracle-status-dot"></div>
+            <span class="oracle-status-text">OPERATIONAL</span>
+          </div>
+        </div>
+        <span class="oracle-topbar-r">March 14, 2032 &nbsp;·&nbsp; Delphi Security Operations</span>
       </div>
-      <div class="o-card">
-        <div class="o-card-t">Threat Prioritization</div>
-        <div class="o-card-s">ACTIVE ALERTS</div>
-        <div class="o-card-b">No active high-priority alerts. 3 low-priority items in queue — all currently within normal thresholds. No analyst action required.</div>
-      </div>
-      <div class="o-card">
-        <div class="o-card-t">Risk Assessment</div>
-        <div class="o-card-s">CURRENT POSTURE</div>
-        <div class="o-card-b">Overall risk posture: LOW. No significant anomalies detected in the past 72 hours. Infrastructure operating at full capacity.</div>
-      </div>
-      <div class="o-card" style="border-color:#2a1e50;">
-        <div class="o-card-t" style="color:var(--oracle);">About Oracle</div>
-        <div class="o-card-s">ORACLE v8.4 — INTERNAL</div>
-        <div class="o-card-b">Oracle is Delphi's predictive analytics and investigation assistance platform. It monitors authentication, network activity, and behavioral patterns across Delphi infrastructure in real time. Oracle outputs assist analysts — all findings require human review before action is taken.</div>
+
+      <div class="oracle-body">
+
+        <!-- Metric tiles -->
+        <div class="oracle-metrics">
+          <div class="o-metric">
+            <div class="o-metric-val good">100%</div>
+            <div class="o-metric-label">System Health</div>
+          </div>
+          <div class="o-metric">
+            <div class="o-metric-val good">0</div>
+            <div class="o-metric-label">Active Anomalies</div>
+          </div>
+          <div class="o-metric">
+            <div class="o-metric-val">1,204</div>
+            <div class="o-metric-label">Systems Monitored</div>
+          </div>
+          <div class="o-metric">
+            <div class="o-metric-val">3</div>
+            <div class="o-metric-label">Low-Priority Alerts</div>
+          </div>
+        </div>
+
+        <!-- Section: Live Status -->
+        <div class="oracle-section-label">Live Status</div>
+        <div class="oracle-grid">
+          <div class="o-card">
+            <div class="o-card-head">
+              <div class="o-card-t">Infrastructure</div>
+              <span class="o-card-badge nominal">Nominal</span>
+            </div>
+            <div class="o-card-s">ALL SYSTEMS</div>
+            <div class="o-card-b">All 1,204 monitored systems reporting within normal parameters. No outages or degraded services detected in the past 72 hours.</div>
+            <div class="o-bar-row">
+              <span class="o-bar-label">Uptime</span>
+              <div class="o-bar-track"><div class="o-bar-fill green" style="width:99%"></div></div>
+              <span class="o-bar-val">99.9%</span>
+            </div>
+            <div class="o-bar-row">
+              <span class="o-bar-label">Capacity</span>
+              <div class="o-bar-track"><div class="o-bar-fill blue" style="width:62%"></div></div>
+              <span class="o-bar-val">62%</span>
+            </div>
+          </div>
+          <div class="o-card">
+            <div class="o-card-head">
+              <div class="o-card-t">Threat Prioritization</div>
+              <span class="o-card-badge low">Low</span>
+            </div>
+            <div class="o-card-s">ACTIVE ALERTS</div>
+            <div class="o-card-b">No high-priority alerts. 3 low-priority items in queue — all within normal thresholds. No analyst action required at this time.</div>
+            <div class="o-bar-row">
+              <span class="o-bar-label">High Priority</span>
+              <div class="o-bar-track"><div class="o-bar-fill green" style="width:0%"></div></div>
+              <span class="o-bar-val">0</span>
+            </div>
+            <div class="o-bar-row">
+              <span class="o-bar-label">Low Priority</span>
+              <div class="o-bar-track"><div class="o-bar-fill blue" style="width:15%"></div></div>
+              <span class="o-bar-val">3</span>
+            </div>
+          </div>
+          <div class="o-card">
+            <div class="o-card-head">
+              <div class="o-card-t">Risk Assessment</div>
+              <span class="o-card-badge nominal">Low</span>
+            </div>
+            <div class="o-card-s">CURRENT POSTURE</div>
+            <div class="o-card-b">Overall risk posture is LOW. No significant anomalies in the past 72 hours. Authentication services, network telemetry, and access logs all reporting nominal.</div>
+          </div>
+          <div class="o-card">
+            <div class="o-card-head">
+              <div class="o-card-t">Prediction Confidence</div>
+              <span class="o-card-badge nominal">Nominal</span>
+            </div>
+            <div class="o-card-s">MODEL ACCURACY</div>
+            <div class="o-card-b">Forecasting models operating within expected accuracy bounds. Run <code>oracle status</code> in the terminal for a full diagnostic report.</div>
+            <div class="o-bar-row">
+              <span class="o-bar-label">Confidence</span>
+              <div class="o-bar-track"><div class="o-bar-fill green" style="width:94%"></div></div>
+              <span class="o-bar-val">94%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: About -->
+        <div class="oracle-section-label">About Oracle</div>
+        <div class="oracle-grid">
+          <div class="o-card oracle-highlight full">
+            <div class="o-card-head">
+              <div class="o-card-t oracle-col">Oracle v8.4 — Predictive Analytics &amp; Investigation Platform</div>
+              <span class="o-card-badge oracle">Internal</span>
+            </div>
+            <div class="o-card-b">Oracle is Delphi's centralized analytics and security platform. It monitors authentication records, network telemetry, access logs, and behavioral patterns across all Delphi infrastructure in real time. Oracle surfaces signals and prioritizes threats — all outputs require analyst review before any action is taken.<br><br>Confidence scores range from 0–100%. Scores below 20% are low-priority. Scores above 70% warrant prompt investigation. Scores above 90% require immediate analyst response. Oracle is a tool. You draw the conclusions.</div>
+          </div>
+        </div>
+
       </div>
     </div>
 
